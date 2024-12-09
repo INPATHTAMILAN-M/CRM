@@ -49,6 +49,7 @@ class Lead(models.Model):
     market_segment = models.ForeignKey(Market_Segment, on_delete=models.CASCADE)
     lead_source = models.ForeignKey(Lead_Source, on_delete=models.CASCADE, null=True, blank=True)
     lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.CASCADE, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     
     LEAD_TYPE_CHOICES = [
         ('Digital Lead', 'Digital Lead'),
