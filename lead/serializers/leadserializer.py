@@ -111,9 +111,11 @@ class PostContactSerializer(serializers.ModelSerializer):
 
 
 class PostLeadSerializer(serializers.ModelSerializer):
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    
     class Meta:
         model=Lead
-        fields=['id','name','focus_segment','lead_owner','country','state','company_number','company_email',
+        fields=['id','name','focus_segment','lead_owner','country','state','company_number','company_email','department',
                 'company_website','fax','annual_revenue','tags','market_segment','is_active','lead_type','assigned_to','lead_source','lead_source_from']
         
         read_only_fields=['created_by']
