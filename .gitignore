@@ -1,0 +1,76 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.db
+*.sqlite3
+
+# Django
+*.log
+*.pot
+*.mo
+*.DS_Store
+media/
+staticfiles/
+*.env
+
+# Ignore specific project directories and files
+crm/migrations/
+crm/__pycache__/
+crm/__init__.py
+crm/*.pyc
+crm/*.pyo
+
+
+accounts/__pycache__/
+accounts/*.pyc
+accounts/*.pyo
+accounts/*.db
+accounts/*.sqlite3
+
+lead/migrations/_
+lead/__pycache__/
+lead/*.pyc
+lead/*.pyo
+lead/*.db
+lead/*.sqlite3
+
+# Virtual Environment
+venv/
+env/
+env.bak/
+.venv/
+myenv/
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+
+# Pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Other
+*.bak
+*.tmp
