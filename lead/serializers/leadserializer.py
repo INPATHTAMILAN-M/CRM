@@ -56,7 +56,7 @@ class OpportunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
         fields = [
-            'id', 'name', 'owner', 'stage', 'note', 'opportunity_value',
+            'id', 'name', 'owner', 'note', 'opportunity_value',
             'recurring_value_per_year', 'currency_type', 'closing_date', 
             'probability_in_percentage', 'file', 'primary_contact', 'created_by'
         ]
