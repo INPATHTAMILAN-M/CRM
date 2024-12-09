@@ -69,7 +69,8 @@ class LeadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     lead_owner = serializers.SerializerMethodField()
     created_by = serializers.SerializerMethodField()
-    
+    primary_contact = ContactSerializer(read_only=True)
+    opportunities = OpportunitySerializer(many=True, read_only=True)
     class Meta:
         model = Lead
         fields = '__all__'
@@ -86,21 +87,21 @@ class LeadSerializer(serializers.ModelSerializer):
             'username': obj.created_by.username
         }
 
-    # def to_representation(self, instance):
-    #     # Get the basic representation first
-    #     representation = super().to_representation(instance)
+    def to_representation(self, instance):
+        # Get the basic representation first
+        representation = super().to_representation(instance)
 
-    #     # Check if the lead has associated opportunities
-    #     if instance.opportunity_set.exists():
-    #         # If opportunities exist, include their details
-    #         opportunities_data = OpportunitySerializer(instance.opportunity_set.all(), many=True).data
-    #         representation['opportunities'] = opportunities_data
-    #     else:
-    #         # If no opportunities, include primary contact details only
-    #         primary_contact_data = ContactSerializer(instance.contact_set.filter(is_primary=True).first()).data
-    #         representation['primary_contact'] = primary_contact_data
+        # Check if the lead has associated opportunities
+        if instance.opportunity_set.exists():
+            # If opportunities exist, include their details
+            opportunities_data = OpportunitySerializer(instance.opportunity_set.all(), many=True).data
+            representation['opportunities'] = opportunities_data
+        else:
+            # If no opportunities, include primary contact details only
+            primary_contact_data = ContactSerializer(instance.contact_set.filter(is_primary=True).first()).data
+            representation['primary_contact'] = primary_contact_data
 
-    #     return representation
+        return representation
 
 class PostContactSerializer(serializers.ModelSerializer):
     class Meta:
