@@ -22,7 +22,7 @@ class StageSerializer(serializers.ModelSerializer):
         model= Stage
         fields = ['id', 'stage']
 
-class OppSerializer(serializers.ModelSerializer):
+class OpportunitySerializer(serializers.ModelSerializer):
     class Meta:
         model= Opportunity
         fields = ['id', 'name']
@@ -75,7 +75,7 @@ class PostNoteSerializer(serializers.ModelSerializer):
         fields='__all__'
 
 class StageGetSerializer(serializers.ModelSerializer):
-    opportunity = OppSerializer(read_only=True)
+    opportunity = OpportunitySerializer(read_only=True)
     stage = StageNameSerializer(read_only=True)
     moved_by=OwnerSerializer(read_only=True)
     class Meta:

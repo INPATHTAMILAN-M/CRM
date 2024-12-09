@@ -68,7 +68,5 @@ urlpatterns = [
     path('get_lead_owners/', GetLeadOwner.as_view(), name='get_lead_owners'),
     
     
-    path('api/lead_view/', include(router.urls))
-
     
 ]
