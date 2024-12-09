@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from .routers import router
 from .views import *
 
 urlpatterns = [
@@ -7,8 +8,8 @@ urlpatterns = [
     #-by_SABARIGIRIVASAN
     
     path('focus_segments/<int:vertical_id>/', FocusSegmentListByVertical.as_view(), name='focus-segments-by-vertical'),
-    path('leaddetails/', LeadView.as_view(),name='lead_details'),              
-    path('leaddetails/<int:lead_id>/', LeadView.as_view(),name='lead_details_by_id'),
+    # path('leaddetails/', LeadView.as_view(),name='lead_details'),              
+    # path('leaddetails/<int:lead_id>/', LeadView.as_view(),name='lead_details_by_id'),
     path('dropdown/', DropdownListView.as_view(),name='drop_down'),                   
     path('dropdown/state/<int:country_id>/', DropdownListView.as_view(),name='state_drop_down'),
     
@@ -65,6 +66,9 @@ urlpatterns = [
 # ------------------------mitun-----------------------------
     path('users_for_lead/', UsersForLead.as_view(), name='users_for_lead'),
     path('get_lead_owners/', GetLeadOwner.as_view(), name='get_lead_owners'),
+    
+    
+    path('api/lead_view/', include(router.urls))
 
     
 ]

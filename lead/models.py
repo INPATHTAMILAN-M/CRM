@@ -59,7 +59,7 @@ class Lead(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} owner {self.lead_owner.username}'
 
 class Contact(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE)

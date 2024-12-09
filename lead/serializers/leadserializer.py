@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import Lead,Employee,Contact
+from ..models import Lead,Employee,Contact,Opportunity
 from accounts.models import Focus_Segment,Market_Segment,Country,State,Tag,Vertical
 from django.contrib.auth.models import User
 
@@ -43,9 +43,23 @@ class EmpSerializer(serializers.ModelSerializer):
         model = Employee
         fields = ['id', 'username']
 
+class ContactSerializer(serializers.ModelSerializer):
+    # You can include any additional fields you need from the Contact model
+    class Meta:
+        model = Contact
+        fields = ['id', 'name', 'designation', 'department', 'phone_number', 'email_id']
 
+class OpportunitySerializer(serializers.ModelSerializer):
+    # You can add related fields here as needed
+    primary_contact = ContactSerializer(read_only=True)
 
-
+    class Meta:
+        model = Opportunity
+        fields = [
+            'id', 'name', 'owner', 'stage', 'note', 'opportunity_value',
+            'recurring_value_per_year', 'currency_type', 'closing_date', 
+            'probability_in_percentage', 'file', 'primary_contact', 'created_by'
+        ]
 
 class LeadSerializer(serializers.ModelSerializer):
     market_segment = MarketSegmentSerializer(read_only=True)
@@ -53,27 +67,41 @@ class LeadSerializer(serializers.ModelSerializer):
     country = CountrySerializer(read_only=True)
     state = StateSerializer(read_only=True)
     tags = TagSerializer(many=True)
-    lead_owner = serializers.SerializerMethodField() 
-    created_by = serializers.SerializerMethodField()  
-
+    lead_owner = serializers.SerializerMethodField()
+    created_by = serializers.SerializerMethodField()
+    
     class Meta:
         model = Lead
         fields = '__all__'
 
     def get_lead_owner(self, obj):
-        # Access the lead_owner's username directly from the User model
         return {
             'id': obj.lead_owner.id,
-            'username': obj.lead_owner.username  # Directly from User model
+            'username': obj.lead_owner.username
         }
 
     def get_created_by(self, obj):
-        # Access the created_by's username directly from the User model
         return {
             'id': obj.created_by.id,
-            'username': obj.created_by.username  # Directly from User model
+            'username': obj.created_by.username
         }
-        
+
+    # def to_representation(self, instance):
+    #     # Get the basic representation first
+    #     representation = super().to_representation(instance)
+
+    #     # Check if the lead has associated opportunities
+    #     if instance.opportunity_set.exists():
+    #         # If opportunities exist, include their details
+    #         opportunities_data = OpportunitySerializer(instance.opportunity_set.all(), many=True).data
+    #         representation['opportunities'] = opportunities_data
+    #     else:
+    #         # If no opportunities, include primary contact details only
+    #         primary_contact_data = ContactSerializer(instance.contact_set.filter(is_primary=True).first()).data
+    #         representation['primary_contact'] = primary_contact_data
+
+    #     return representation
+
 class PostContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
