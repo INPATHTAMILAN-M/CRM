@@ -5,6 +5,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from ..models import Opportunity, Stage
 from ..custompagination import Paginator
@@ -14,11 +15,15 @@ from ..serializers.opportuinityserializer import (
     StageUpdateSerializer,
 )
 
+from ..filters.opportunity_filter import OpportunityFilter
+
 
 class ViewSet(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all()
-    serializer_class = OpportunitySerializer
     permission_classes = [IsAuthenticated]
+    serializer_class = OpportunitySerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = OpportunityFilter
     pagination_class = Paginator
 
     def get_queryset(self):

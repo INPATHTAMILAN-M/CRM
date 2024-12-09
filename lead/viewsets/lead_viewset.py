@@ -7,9 +7,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Min, Max
 from rest_framework.exceptions import NotFound
+from django_filters.rest_framework import DjangoFilterBackend
 
 from ..custompagination import Paginator
 from ..models import Lead, Contact, Notification
+from ..filters.lead_filter import LeadFilter
 from ..serializers.leadserializer import (
     LeadSerializer,
     PostLeadSerializer
@@ -18,9 +20,11 @@ from ..serializers.leadserializer import (
 class ViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.all()
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = LeadFilter
     serializer_class = LeadSerializer
     pagination_class = Paginator
-
+    
     def perform_create(self, serializer):
         # Save the lead and assign the current logged-in user as 'created_by'
         lead = serializer.save(created_by=self.request.user)
