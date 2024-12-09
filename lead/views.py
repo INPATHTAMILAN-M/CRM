@@ -1,11 +1,10 @@
-from django.shortcuts import render
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Min, Max
 from django.contrib.auth.models import User, Group
 
 from rest_framework.views import APIView
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -19,12 +18,10 @@ from lead.serializers.opportuinityserializer import (
     PostOpportunitySerializer,
     LeadNameSerializer,
     StageNameSerializer,
-    PostNoteSerializer,
     StageUpdateSerializer,
     StageGetSerializer
 )
 from lead.serializers.leadserializer import (
-    PostLeadSerializer,
     LeadSerializer,
     MarketSegmentSerializer,
     FocusSegmentSerializer,
@@ -34,9 +31,6 @@ from lead.serializers.leadserializer import (
     TagSerializer,
     VerticalSerializer
 )
-from lead.serializers.noteserializer import PostNoteSerializer
-from .custompagination import Paginator
-
 from accounts.models import (
     Market_Segment,
     Focus_Segment,
@@ -583,7 +577,6 @@ class OpportunityReportView(APIView):
     permission_classes=[IsAuthenticated]
     def post(self, request):
         try:
-            # Get filter parameters from request
             vertical = request.data.get('vertical')
             focus_segment = request.data.get('focus_segment')
             state = request.data.get('state')

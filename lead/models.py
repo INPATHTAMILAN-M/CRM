@@ -92,7 +92,6 @@ class Opportunity(models.Model):
     primary_contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     owner = models.ForeignKey(User, related_name='opportunities_owned', on_delete=models.CASCADE)
-    stage = models.ForeignKey(Stage, on_delete=models.CASCADE)
     note = models.TextField(null=True, blank=True)
     opportunity_value = models.FloatField()
     recurring_value_per_year = models.FloatField(null=True, blank=True)
