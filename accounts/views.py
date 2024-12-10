@@ -6,7 +6,6 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
-from .serializer import *
 
 User = get_user_model()
 
@@ -96,16 +95,3 @@ class UserProfileView(APIView):
             **employee_data,  # Include the employee data if available
         })
     
-# View for retrieving Lead_Source data
-class RetrieveLeadSource(APIView):
-    def get(self, request):
-        lead_sources = Lead_Source.objects.all()
-        serializer = LeadSourceSerializer(lead_sources, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-# View for retrieving Lead_Source_From data
-class RetrieveLeadSourceFrom(APIView):
-    def get(self, request,source_id):
-        lead_sources_from = Lead_Source_From.objects.filter(id=source_id)
-        serializer = LeadSourceFromSerializer(lead_sources_from, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)

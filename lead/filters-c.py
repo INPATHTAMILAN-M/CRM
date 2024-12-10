@@ -14,3 +14,4 @@ class LeadFilter(django_filters.FilterSet):
     class Meta:
         model = Lead
         fields = ['vertical_id', 'focus_segment', 'market_segment', 'state', 'country', 'created_on', 'annual_revenue']
+        
