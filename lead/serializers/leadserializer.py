@@ -57,7 +57,7 @@ class OpportunitySerializer(serializers.ModelSerializer):
         model = Opportunity
         fields = [
             'id', 'name', 'owner', 'note', 'opportunity_value',
-            'recurring_value_per_year', 'currency_type', 'closing_date', 
+            'recurring_value_per_year', 'currency_type', 'closing_date', 'stage',
             'probability_in_percentage', 'file', 'primary_contact', 'created_by'
         ]
 

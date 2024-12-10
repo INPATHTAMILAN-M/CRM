@@ -1,6 +1,19 @@
 from django.db import models
-from accounts.models import Focus_Segment, Market_Segment, Log_Stage, Country, State, Tag, Contact_Status, Lead_Source, Stage, Lead_Source_From
 from django.contrib.auth.models import User
+from accounts.models import (
+    Focus_Segment,
+    Market_Segment,
+    Log_Stage,
+    Country,
+    State,
+    Tag,
+    Contact_Status,
+    Lead_Source,
+    Stage,
+    Lead_Source_From
+)
+
+
 
 class Department(models.Model):
     department = models.CharField(max_length=255)
@@ -91,6 +104,7 @@ class Opportunity(models.Model):
     lead = models.ForeignKey(Lead, null=True, blank=True, on_delete=models.SET_NULL)
     primary_contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
+    stage = models.ForeignKey(Stage, on_delete=models.CASCADE,null=True, blank=True)
     owner = models.ForeignKey(User, related_name='opportunities_owned', on_delete=models.CASCADE)
     note = models.TextField(null=True, blank=True)
     opportunity_value = models.FloatField()

@@ -49,26 +49,21 @@ class OpportunitySerializer(serializers.ModelSerializer):
 class PostOpportunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
-        fields = ['id','lead','name','owner','opportunity_value','currency_type','closing_date','probability_in_percentage',
-                  "note","recurring_value_per_year","file"]
-        read_only_fields=['created_by']
-
-    # def create(self, validated_data):
-    #     if validated_data.get("stage_data"):
-    #         stage = Stage.objects.get(id=validated_data.get("stage").id)
-    #         validated_data["probability_in_percentage"] = stage.probability
-    #         opportunity = super().create(validated_data)
-    #         stage_data = {
-    #             'stage': stage.id,
-    #             'moved_by': self.context['request'].user.id,
-                 
-    #         }
-    #         stage_serializer = StageUpdateSerializer(data=stage_data)
-    #         if stage_serializer.is_valid():
-    #             stage_serializer.save()
-    #         return opportunity
-    #     else:
-    #         return super().create(validated_data)  
+        fields = [
+            'id',
+            'lead',
+            'name',
+            'owner',
+            'opportunity_value',
+            'currency_type',
+            'closing_date',
+            'probability_in_percentage',
+            'stage',
+            'note',
+            'recurring_value_per_year',
+            'file'
+        ]
+        read_only_fields = ['created_by']
           
 class LeadNameSerializer(serializers.ModelSerializer):
     class Meta:

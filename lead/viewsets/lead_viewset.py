@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Min, Max
-from rest_framework.exceptions import NotFound
 from django_filters.rest_framework import DjangoFilterBackend
 
 from ..custompagination import Paginator
