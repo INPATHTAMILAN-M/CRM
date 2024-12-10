@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from ..models import Lead,Employee,Contact,Opportunity
-from accounts.models import Focus_Segment,Market_Segment,Country,State,Tag,Vertical
+from accounts.models import Focus_Segment,Market_Segment,Country,State,Tag,Vertical,Lead_Source, Lead_Source_From
+from ..models import Lead_Status, Department 
 from django.contrib.auth.models import User
 
 
@@ -43,6 +44,28 @@ class EmpSerializer(serializers.ModelSerializer):
         model = Employee
         fields = ['id', 'username']
         
+class LeadSourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Source
+        fields = '__all__'
+
+class LeadSourceFromSerializer(serializers.ModelSerializer):
+    source = LeadSourceSerializer(read_only=True)  # Nested serializer for LeadSource
+
+    class Meta:
+        model = Lead_Source_From
+        fields = '__all__'
+
+class LeadStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Status
+        fields = '__all__'
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = '__all__'
+
 class ContactSerializerList(serializers.ModelSerializer):
     # You can include any additional fields you need from the Contact model
     class Meta:
@@ -78,6 +101,12 @@ class LeadSerializer(serializers.ModelSerializer):
     primary_contact = ContactSerializer(read_only=True)
     opportunities = OpportunitySerializer(many=True, read_only=True)
     contacts = ContactSerializerList(many=True, read_only=True)
+    assigned_to = serializers.SerializerMethodField()
+    lead_source = LeadSourceSerializer(read_only=True)  # Nested serializer for LeadSource
+    lead_source_from = LeadSourceFromSerializer(read_only=True)  # Nested serializer for LeadSourceFrom
+    lead_status = LeadStatusSerializer(read_only=True)  # Nested serializer for LeadStatus
+    department = DepartmentSerializer(read_only=True)  # Nested serializer for Department
+
     class Meta:
         model = Lead
         fields = '__all__'
@@ -92,6 +121,12 @@ class LeadSerializer(serializers.ModelSerializer):
         return {
             'id': obj.created_by.id,
             'username': obj.created_by.username
+        }
+        
+    def get_assigned_to(self, obj):
+        return {
+            'id': obj.assigned_to.id,
+            'username': obj.assigned_to.username
         }
 
     def to_representation(self, instance):
