@@ -1,5 +1,7 @@
 from rest_framework.routers import DefaultRouter
 
+from accounts.viewsets.users_viewset import GetLeadOwnerViewSet, UsersForLeadViewSet
+from lead.viewsets.contact_viewset import ContactViewSet
 from lead.viewsets.department_viewset import DepartmentViewSet
 from lead.viewsets.lead_status_viewset import LeadStatusViewSet
 from lead.viewsets.source_from_viewset import LeadSourceFromViewSet
@@ -16,5 +18,8 @@ router.register(r'log', log_viewset.LogViewSet)
 router.register(r'stage', stage_viewset.StageViewSet)
 router.register(r'lead_statuses', LeadStatusViewSet)
 router.register(r'departments', DepartmentViewSet)
+router.register(r'users_for_lead', UsersForLeadViewSet)
+router.register(r'get_lead_owner', GetLeadOwnerViewSet, basename='get_lead_owner_unique')
+router.register(r'contacts', ContactViewSet)
 
 urlpatterns = router.urls

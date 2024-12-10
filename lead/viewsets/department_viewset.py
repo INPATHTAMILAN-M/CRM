@@ -7,5 +7,5 @@ from ..filters.department_filter import DepartmentFilter
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-    filter_backends = (DjangoFilterBackend,)  # Specify the filter backend
-    filterset_class = DepartmentFilter  # Use the filter class here
+    filter_backends = (DjangoFilterBackend,) 
+    filterset_class = DepartmentFilter 

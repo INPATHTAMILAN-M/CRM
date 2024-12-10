@@ -42,7 +42,13 @@ class EmpSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ['id', 'username']
-
+        
+class ContactSerializerList(serializers.ModelSerializer):
+    # You can include any additional fields you need from the Contact model
+    class Meta:
+        model = Contact
+        fields = '__all_'
+        
 class ContactSerializer(serializers.ModelSerializer):
     # You can include any additional fields you need from the Contact model
     class Meta:
@@ -71,6 +77,7 @@ class LeadSerializer(serializers.ModelSerializer):
     created_by = serializers.SerializerMethodField()
     primary_contact = ContactSerializer(read_only=True)
     opportunities = OpportunitySerializer(many=True, read_only=True)
+    contacts = ContactSerializerList(many=True, read_only=True)
     class Meta:
         model = Lead
         fields = '__all__'
@@ -100,7 +107,8 @@ class LeadSerializer(serializers.ModelSerializer):
             # If no opportunities, include primary contact details only
             primary_contact_data = ContactSerializer(instance.contact_set.filter(is_primary=True).first()).data
             representation['primary_contact'] = primary_contact_data
-
+            
+        representation['contacts'] = ContactSerializer(instance.contact_set.all(), many=True).data
         return representation
 
 class PostContactSerializer(serializers.ModelSerializer):

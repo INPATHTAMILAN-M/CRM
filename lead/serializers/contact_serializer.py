@@ -14,14 +14,13 @@ from django.contrib.auth.models import User
 class ContactSerializer(serializers.ModelSerializer):
     lead = serializers.PrimaryKeyRelatedField(queryset=Lead.objects.all())
     status = serializers.PrimaryKeyRelatedField(queryset=Contact_Status.objects.all())
-    lead_source = serializers.PrimaryKeyRelatedField(queryset=Lead_Source.objects.all())
     created_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     
     class Meta:
         model = Contact
         fields = [
             'id', 'lead', 'name', 'status', 'designation',
-            'department', 'phone_number', 'email_id', 'lead_source',
+            'department', 'phone_number', 'email_id',
             'created_by', 'created_on', 'is_active'
         ]
 
@@ -38,11 +37,6 @@ class ContactSerializer(serializers.ModelSerializer):
             'id': instance.status.id,
             'status': instance.status.status,
         } if instance.status else None
-
-        representation['lead_source'] = {
-            'id': instance.lead_source.id,
-            'source': instance.lead_source.source,
-        } if instance.lead_source else None
 
         representation['created_by'] = {
             'id': instance.created_by.id,
