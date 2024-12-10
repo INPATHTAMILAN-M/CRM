@@ -31,8 +31,8 @@ class PostLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Log
         fields = [
-            'id', 'contact', 'lead', 'opportunity', 'focus_segment', 'follow_up_date_time',
-            'log_stage', 'details', 'file', 'created_by', 'created_on', 'is_active', 'logtype'
+            'id', 'contact','lead', 'opportunity', 'focus_segment', 'follow_up_date_time',
+            'log_stage', 'details', 'file', 'created_on', 'is_active', 'logtype'
         ]
 
     def validate(self, data):
@@ -49,6 +49,7 @@ class PostLogSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Create the Log instance
+        validated_data['created_by'] = self.context['request'].user
         log = super().create(validated_data)
 
         if log.follow_up_date_time:

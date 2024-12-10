@@ -159,7 +159,7 @@ class Task(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    tasktype = models.CharField(max_length=10, choices=[('M', 'Manual'), ('A', 'Automatic')])
+    tasktype = models.CharField(max_length=10, choices=[('Manual', 'Manual'), ('Automatic', 'Automatic')])
 
     def __str__(self):
         return f'Task for {self.contact.name}'
