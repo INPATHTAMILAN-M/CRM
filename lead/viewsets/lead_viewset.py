@@ -16,7 +16,7 @@ from ..serializers.lead_serializer import (
     PostLeadSerializer
 )
 
-class ViewSet(viewsets.ModelViewSet):
+class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]

@@ -7,7 +7,7 @@ urlpatterns = [
     #LEAD LIST
     #-by_SABARIGIRIVASAN
     
-    path('focus_segments/<int:vertical_id>/', FocusSegmentListByVertical.as_view(), name='focus-segments-by-vertical'),
+    # path('focus_segments/<int:vertical_id>/', FocusSegmentListByVertical.as_view(), name='focus-segments-by-vertical'),
     # path('leaddetails/', LeadView.as_view(),name='lead_details'),              
     # path('leaddetails/<int:lead_id>/', LeadView.as_view(),name='lead_details_by_id'),
     path('dropdown/', DropdownListView.as_view(),name='drop_down'),                   

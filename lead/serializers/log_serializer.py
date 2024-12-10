@@ -22,17 +22,18 @@ class ContactSerializer(serializers.ModelSerializer):
 #         model = Task
 #         fields = ['task_date_time', 'task_detail']
 
-# class TaskAssignmentSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Task_Assignment
-#         fields = ['assigned_to', 'assignment_note']
+class TaskAssignmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task_Assignment
+        fields = ['assigned_to', 'assignment_note']
 
 class PostLogSerializer(serializers.ModelSerializer):
+    task_assignment = TaskAssignmentSerializer(write_only=True)
     class Meta:
         model = Log
         fields = [
             'id', 'contact','lead', 'opportunity', 'focus_segment', 'follow_up_date_time',
-            'log_stage', 'details', 'file', 'created_on', 'is_active', 'logtype'
+            'log_stage', 'details', 'file', 'created_on', 'is_active', 'logtype', 'task_assignment'
         ]
 
     def validate(self, data):
@@ -46,8 +47,8 @@ class PostLogSerializer(serializers.ModelSerializer):
             
         return data
     
-
     def create(self, validated_data):
+        task_assignment_data = validated_data.pop('task_assignment', None)
         # Create the Log instance
         validated_data['created_by'] = self.context['request'].user
         log = super().create(validated_data)
@@ -64,15 +65,15 @@ class PostLogSerializer(serializers.ModelSerializer):
             )
 
             # Create Task Assignment
-            Task_Assignment.objects.create(
-                task=task,
-                assigned_to=log.created_by,
-                assigned_by=log.created_by,
-                assignment_note='Task created automatically',
-            )
+            if task_assignment_data:
+                Task_Assignment.objects.create(
+                    task=task,
+                    assigned_to=task_assignment_data['assigned_to'],
+                    assigned_by=log.created_by,
+                    assignment_note=task_assignment_data.get('assignment_note', 'Task created automatically'),
+                )
 
         return log
-
 class GetLogSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     lead = LeadSerializer()
