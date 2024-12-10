@@ -83,6 +83,14 @@ class GetLogSerializer(serializers.ModelSerializer):
             'log_stage', 'details', 'file', 'created_by', 'created_on', 'is_active', 'logtype'
         ]
 
+class PatchLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Log
+        fields = [
+            'id', 'contact', 'lead', 'opportunity', 'focus_segment', 'follow_up_date_time',
+            'log_stage', 'details', 'file', 'created_by', 'created_on', 'is_active', 'logtype'
+        ]
+
 class ListLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Log
