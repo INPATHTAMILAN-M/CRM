@@ -11,7 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from ..custompagination import Paginator
 from ..models import Lead, Contact, Notification
 from ..filters.lead_filter import LeadFilter
-from ..serializers.leadserializer import (
+from ..serializers.lead_serializer import (
     LeadSerializer,
     PostLeadSerializer
 )
