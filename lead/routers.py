@@ -21,7 +21,7 @@ router.register(r'departments', DepartmentViewSet)
 router.register(r'users_for_lead', UsersForLeadViewSet)
 router.register(r'get_lead_owner', GetLeadOwnerViewSet, basename='get_lead_owner_unique')
 router.register(r'contacts', ContactViewSet)
-router.register(r'focuse_segmant',focuse_segmant_viewset)
+# router.register(r'focuse_segmant',focuse_segmant_viewset)
 
 
 urlpatterns = router.urls
