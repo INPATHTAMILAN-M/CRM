@@ -74,6 +74,9 @@ class PostLogSerializer(serializers.ModelSerializer):
                 )
 
         return log
+    
+
+    
 class GetLogSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     lead = LeadSerializer()

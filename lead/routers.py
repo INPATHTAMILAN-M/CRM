@@ -11,6 +11,7 @@ from lead.viewsets.opportunity_viewset import OpportunityViewset
 from lead.viewsets.log_viewset import LogViewSet
 from lead.viewsets.stage_viewset import StageViewSet
 from lead.viewsets.focuse_segmant_viewset import FocusSegmentViewSet
+from lead.viewsets.log_stage_viewset import LogStageViewSet
 
 
 # Create a router and register the LeadViewSet
@@ -20,7 +21,7 @@ router.register(r'opportunity', OpportunityViewset)
 router.register(r'lead_sources', LeadSourceViewSet)
 router.register(r'lead_sources_from', LeadSourceFromViewSet)
 router.register(r'log', LogViewSet)
-router.register(r'stage', StageViewSet)
+router.register(r'log-stage', LogStageViewSet)
 router.register(r'lead_statuses', LeadStatusViewSet)
 router.register(r'departments', DepartmentViewSet)
 router.register(r'users_for_lead', UsersForLeadViewSet)
