@@ -6,7 +6,6 @@ from ..models import Log,Lead,Contact,Opportunity,Focus_Segment,Log_Stage
 
 class LogFilter(django_filters.FilterSet):
     created_on = django_filters.DateFromToRangeFilter() 
-    
     contact = django_filters.ModelChoiceFilter(queryset=Contact.objects.all())
     lead = django_filters.ModelChoiceFilter(queryset=Lead.objects.all())
     opportunity = django_filters.ModelChoiceFilter(queryset=Opportunity.objects.all())
