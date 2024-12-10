@@ -6,7 +6,7 @@ from lead.viewsets.department_viewset import DepartmentViewSet
 from lead.viewsets.lead_status_viewset import LeadStatusViewSet
 from lead.viewsets.source_from_viewset import LeadSourceFromViewSet
 from lead.viewsets.source_viewset import LeadSourceViewSet
-from .viewsets import lead_viewset, opportunity_viewset,log_viewset, stage_viewset
+from .viewsets import lead_viewset, opportunity_viewset,log_viewset, stage_viewset, focuse_segmant_viewset
 
 # Create a router and register the LeadViewSet
 router = DefaultRouter()
@@ -21,5 +21,7 @@ router.register(r'departments', DepartmentViewSet)
 router.register(r'users_for_lead', UsersForLeadViewSet)
 router.register(r'get_lead_owner', GetLeadOwnerViewSet, basename='get_lead_owner_unique')
 router.register(r'contacts', ContactViewSet)
+router.register(r'focuse_segmant',focuse_segmant_viewset)
+
 
 urlpatterns = router.urls
