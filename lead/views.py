@@ -1651,7 +1651,7 @@ from django.http import JsonResponse
 import json
 from .models import Log_Stage, Log, Task, Lead_Assignment, Notification
 from django.contrib.auth.models import User
-from .serializers.logserializer import LogCreateUpdateSerializer, LogReadSerializer
+# from .serializers.logserializer import LogCreateUpdateSerializer, LogReadSerializer
 from .serializers.taskserializer import TaskSerializer
 from .serializers.employeeserializer import EmployeeSerializer
 from .serializers.logstageserializer import LogStageSerializer
@@ -1773,149 +1773,149 @@ class ContactDetailView(APIView):
             return JsonResponse({"message": "Contact not found"}, status=404)
 
 # Creating, Editing, Deleting Log and Task
-class LogManagement(APIView):
-    permission_classes=[IsAuthenticated]
-     # API for retrieving a specific Log
-    def get(self, request, id):
-        try:
-            log = Log.objects.get(id=id)
-            serializer = LogReadSerializer(log)
-            return JsonResponse(serializer.data, status = 200)
-        except Log.DoesNotExist:
-            return JsonResponse({"message" : "Log not found"}, status =404)
+# class LogManagement(APIView):
+#     permission_classes=[IsAuthenticated]
+#      # API for retrieving a specific Log
+#     def get(self, request, id):
+#         try:
+#             log = Log.objects.get(id=id)
+#             serializer = LogReadSerializer(log)
+#             return JsonResponse(serializer.data, status = 200)
+#         except Log.DoesNotExist:
+#             return JsonResponse({"message" : "Log not found"}, status =404)
     
-    # Create Log and Task
-    def post(self, request, id):
-        try:
-            contact = Contact.objects.get(id=id)
-            lead = contact.lead  # Get the related lead to retrieve focus_segment
-        except Contact.DoesNotExist:
-            return JsonResponse({'message': 'Contact not found'}, status=404)
+#     # Create Log and Task
+#     def post(self, request, id):
+#         try:
+#             contact = Contact.objects.get(id=id)
+#             lead = contact.lead  # Get the related lead to retrieve focus_segment
+#         except Contact.DoesNotExist:
+#             return JsonResponse({'message': 'Contact not found'}, status=404)
 
         
-        data = request.data
+#         data = request.data
         
-        log_stage_id = data.get('log_stage')
-        try:
-            log_stage = Log_Stage.objects.get(id=log_stage_id)
-        except Log_Stage.DoesNotExist:
-            return JsonResponse({'message': 'Log stage not found'}, status=404)
+#         log_stage_id = data.get('log_stage')
+#         try:
+#             log_stage = Log_Stage.objects.get(id=log_stage_id)
+#         except Log_Stage.DoesNotExist:
+#             return JsonResponse({'message': 'Log stage not found'}, status=404)
 
-        # Hardcoded user for testing purposes
-        created_by_user = request.user
+#         # Hardcoded user for testing purposes
+#         created_by_user = request.user
 
-        log_data = {
-            'contact': contact.id,
-            'focus_segment': lead.focus_segment.id,
-            'follow_up_date_time': data.get('follow_up_date_time'),
-            'log_stage': log_stage.id,
-            'details': data.get('details'),
-            'file': request.FILES.get('file'),
-            'created_by': created_by_user.id,
-        }
-        log_serializer = LogCreateUpdateSerializer(data=log_data)
-        if log_serializer.is_valid():
-            log = log_serializer.save()  # Save the log
+#         log_data = {
+#             'contact': contact.id,
+#             'focus_segment': lead.focus_segment.id,
+#             'follow_up_date_time': data.get('follow_up_date_time'),
+#             'log_stage': log_stage.id,
+#             'details': data.get('details'),
+#             'file': request.FILES.get('file'),
+#             'created_by': created_by_user.id,
+#         }
+#         log_serializer = LogCreateUpdateSerializer(data=log_data)
+#         if log_serializer.is_valid():
+#             log = log_serializer.save()  # Save the log
 
-            if log.follow_up_date_time:
-                task_data = {
-                    'contact': contact.id,
-                    'log': log.id,
-                    'task_date_time': log.follow_up_date_time,
-                    'task_detail': log.details,
-                    'created_by': created_by_user.id,
-                    'is_active': True,
-                    'tasktype': 'A',
-                }
-                task_serializer = TaskSerializer(data=task_data)
-                if task_serializer.is_valid():
-                    task_serializer.save()
-                    return JsonResponse({'message': 'Log and Task created successfully'}, status=201)
-                else:
-                    log.delete()  # Rollback log creation if task fails
-                    return JsonResponse(task_serializer.errors, status=400)
-            else:
-                return JsonResponse({'message': 'Log created successfully'}, status=201)
+#             if log.follow_up_date_time:
+#                 task_data = {
+#                     'contact': contact.id,
+#                     'log': log.id,
+#                     'task_date_time': log.follow_up_date_time,
+#                     'task_detail': log.details,
+#                     'created_by': created_by_user.id,
+#                     'is_active': True,
+#                     'tasktype': 'A',
+#                 }
+#                 task_serializer = TaskSerializer(data=task_data)
+#                 if task_serializer.is_valid():
+#                     task_serializer.save()
+#                     return JsonResponse({'message': 'Log and Task created successfully'}, status=201)
+#                 else:
+#                     log.delete()  # Rollback log creation if task fails
+#                     return JsonResponse(task_serializer.errors, status=400)
+#             else:
+#                 return JsonResponse({'message': 'Log created successfully'}, status=201)
 
-        return JsonResponse(log_serializer.errors, status=400)
+#         return JsonResponse(log_serializer.errors, status=400)
 
-    # Edit Log and Task
-    def put(self, request, id):
-        try:
-            log = Log.objects.get(id=id)
-        except Log.DoesNotExist:
-            return JsonResponse({'message': 'Log not found'}, status=404)
+#     # Edit Log and Task
+#     def put(self, request, id):
+#         try:
+#             log = Log.objects.get(id=id)
+#         except Log.DoesNotExist:
+#             return JsonResponse({'message': 'Log not found'}, status=404)
 
-        data = request.data
-        log_serializer = LogCreateUpdateSerializer(log, data=data, partial=True)
+#         data = request.data
+#         log_serializer = LogCreateUpdateSerializer(log, data=data, partial=True)
 
-        if log_serializer.is_valid():
-            log = log_serializer.save()
+#         if log_serializer.is_valid():
+#             log = log_serializer.save()
 
-            follow_up_date_time = data.get('follow_up_date_time')
-            if follow_up_date_time:
-                try:
-                    task = Task.objects.get(log=log, tasktype = "A")
-                except Task.DoesNotExist:
-                    task_data = {
-                        'contact': log.contact.id,
-                        'log': log.id,
-                        'task_date_time': follow_up_date_time,
-                        'task_detail': log.details,
-                        'created_by': log.created_by.id,
-                        'is_active': True,
-                        'tasktype': 'A',
-                    }
-                    task_serializer = TaskSerializer(data=task_data)
-                    if task_serializer.is_valid():
-                        task_serializer.save()
-                        return JsonResponse({'message': 'Log updated and new Task created successfully'}, status=200)
-                    else:
-                        return JsonResponse(task_serializer.errors, status=400)
+#             follow_up_date_time = data.get('follow_up_date_time')
+#             if follow_up_date_time:
+#                 try:
+#                     task = Task.objects.get(log=log, tasktype = "A")
+#                 except Task.DoesNotExist:
+#                     task_data = {
+#                         'contact': log.contact.id,
+#                         'log': log.id,
+#                         'task_date_time': follow_up_date_time,
+#                         'task_detail': log.details,
+#                         'created_by': log.created_by.id,
+#                         'is_active': True,
+#                         'tasktype': 'A',
+#                     }
+#                     task_serializer = TaskSerializer(data=task_data)
+#                     if task_serializer.is_valid():
+#                         task_serializer.save()
+#                         return JsonResponse({'message': 'Log updated and new Task created successfully'}, status=200)
+#                     else:
+#                         return JsonResponse(task_serializer.errors, status=400)
 
-                task_data = {
-                    'task_date_time': follow_up_date_time,
-                    'task_detail': log.details,
-                }
-                task_serializer = TaskSerializer(task, data=task_data, partial=True)
-                if task_serializer.is_valid():
-                    task_serializer.save()
-                    return JsonResponse({'message': 'Log and Task updated successfully'}, status=200)
-                return JsonResponse(task_serializer.errors, status=400)
+#                 task_data = {
+#                     'task_date_time': follow_up_date_time,
+#                     'task_detail': log.details,
+#                 }
+#                 task_serializer = TaskSerializer(task, data=task_data, partial=True)
+#                 if task_serializer.is_valid():
+#                     task_serializer.save()
+#                     return JsonResponse({'message': 'Log and Task updated successfully'}, status=200)
+#                 return JsonResponse(task_serializer.errors, status=400)
 
-            # If no follow_up_date_time, only update the task detail if the task exists
-            try:
-                task = Task.objects.get(log=log, tasktype = "A")
-                task_data = {
-                    'task_detail': log.details
-                }
-                task_serializer = TaskSerializer(task, data=task_data, partial=True)
-                if task_serializer.is_valid():
-                    task_serializer.save()
-                return JsonResponse({'message': 'Log updated successfully,  task changes'}, status=200)
-            except Task.DoesNotExist:
-                return JsonResponse({'message': 'Log updated, no task changes'}, status=200)
+#             # If no follow_up_date_time, only update the task detail if the task exists
+#             try:
+#                 task = Task.objects.get(log=log, tasktype = "A")
+#                 task_data = {
+#                     'task_detail': log.details
+#                 }
+#                 task_serializer = TaskSerializer(task, data=task_data, partial=True)
+#                 if task_serializer.is_valid():
+#                     task_serializer.save()
+#                 return JsonResponse({'message': 'Log updated successfully,  task changes'}, status=200)
+#             except Task.DoesNotExist:
+#                 return JsonResponse({'message': 'Log updated, no task changes'}, status=200)
 
-        return JsonResponse(log_serializer.errors, status=400)
+#         return JsonResponse(log_serializer.errors, status=400)
 
-    # Delete Log and Task
-    def delete(self, request, id):
-        try:
-            log = Log.objects.get(id=id)
-        except Log.DoesNotExist:
-            return JsonResponse({'message': 'Log not found'}, status=404)
+#     # Delete Log and Task
+#     def delete(self, request, id):
+#         try:
+#             log = Log.objects.get(id=id)
+#         except Log.DoesNotExist:
+#             return JsonResponse({'message': 'Log not found'}, status=404)
 
-        log.is_active = False
-        log.save()
+#         log.is_active = False
+#         log.save()
 
-        try:
-            task = Task.objects.get(log =log )
-            task.is_active = False
-            task.save()
-        except Task.DoesNotExist:
-            return JsonResponse({'message': 'Task not found'}, status=404)
+#         try:
+#             task = Task.objects.get(log =log )
+#             task.is_active = False
+#             task.save()
+#         except Task.DoesNotExist:
+#             return JsonResponse({'message': 'Task not found'}, status=404)
 
-        return JsonResponse({'message': 'Log and Task deleted successfully'}, status=200)
+#         return JsonResponse({'message': 'Log and Task deleted successfully'}, status=200)
 
 # Calling log_status for creating Log
 class LogStageListView(APIView):
