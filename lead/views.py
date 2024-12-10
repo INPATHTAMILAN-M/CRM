@@ -43,45 +43,45 @@ from accounts.models import (
     Lead_Source
 )
 
-class UsersForLead(APIView):
-    def get(self, request):
-        target_groups = Group.objects.filter(name__in=["TM", "BDE", "Tele Marketer"])
-        users = User.objects.filter(groups__in=target_groups).distinct()
+# class UsersForLead(APIView):
+#     def get(self, request):
+#         target_groups = Group.objects.filter(name__in=["TM", "BDE", "Tele Marketer"])
+#         users = User.objects.filter(groups__in=target_groups).distinct()
 
-        user_data = []
-        for user in users:
-            full_name = f"{user.first_name} {user.last_name}"
-            group_names = [group.name for group in user.groups.all() if group.name in ["TM", "BDE"]]
+#         user_data = []
+#         for user in users:
+#             full_name = f"{user.first_name} {user.last_name}"
+#             group_names = [group.name for group in user.groups.all() if group.name in ["TM", "BDE"]]
             
-            user_data.append({
-                "id":user.id,
-                "full_name": full_name,
-                "groups": group_names
-            })
+#             user_data.append({
+#                 "id":user.id,
+#                 "full_name": full_name,
+#                 "groups": group_names
+#             })
 
-        # Return the user data with full name and group names
-        return Response(user_data, status=status.HTTP_200_OK)
+#         # Return the user data with full name and group names
+#         return Response(user_data, status=status.HTTP_200_OK)
     
-# get users if user group is BDM
-class GetLeadOwner(APIView):
+# # get users if user group is BDM
+# class GetLeadOwner(APIView):
 
-    def get(self, request):
-        target_groups = Group.objects.filter(name__in=["BDM"])
-        users = User.objects.filter(groups__in=target_groups).distinct()
+#     def get(self, request):
+#         target_groups = Group.objects.filter(name__in=["BDM"])
+#         users = User.objects.filter(groups__in=target_groups).distinct()
 
-        user_data = []
-        for user in users:
-            full_name = f"{user.first_name} {user.last_name}"
-            group_names = [group.name for group in user.groups.all() if group.name in ["BDM"]]
+#         user_data = []
+#         for user in users:
+#             full_name = f"{user.first_name} {user.last_name}"
+#             group_names = [group.name for group in user.groups.all() if group.name in ["BDM"]]
             
-            user_data.append({
-                "id":user.id,
-                "full_name": full_name,
-                "groups": group_names
-            })
+#             user_data.append({
+#                 "id":user.id,
+#                 "full_name": full_name,
+#                 "groups": group_names
+#             })
 
-        # Return the user data with full name and group names
-        return Response(user_data, status=status.HTTP_200_OK)
+#         # Return the user data with full name and group names
+#         return Response(user_data, status=status.HTTP_200_OK)
  
 
 

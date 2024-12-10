@@ -64,9 +64,7 @@ urlpatterns = [
     path('opportunity/stage_history/<int:opportunity_id>/', StageHistory.as_view(), name='stage-history'),
 
 # ------------------------mitun-----------------------------
-    # path('users_for_lead/', UsersForLead.as_view(), name='users_for_lead'),
-    # path('get_lead_owners/', GetLeadOwner.as_view(), name='get_lead_owners'),
-    
+
     
     
 ]

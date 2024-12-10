@@ -25,8 +25,8 @@ router.register(r'lead_statuses', LeadStatusViewSet)
 router.register(r'departments', DepartmentViewSet)
 router.register(r'users_for_lead', UsersForLeadViewSet)
 router.register(r'get_lead_owner', GetLeadOwnerViewSet, basename='get_lead_owner_unique')
-router.register(r'contacts', ContactViewSet)
 router.register(r'focuse_segmant',FocusSegmentViewSet)
+router.register(r'contact', ContactViewSet, basename='contact')
 
 
 
