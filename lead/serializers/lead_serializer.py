@@ -133,15 +133,14 @@ class LeadSerializer(serializers.ModelSerializer):
         # Get the basic representation first
         representation = super().to_representation(instance)
 
-        # Check if the lead has associated opportunities
-        if instance.opportunity_set.exists():
-            # If opportunities exist, include their details
-            opportunities_data = OpportunitySerializer(instance.opportunity_set.all(), many=True).data
-            representation['opportunities'] = opportunities_data
-        else:
-            # If no opportunities, include primary contact details only
-            primary_contact_data = ContactSerializer(instance.contact_set.filter(is_primary=True).first()).data
-            representation['primary_contact'] = primary_contact_data
+       
+        # if instance.opportunity_set.exists():
+        
+        representation['opportunities'] = OpportunitySerializer(instance.opportunity_set.all(), many=True).data
+
+        # If no opportunities, include primary contact details only
+        primary_contact_data = ContactSerializer(instance.contact_set.filter(is_primary=True).first()).data
+        representation['primary_contact'] = primary_contact_data
             
         representation['contacts'] = ContactSerializer(instance.contact_set.all(), many=True).data
         return representation
