@@ -17,7 +17,7 @@ from ..serializers.opportuinityserializer import (
 from ..filters.opportunity_filter import OpportunityFilter
 
 
-class ViewSet(viewsets.ModelViewSet):
+class OpportunityViewset(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = OpportunitySerializer
