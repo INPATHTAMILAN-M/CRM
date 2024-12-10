@@ -115,7 +115,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
     
     class Meta:
         model=Lead
-        fields=['id','name','focus_segment','lead_owner','country','state','company_number','company_email','department',
+        fields=['id','name','focus_segment','lead_owner','country','state','company_number','company_email','department','lead_status',
                 'company_website','fax','annual_revenue','tags','market_segment','is_active','lead_type','assigned_to','lead_source','lead_source_from']
         
         read_only_fields=['created_by']
