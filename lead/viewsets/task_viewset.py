@@ -13,7 +13,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_class = log_filter.LogFilter
+    # filterset_class = log_filter.LogFilter
     pagination_class = Paginator
     alowed_methods = ['GET', 'POST', 'PATCH']
     
