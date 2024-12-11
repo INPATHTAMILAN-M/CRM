@@ -16,6 +16,7 @@ from lead.viewsets.focuse_segmant_viewset import FocusSegmentViewSet
 from lead.viewsets.log_stage_viewset import LogStageViewSet
 from lead.viewsets.state_viewset import StateViewSet
 from lead.viewsets.tag_viewset import TagViewSet
+from lead.viewsets.task_viewset import TaskViewSet
 
 
 # Create a router and register the LeadViewSet
@@ -36,6 +37,8 @@ router.register(r'market_segments', MarketSegmentViewSet)
 router.register(r'tags', TagViewSet)
 router.register(r'countries', CountryViewSet)
 router.register(r'states', StateViewSet)
+router.register(r'task',TaskViewSet,basename='tasks')
+
 
 
 urlpatterns = router.urls

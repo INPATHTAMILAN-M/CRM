@@ -19,6 +19,10 @@ class Lead_Status(models.Model):
     def __str__(self):
         return self.name
 
+class Lead_Bucket(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+
 class Department(models.Model):
     department = models.CharField(max_length=255)
 
@@ -117,6 +121,7 @@ class Opportunity(models.Model):
     currency_type = models.ForeignKey(Country, on_delete=models.CASCADE)
     closing_date = models.DateField()
     probability_in_percentage = models.FloatField()
+    lead_bucket = models.ForeignKey(Lead_Bucket, null=True, blank=True, on_delete=models.SET_NULL)
     file = models.FileField(upload_to='opportunity_files', null=True, blank=True)
     created_by = models.ForeignKey(User, related_name='created_opportunities', on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)

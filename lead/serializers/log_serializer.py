@@ -35,8 +35,6 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class LogCreateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(write_only=True, required=False)
-    follow_up_date_time = serializers.DateTimeField(required=False, allow_null=True)
-
     class Meta:
         model = Log
         fields = [

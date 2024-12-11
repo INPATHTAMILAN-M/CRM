@@ -10,7 +10,7 @@ from ..filters import log_filter
 
 class LogViewSet(viewsets.ModelViewSet):
     queryset = Log.objects.all()
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = log_filter.LogFilter
     pagination_class = Paginator

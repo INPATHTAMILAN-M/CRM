@@ -57,7 +57,8 @@ class PostOpportunitySerializer(serializers.ModelSerializer):
             'stage',
             'note',
             'recurring_value_per_year',
-            'file'
+            'file',
+            "lead_bucket"
         ]
         read_only_fields = ['created_by']
           
