@@ -47,7 +47,7 @@ class LeadStatusCountViewSet(viewsets.ViewSet):
             leads_today = queryset.filter(lead_status=status, created_on=today).count()
             leads_this_month = queryset.filter(lead_status=status, created_on__gte=start_of_month).count()
 
-            lead_status_counts[status.id] = {
+            lead_status_counts[status.name] = {
                 'today': leads_today,
                 'this_month': leads_this_month
             }
