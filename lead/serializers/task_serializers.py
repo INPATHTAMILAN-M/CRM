@@ -27,9 +27,9 @@ class TaskAssignmentSerializer(serializers.ModelSerializer):
         fields = ['assigned_to',"assignment_note"]
 
 class TaskListSerializer(serializers.ModelSerializer):
-    contact = serializers.PrimaryKeyRelatedField(read_only=True)
-    log = serializers.PrimaryKeyRelatedField(read_only=True)
-    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    contact = ContactSerializer()
+    log = LogSerializer()
+    created_by = UserSerializer()
 
     class Meta:
         model = Task

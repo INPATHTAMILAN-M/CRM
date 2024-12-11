@@ -17,12 +17,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     pagination_class = Paginator
     alowed_methods = ['GET', 'POST', 'PATCH']
     
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     if user.groups.filter(name='admin').exists():
-    #         return Task.objects.all()
-    #     tasks = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
-    #     return Task.objects.filter(id__in=tasks)    
+    def get_queryset(self):
+        user = self.request.user
+        if user.groups.filter(name='admin').exists():
+            return Task.objects.all()
+        tasks = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
+        return Task.objects.filter(id__in=tasks)    
     
     def get_serializer_class(self):
         if self.action == 'create':
