@@ -2,8 +2,10 @@ from rest_framework.routers import DefaultRouter
 
 from accounts.viewsets.users_viewset import GetLeadOwnerViewSet, UsersForLeadViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
+from lead.viewsets.country_viewset import CountryViewSet
 from lead.viewsets.department_viewset import DepartmentViewSet
 from lead.viewsets.lead_status_viewset import LeadStatusViewSet
+from lead.viewsets.market_segment_viewset import MarketSegmentViewSet
 from lead.viewsets.source_from_viewset import LeadSourceFromViewSet
 from lead.viewsets.source_viewset import LeadSourceViewSet
 from lead.viewsets.lead_viewset import LeadViewSet
@@ -12,6 +14,8 @@ from lead.viewsets.log_viewset import LogViewSet
 from lead.viewsets.stage_viewset import StageViewSet
 from lead.viewsets.focuse_segmant_viewset import FocusSegmentViewSet
 from lead.viewsets.log_stage_viewset import LogStageViewSet
+from lead.viewsets.state_viewset import StateViewSet
+from lead.viewsets.tag_viewset import TagViewSet
 
 
 # Create a router and register the LeadViewSet
@@ -28,7 +32,10 @@ router.register(r'users_for_lead', UsersForLeadViewSet)
 router.register(r'get_lead_owner', GetLeadOwnerViewSet, basename='get_lead_owner_unique')
 router.register(r'focuse_segmant',FocusSegmentViewSet)
 router.register(r'contact', ContactViewSet, basename='contact')
-
+router.register(r'market_segments', MarketSegmentViewSet)
+router.register(r'tags', TagViewSet)
+router.register(r'countries', CountryViewSet)
+router.register(r'states', StateViewSet)
 
 
 urlpatterns = router.urls
