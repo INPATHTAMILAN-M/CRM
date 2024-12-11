@@ -4,12 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from ..custompagination import Paginator
 from ..models import Stage
-from ..serializers.stage_serializers import (
-    GetStageSerializer,
-    ListStageSerializer,
-    PatchStageSerializer,
-    PostStageSerializer,
-)
+from ..serializers.stage_serializers import *
+
+
 class StageViewSet(viewsets.ModelViewSet):
     queryset = Stage.objects.all()
     # permission_classes = [IsAuthenticated]
@@ -19,9 +16,9 @@ class StageViewSet(viewsets.ModelViewSet):
     
     def get_serializer_class(self):
         if self.action == 'create':
-            return PostStageSerializer
+            return StageCreateSerializer
         if self.action == 'list':
-            return ListStageSerializer
+            return StageListSerializer
         if self.action in ['update', 'partial_update']:
-            return PatchStageSerializer
-        return GetStageSerializer    
+            return StageUpdateSerializer
+        return StageRetrieveSerializer    

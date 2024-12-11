@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from ..custompagination import Paginator
 from ..models import Log
-from ..serializers.log_serializer import GetLogSerializer, PostLogSerializer, PatchLogSerializer, ListLogSerializer
+from ..serializers.log_serializer import *
 from ..filters import log_filter
 
 
@@ -18,10 +18,10 @@ class LogViewSet(viewsets.ModelViewSet):
     
     def get_serializer_class(self):
         if self.action == 'create':
-            return PostLogSerializer
+            return LogCreateSerializer
         if self.action == 'list':
-            return ListLogSerializer
+            return LogListSerializer
         if self.action in ['update', 'partial_update']:
-            return PatchLogSerializer
-        return GetLogSerializer    
+            return LogUpdateSerializer
+        return LogRetrieveSerializer    
 

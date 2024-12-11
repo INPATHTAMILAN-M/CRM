@@ -22,10 +22,6 @@ class StageSerializer(serializers.ModelSerializer):
         model= Stage
         fields = ['id', 'stage']
 
-class OpportunitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model= Opportunity
-        fields = ['id', 'name']
 
 class OpportunitySerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
