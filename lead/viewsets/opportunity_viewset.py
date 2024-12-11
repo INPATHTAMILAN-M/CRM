@@ -9,8 +9,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from ..models import Opportunity, Stage
 from ..custompagination import Paginator
 from ..serializers.opportuinityserializer import (
-    OpportunitySerializer,
-    PostOpportunitySerializer,
+    OpportunityDetailSerializer,
+    OpportunityCreateSerializer,
+    OpportunityListSerializer,
+    OpportunityUpdateSerializer,
     StageUpdateSerializer,
 )
 
@@ -19,10 +21,8 @@ from ..filters.opportunity_filter import OpportunityFilter
 
 class OpportunityViewset(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = OpportunitySerializer
+    # permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_class = OpportunityFilter
     pagination_class = Paginator
 
     def get_queryset(self):
@@ -34,43 +34,21 @@ class OpportunityViewset(viewsets.ModelViewSet):
             Q(lead__lead_owner=user) | Q(lead__created_by=user)
         ).distinct().order_by('-created_on', '-id')
 
-    def retrieve(self, request, pk=None, *args, **kwargs):
-        try:
-            opportunity = Opportunity.objects.get(id=pk)
-            serializer = self.get_serializer(opportunity)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Opportunity.DoesNotExist:
-            return Response({"detail": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return OpportunityCreateSerializer
+        if self.action == 'list':
+            return OpportunityListSerializer
+        if self.action in ['update', 'partial_update']:
+            return OpportunityUpdateSerializer
+        if self.action == 'stage_update':
+            return StageUpdateSerializer
+        return OpportunityDetailSerializer
+    
 
-    def create(self, request, *args, **kwargs):
-        data = request.data.copy()
-        data.update(request.FILES)
-        serializer = PostOpportunitySerializer(data=data)
-
-        if serializer.is_valid():
-            opportunity = serializer.save(created_by=request.user)
-            # self.handle_stage_update(opportunity, data)
-            self.send_lead_owner_email(opportunity)
-            return Response({"message": "Opportunity created", "data": serializer.data}, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def partial_update(self, request, pk=None, *args, **kwargs):
-        try:
-            opportunity = Opportunity.objects.get(id=pk)
-            data = request.data.copy()
-            data.update(request.FILES)
-            serializer = PostOpportunitySerializer(opportunity, data=data, partial=True)
-
-            if serializer.is_valid():
-                updated_opportunity = serializer.save()
-                # self.handle_stage_update(updated_opportunity, data)
-                return Response({"message": "Opportunity updated", "data": self.get_serializer(updated_opportunity).data}, status=status.HTTP_200_OK)
-
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        except Opportunity.DoesNotExist:
-            return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
+    def perform_create(self, serializer):
+        self.send_lead_owner_email(serializer.instance)
+        serializer.save(created_by=self.request.user)
         
     def destroy(self, request, pk=None, *args, **kwargs):
         try:

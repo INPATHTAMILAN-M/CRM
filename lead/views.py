@@ -11,11 +11,11 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 
 from lead.models import Contact, Opportunity_Stage, Employee, Designation, Lead, Opportunity, Notification
-from lead.serializers.contact_serializer import ContactSerializer, LeadSourceSerializer, ContactStatusSerializer, PostContactSerializer
+# from lead.serializers.contact_serializer import ContactSerializer, LeadSourceSerializer, ContactStatusSerializer, PostContactSerializer
 from lead.serializers.opportuinityserializer import (
     CurrencySerializer,
-    OpportunitySerializer,
-    PostOpportunitySerializer,
+    # OpportunitySerializer,
+    # PostOpportunitySerializer,
     LeadNameSerializer,
     StageNameSerializer,
     StageUpdateSerializer,
