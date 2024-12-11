@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from accounts.viewsets.users_viewset import GetLeadOwnerViewSet, UsersForLeadViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
 from lead.viewsets.country_viewset import CountryViewSet
+from lead.viewsets.dashboard_count_viewset import LeadStatusCountViewSet
 from lead.viewsets.department_viewset import DepartmentViewSet
 from lead.viewsets.lead_status_viewset import LeadStatusViewSet
 from lead.viewsets.market_segment_viewset import MarketSegmentViewSet
@@ -40,7 +41,7 @@ router.register(r'countries', CountryViewSet)
 router.register(r'states', StateViewSet)
 router.register(r'task',TaskViewSet,basename='tasks')
 router.register(r'lead-bucket',LeadBucketViewSet,basename='lead-bucket')
-
+router.register(r'lead_status_count', LeadStatusCountViewSet, basename='lead-status-count')
 
 
 urlpatterns = router.urls
