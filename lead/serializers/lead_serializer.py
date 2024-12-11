@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import Lead,Employee,Contact,Opportunity
+from ..models import Lead,Employee,Contact, Log,Opportunity
 from accounts.models import Focus_Segment,Market_Segment,Country, Stage,State,Tag,Vertical,Lead_Source, Lead_Source_From
 from ..models import Lead_Status, Department, Contact_Status 
 from django.contrib.auth.models import User
@@ -85,12 +85,16 @@ class ContactSerializerList(serializers.ModelSerializer):
     lead = LeadSerializer()
     status = ContactStatusSerializer()
     created_by =UserSerializer()
+    
     class Meta:
         model = Contact
         fields = '__all__'
         
 class ContactSerializer(serializers.ModelSerializer):
-    # You can include any additional fields you need from the Contact model
+    lead = LeadSerializer()
+    status = ContactStatusSerializer()
+    created_by =UserSerializer()
+
     class Meta:
         model = Contact
         fields = '__all__'
@@ -166,11 +170,20 @@ class LeadSerializer(serializers.ModelSerializer):
     lead_source_from = LeadSourceFromSerializer(read_only=True)  # Nested serializer for LeadSourceFrom
     lead_status = LeadStatusSerializer(read_only=True)  # Nested serializer for LeadStatus
     department = DepartmentSerializer(read_only=True)  # Nested serializer for Department
-
+    last_log_follow_up = serializers.SerializerMethodField()
+    
     class Meta:
         model = Lead
         fields = '__all__'
 
+    def get_last_log_follow_up(self, obj):
+        # Retrieve the latest log for this lead
+        latest_log = Log.objects.filter(lead=obj).last()
+        # If a log exists, return the follow_up_date_time, otherwise return None
+        if latest_log:
+            return latest_log.follow_up_date_time
+        return None
+    
     def get_lead_owner(self, obj):
         return {
             'id': obj.lead_owner.id,
