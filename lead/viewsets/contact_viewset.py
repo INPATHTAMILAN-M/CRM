@@ -4,31 +4,31 @@ from rest_framework.permissions import IsAuthenticated
 
 from lead.custompagination import Paginator
 from ..models import Contact
-from ..serializers.contact_serializer import ContactSerializer, PostContactSerializer
+from ..serializers.contact_serializer import *
 from ..paginations.contact_pagination import ContactPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from ..filters.contact_filter import ContactFilter
 
 class ContactViewSet(viewsets.ModelViewSet):
-    queryset = Contact.objects.all()  # Define the queryset
-    serializer_class = ContactSerializer  # Define the serializer class
-    permission_classes = [IsAuthenticated]  # Set permission classes to ensure the user is authenticated
+    queryset = Contact.objects.all()  
+    permission_classes = [IsAuthenticated]  
     pagination_class = Paginator
     filter_backends = [DjangoFilterBackend]
     filterset_class = ContactFilter
 
     def get_serializer_class(self):
-        # Return a different serializer for create (POST) operation
         if self.action == 'create':
-            return PostContactSerializer
-        return self.serializer_class
+            return ContactCreateSerializer
+        if self.action == 'list':
+            return ContactListSerializer
+        if self.action in ['update', 'partial_update']:
+            return ContactUpdateSerializer
+        return ContactDetailSerializer
 
     def perform_create(self, serializer):
-        # Override the perform_create method to add the 'created_by' field
         serializer.save(created_by=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
-        # Override the destroy method to deactivate a contact instead of deleting it
         instance = self.get_object()
         instance.is_active = False
         instance.save()
@@ -36,6 +36,4 @@ class ContactViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        # Optionally, filter or adjust the queryset based on additional conditions, such as filtering by user
-        # For example, filter contacts by the current authenticated user
         return queryset.filter(created_by=self.request.user)
