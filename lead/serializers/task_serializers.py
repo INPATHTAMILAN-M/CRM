@@ -47,14 +47,13 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         task = Task.objects.create(**validated_data)
 
         if task_assignment_data:
-            print(task_assignment_data)
             Task_Assignment.objects.create(task=task,assigned_by=task.created_by,**task_assignment_data)
         return task
 
 class TaskUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['task_date_time', 'task_detail', 'is_active', 'tasktype']
+        fields = ["contact","log",'task_date_time', 'task_detail', 'is_active']
 
 class TaskDetailSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
