@@ -6,7 +6,6 @@ class GetFocusSegmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Focus_Segment
         fields = '__all__'
-        read_only_fields = fields
 
 class PostFocusSegmentSerializer(serializers.ModelSerializer):
     class Meta:
