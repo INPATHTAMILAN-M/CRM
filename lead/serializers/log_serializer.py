@@ -107,6 +107,11 @@ class LogUpdateSerializer(serializers.ModelSerializer):
         ]
 
 class LogListSerializer(serializers.ModelSerializer):
+    contact = ContactSerializer()
+    lead = LeadSerializer()
+    opportunity = OpportunitySerializer()
+    task = serializers.SerializerMethodField()
+    
     class Meta:
         model = Log
         fields = [

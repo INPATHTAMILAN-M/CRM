@@ -27,8 +27,6 @@ class LeadViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # Save the lead and assign the current logged-in user as 'created_by'
         lead = serializer.save(created_by=self.request.user)
-
-        # Ensure that the lead_owner is valid
         try:
             lead_owner = lead.lead_owner
             if not lead_owner:
