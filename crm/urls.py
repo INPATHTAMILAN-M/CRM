@@ -25,7 +25,7 @@ urlpatterns = [
     path('api/accounts/', include('accounts.urls')),
     path('api/', include('lead.urls')),
     path('api/leads/', include(router.urls)),
-    # path('api/accounts/', include(router.urls)),
+    path('api/accounts/', include(router.urls)),
 
 ]
 if settings.DEBUG:
