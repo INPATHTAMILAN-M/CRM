@@ -12,6 +12,10 @@ class LeadSerializer(serializers.ModelSerializer):
         model = Lead
         fields = "__all__"
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active']
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -110,8 +114,8 @@ class LogListSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     lead = LeadSerializer()
     opportunity = OpportunitySerializer()
-    task = serializers.SerializerMethodField()
-    
+    created_by = UserSerializer()
+
     class Meta:
         model = Log
         fields = [
