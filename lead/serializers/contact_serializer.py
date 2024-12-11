@@ -18,11 +18,7 @@ class ContactSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Contact
-        fields = [
-            'id', 'lead', 'name', 'status', 'designation',
-            'department', 'phone_number', 'email_id',
-            'created_by', 'created_on', 'is_active'
-        ]
+        fields = '__all__'
 
     # Overriding to_representation to customize output format
     def to_representation(self, instance):

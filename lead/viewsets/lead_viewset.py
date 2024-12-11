@@ -74,7 +74,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         user = self.request.user
         # Filter leads based on user group
         if user.groups.filter(name='Admin').exists():
-            return Lead.objects.filter(is_active=True).order_by('-id')
+            return Lead.objects.all().order_by('-id')
         elif user.groups.filter(name='DM').exists():
             return Lead.objects.filter(created_by=user, is_active=True).order_by('-id')
         elif user.groups.filter(name='TM').exists() or user.groups.filter(name='BDE').exists():
@@ -119,7 +119,9 @@ class LeadViewSet(viewsets.ModelViewSet):
                         primary_contact = Contact.objects.get(id=primary_contact_id, lead=lead)
                         for field, value in primary_contact_data.items():
                             setattr(primary_contact, field, value)
+                            primary_contact.is_primary=True
                         primary_contact.save()
+                        Contact.objects.filter(lead=lead).exclude(id=primary_contact_id).update(is_primary=False)
                     except Contact.DoesNotExist:
                         return Response({"error": "Primary contact not found or doesn't belong to this lead."}, status=status.HTTP_404_NOT_FOUND)
                 else: 

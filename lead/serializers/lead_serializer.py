@@ -70,13 +70,13 @@ class ContactSerializerList(serializers.ModelSerializer):
     # You can include any additional fields you need from the Contact model
     class Meta:
         model = Contact
-        fields = '__all_'
+        fields = '__all__'
         
 class ContactSerializer(serializers.ModelSerializer):
     # You can include any additional fields you need from the Contact model
     class Meta:
         model = Contact
-        fields = ['id', 'name', 'designation', 'department', 'phone_number', 'email_id']
+        fields = '__all__'
 
 class OpportunitySerializer(serializers.ModelSerializer):
     # You can add related fields here as needed
