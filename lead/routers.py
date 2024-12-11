@@ -17,6 +17,7 @@ from lead.viewsets.log_stage_viewset import LogStageViewSet
 from lead.viewsets.state_viewset import StateViewSet
 from lead.viewsets.tag_viewset import TagViewSet
 from lead.viewsets.task_viewset import TaskViewSet
+from lead.viewsets.lead_bucket_viewset import LeadBucketViewSet
 
 
 # Create a router and register the LeadViewSet
@@ -38,6 +39,7 @@ router.register(r'tags', TagViewSet)
 router.register(r'countries', CountryViewSet)
 router.register(r'states', StateViewSet)
 router.register(r'task',TaskViewSet,basename='tasks')
+router.register(r'lead-bucket',LeadBucketViewSet,basename='lead-bucket')
 
 
 
