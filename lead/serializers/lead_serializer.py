@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from ..models import Lead,Employee,Contact,Opportunity
-from accounts.models import Focus_Segment,Market_Segment,Country,State,Tag,Vertical,Lead_Source, Lead_Source_From
+from accounts.models import Focus_Segment,Market_Segment,Country, Stage,State,Tag,Vertical,Lead_Source, Lead_Source_From
 from ..models import Lead_Status, Department 
 from django.contrib.auth.models import User
 
@@ -78,17 +78,60 @@ class ContactSerializer(serializers.ModelSerializer):
         model = Contact
         fields = '__all__'
 
-class OpportunitySerializer(serializers.ModelSerializer):
-    # You can add related fields here as needed
-    primary_contact = ContactSerializer(read_only=True)
 
+class OwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']  
+
+class LeadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
+        fields = ['id', 'name']  
+
+class CurrencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ['id','currency_short']  
+
+class StageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Stage
+        fields = ['id', 'stage']
+
+
+class OpportunitySerializer(serializers.ModelSerializer):
+    owner = OwnerSerializer(read_only=True)
+    lead = LeadSerializer(read_only=True)
+    currency_type= CurrencySerializer(read_only=True)
+    stage = StageSerializer(read_only=True)
+    created_by=OwnerSerializer(read_only=True)
+    file_url = serializers.SerializerMethodField()
+    primary_contact = ContactSerializer(read_only=True)
+    
     class Meta:
         model = Opportunity
-        fields = [
-            'id', 'name', 'owner', 'note', 'opportunity_value',
-            'recurring_value_per_year', 'currency_type', 'closing_date', 'stage',
-            'probability_in_percentage', 'file', 'primary_contact', 'created_by'
-        ]
+        fields = "__all__"
+
+    def get_file_url(self, obj):
+        if obj.file:
+            file_url = obj.file.url
+            domain = "http://121.200.52.133:8000/"
+            return f"{domain}{file_url}"
+        return None
+
+
+# class OpportunitySerializer(serializers.ModelSerializer):
+#     # You can add related fields here as needed
+#     primary_contact = ContactSerializer(read_only=True)
+
+#     class Meta:
+#         model = Opportunity
+#         fields = [
+#             'id', 'name', 'owner', 'note', 'opportunity_value',
+#             'recurring_value_per_year', 'currency_type', 'closing_date', 'stage',
+#             'probability_in_percentage', 'file', 'primary_contact', 'created_by'
+#         ]
 
 class LeadSerializer(serializers.ModelSerializer):
     market_segment = MarketSegmentSerializer(read_only=True)
