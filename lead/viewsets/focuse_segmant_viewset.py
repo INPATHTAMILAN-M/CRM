@@ -11,6 +11,8 @@ class FocusSegmentViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)  # Specify the filter backend
     filterset_class = FocusSegmentFilter  # Use the filter class here
     pagination_class = Paginator
+
+    
     def get_serializer_class(self):
         if self.action == 'create':
             return PostFocusSegmentSerializer

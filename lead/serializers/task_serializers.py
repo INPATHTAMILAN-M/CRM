@@ -2,10 +2,15 @@ from rest_framework import serializers
 from rest_framework.routers import DefaultRouter
 from django.contrib.auth.models import User
 
-from ..models import Task, Contact, Log, Task_Assignment
+from ..models import Task, Contact, Log, Task_Assignment, Lead
 
+class LeadContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
+        fields = '__all__'
 
 class ContactSerializer(serializers.ModelSerializer):
+    lead = LeadContactSerializer()
     class Meta:
         model = Contact
         fields = '__all__'
