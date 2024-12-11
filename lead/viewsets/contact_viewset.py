@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+
+from lead.custompagination import Paginator
 from ..models import Contact
 from ..serializers.contact_serializer import ContactSerializer, PostContactSerializer
 from ..paginations.contact_pagination import ContactPagination
@@ -11,7 +13,7 @@ class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()  # Define the queryset
     serializer_class = ContactSerializer  # Define the serializer class
     permission_classes = [IsAuthenticated]  # Set permission classes to ensure the user is authenticated
-    pagination_class = ContactPagination  # Set custom pagination class
+    pagination_class = Paginator
     filter_backends = [DjangoFilterBackend]
     filterset_class = ContactFilter
 

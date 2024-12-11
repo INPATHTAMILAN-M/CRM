@@ -1,4 +1,6 @@
 from rest_framework import viewsets
+
+from lead.custompagination import Paginator
 from ..models import Contact
 from ..serializers.contact_serializer import ContactSerializer
 from ..filters.contact_filter import ContactFilter  # Import the filter class
@@ -10,6 +12,7 @@ class ContactViewSet(viewsets.ModelViewSet):
     serializer_class = ContactSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ContactFilter
-    
+    pagination_class = Paginator
+
     ordering_fields = ['name', 'created_on'] 
     ordering = ['name'] 
