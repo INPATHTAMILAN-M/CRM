@@ -8,5 +8,5 @@ from ..models import Lead_Source_From
 class LeadSourceFromViewSet(viewsets.ModelViewSet):
     queryset = Lead_Source_From.objects.all()
     serializer_class = LeadSourceFromSerializer
-    filter_backends = (DjangoFilterBackend,)  # Specify that we are using Django filters
+    filter_backends = (DjangoFilterBackend,)  
     filterset_class = LeadSourceFromFilter  
