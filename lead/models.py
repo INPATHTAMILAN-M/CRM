@@ -151,7 +151,8 @@ class Log(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    logtype = models.CharField(max_length=10, choices=[('Call', 'Call'), ('Meeting', 'Meeting'), ('Email', 'Email'), ('Others', 'Others')], default='Call')
+    logtype = models.CharField(max_length=30, choices=[('Call', 'Call'), ('Opportunity', 'Opportunity'), 
+                                                       ('Email', 'Email'), ('Others', 'Others')], default='Call')
 
     def __str__(self):
         return f'Log for {self.contact.name}'

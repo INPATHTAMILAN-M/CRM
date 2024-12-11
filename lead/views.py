@@ -14,8 +14,8 @@ from lead.models import Contact, Opportunity_Stage, Employee, Designation, Lead,
 from lead.serializers.contact_serializer import ContactSerializer, LeadSourceSerializer, ContactStatusSerializer, PostContactSerializer
 from lead.serializers.opportuinityserializer import (
     CurrencySerializer,
-    OpportunitySerializer,
-    PostOpportunitySerializer,
+    # OpportunitySerializer,
+    # PostOpportunitySerializer,
     LeadNameSerializer,
     StageNameSerializer,
     StageUpdateSerializer,

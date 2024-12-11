@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from lead.models import Opportunity, User, Lead, Opportunity_Stage, Note
-from accounts.models import Stage ,Country
+from accounts.models import Stage, Country, User
 
 class OwnerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,7 +23,26 @@ class StageSerializer(serializers.ModelSerializer):
         fields = ['id', 'stage']
 
 
-class OpportunitySerializer(serializers.ModelSerializer):
+class OpportunityDetailSerializer(serializers.ModelSerializer):
+    owner = OwnerSerializer(read_only=True)
+    lead = LeadSerializer(read_only=True)
+    currency_type= CurrencySerializer(read_only=True)
+    stage = StageSerializer(read_only=True)
+    created_by=OwnerSerializer(read_only=True)
+    file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Opportunity
+        fields = "__all__"
+
+    def get_file_url(self, obj):
+        if obj.file:
+            file_url = obj.file.url
+            domain = "http://121.200.52.133:8000/"
+            return f"{domain}{file_url}"
+        return None
+    
+class OpportunityListSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
     lead = LeadSerializer(read_only=True)
     currency_type= CurrencySerializer(read_only=True)
@@ -42,7 +61,12 @@ class OpportunitySerializer(serializers.ModelSerializer):
             return f"{domain}{file_url}"
         return None
 
-class PostOpportunitySerializer(serializers.ModelSerializer):
+class OpportunityUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Opportunity
+        fields = "__all__"
+
+class OpportunityCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
         fields = [
@@ -84,7 +108,7 @@ class PostNoteSerializer(serializers.ModelSerializer):
         fields='__all__'
 
 class StageGetSerializer(serializers.ModelSerializer):
-    opportunity = OpportunitySerializer(read_only=True)
+    opportunity = OpportunityDetailSerializer(read_only=True)
     stage = StageNameSerializer(read_only=True)
     moved_by=OwnerSerializer(read_only=True)
     class Meta:
