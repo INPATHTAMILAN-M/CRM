@@ -9,7 +9,7 @@ from django.db.models import Min, Max
 from django_filters.rest_framework import DjangoFilterBackend
 
 from ..custompagination import Paginator
-from ..models import Lead, Contact, Notification
+from ..models import Lead, Contact, Lead_Assignment, Notification
 from ..filters.lead_filter import LeadFilter
 from ..serializers.lead_serializer import (
     LeadSerializer,
@@ -46,7 +46,17 @@ class LeadViewSet(viewsets.ModelViewSet):
             "is_primary": True,
         }
         Contact.objects.create(**contact_data)
-
+        
+        if lead.assigned_to :
+            lead_assignment = {
+                "lead":lead,
+                "assigned_to": lead.assigned_to,
+                "assigned_on": lead.assigned_on,
+                "assigned_by": self.request.user,
+                "is_active": True,
+            }
+            Lead_Assignment.objects.create(**lead_assignment)
+            
         # Send an email notification to the lead owner
         subject = "New Lead Created"
         message = f"A new lead has been created by {self.request.user.username}.\n\nPlease log in to the CRM system to view more details and take further action:\nhttp://crm.decodeschool.com/"

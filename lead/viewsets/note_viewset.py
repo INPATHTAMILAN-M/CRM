@@ -1,12 +1,16 @@
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from ..filters.notes_filter import NoteFilter
 from lead.models import Note
 from ..serializers.note_serializers import *
+from django_filters.rest_framework import DjangoFilterBackend
 
 class NoteViewSet(viewsets.ModelViewSet):
     queryset = Note.objects.all()
     serializer_class = NoteCreateSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = NoteFilter
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):

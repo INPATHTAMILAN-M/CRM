@@ -15,6 +15,7 @@ from ..serializers.opportuinityserializer import (
     OpportunityUpdateSerializer,
     StageUpdateSerializer,
 )
+from rest_framework import serializers
 
 from ..filters.opportunity_filter import OpportunityFilter
 
@@ -65,18 +66,28 @@ class OpportunityViewset(viewsets.ModelViewSet):
         new_stage = data.get('stage')
 
         if old_stage != new_stage:
+            # Get the new stage object
             stage = Stage.objects.get(id=new_stage)
+            
+            # Update the probability_in_percentage based on the new stage
             opportunity.probability_in_percentage = stage.probability
             opportunity.save()
 
-            stage_data = {
+            # Create a new Opportunity_Stage record to track the stage change
+            opportunity_stage_data = {
                 'opportunity': opportunity.id,
                 'stage': new_stage,
-                'moved_by': self.request.user.id,
+                'moved_by': self.request.user.id,  # The user who made the change
             }
-            stage_serializer = StageUpdateSerializer(data=stage_data)
+            
+            # Serialize the Opportunity_Stage data and save it
+            stage_serializer = StageUpdateSerializer(data=opportunity_stage_data)
             if stage_serializer.is_valid():
-                stage_serializer.save()
+                stage_serializer.save()  # Create the Opportunity_Stage
+            else:
+                # Handle errors in the serializer if any
+                raise serializers.ValidationError(stage_serializer.errors)
+
 
     def send_lead_owner_email(self, opportunity):
         """Send an email notification to the lead owner."""

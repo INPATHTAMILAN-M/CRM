@@ -1,10 +1,12 @@
 from rest_framework.routers import DefaultRouter
 
 from accounts.viewsets.users_viewset import GetLeadOwnerViewSet, UsersForLeadViewSet
+from lead.viewsets.contact_status_viewset import ContactStatusViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
 from lead.viewsets.country_viewset import CountryViewSet
 from lead.viewsets.dashboard_count_viewset import LeadStatusCountViewSet
 from lead.viewsets.department_viewset import DepartmentViewSet
+from lead.viewsets.lead_assignment_viewset import LeadAssignmentViewSet
 from lead.viewsets.lead_status_viewset import LeadStatusViewSet
 from lead.viewsets.market_segment_viewset import MarketSegmentViewSet
 from lead.viewsets.source_from_viewset import LeadSourceFromViewSet
@@ -17,6 +19,7 @@ from lead.viewsets.focuse_segmant_viewset import FocusSegmentViewSet
 from lead.viewsets.log_stage_viewset import LogStageViewSet
 from lead.viewsets.state_viewset import StateViewSet
 from lead.viewsets.tag_viewset import TagViewSet
+from lead.viewsets.task_assignment_viewset import TaskAssignmentViewSet
 from lead.viewsets.task_viewset import TaskViewSet
 from lead.viewsets.lead_bucket_viewset import LeadBucketViewSet
 
@@ -43,5 +46,8 @@ router.register(r'stages', StageViewSet, basename='stages')
 router.register(r'task', TaskViewSet, basename='tasks')
 router.register(r'lead-bucket', LeadBucketViewSet, basename='lead-bucket')
 router.register(r'lead_status_count', LeadStatusCountViewSet, basename='lead-status-count')
+router.register(r'contact_statuses', ContactStatusViewSet)
+router.register(r'task_assignments', TaskAssignmentViewSet)
+router.register(r'lead_assignments', LeadAssignmentViewSet)
 
 urlpatterns = router.urls

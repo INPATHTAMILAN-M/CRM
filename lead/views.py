@@ -87,147 +87,147 @@ from accounts.models import (
 
 
         
-class FocusSegmentListByVertical(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, vertical_id):
-        focus_segments = Focus_Segment.objects.filter(vertical_id=vertical_id, is_active=True)
-        serializer = FocusSegmentSerializer(focus_segments, many=True)
-        return Response(serializer.data)
+# class FocusSegmentListByVertical(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, vertical_id):
+#         focus_segments = Focus_Segment.objects.filter(vertical_id=vertical_id, is_active=True)
+#         serializer = FocusSegmentSerializer(focus_segments, many=True)
+#         return Response(serializer.data)
 
 
-class DropdownListView(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, country_id=None):
-        dropdown_type = request.query_params.get('type')
+# class DropdownListView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, country_id=None):
+#         dropdown_type = request.query_params.get('type')
 
-        if dropdown_type == 'market_segment':
-            market_segments=Market_Segment.objects.all()
-            serializer=MarketSegmentSerializer(market_segments,many=True)
-            return Response(serializer.data)
-        elif dropdown_type == 'focus_segment':
-            focus_segments=Focus_Segment.objects.all()
-            serializer=FocusSegmentSerializer(focus_segments,many=True)
-            return Response(serializer.data)
-        elif dropdown_type == 'country':
-            countries=Country.objects.all()
-            serializer=CountrySerializer(countries,many=True)
-            return Response(serializer.data)
-        elif dropdown_type == 'state' and country_id:
-            states=State.objects.filter(country=country_id)
-            serializer=StateSerializer(states,many=True)
-            return Response(serializer.data)
-        elif dropdown_type =='tags':
-            tags=Tag.objects.all()
-            serializer=TagSerializer(tags,many=True)
-            return Response(serializer.data)
+#         if dropdown_type == 'market_segment':
+#             market_segments=Market_Segment.objects.all()
+#             serializer=MarketSegmentSerializer(market_segments,many=True)
+#             return Response(serializer.data)
+#         elif dropdown_type == 'focus_segment':
+#             focus_segments=Focus_Segment.objects.all()
+#             serializer=FocusSegmentSerializer(focus_segments,many=True)
+#             return Response(serializer.data)
+#         elif dropdown_type == 'country':
+#             countries=Country.objects.all()
+#             serializer=CountrySerializer(countries,many=True)
+#             return Response(serializer.data)
+#         elif dropdown_type == 'state' and country_id:
+#             states=State.objects.filter(country=country_id)
+#             serializer=StateSerializer(states,many=True)
+#             return Response(serializer.data)
+#         elif dropdown_type =='tags':
+#             tags=Tag.objects.all()
+#             serializer=TagSerializer(tags,many=True)
+#             return Response(serializer.data)
         
-        elif dropdown_type == 'owner':
-            designations = ['BDM']
-            employees = Employee.objects.filter(designation__designation__in=designations, is_active=True)
-            serializer = EmpSerializer(employees, many=True)
-            return Response(serializer.data)
+#         elif dropdown_type == 'owner':
+#             designations = ['BDM']
+#             employees = Employee.objects.filter(designation__designation__in=designations, is_active=True)
+#             serializer = EmpSerializer(employees, many=True)
+#             return Response(serializer.data)
         
-        elif dropdown_type=='created_by':
-            employees = Employee.objects.all()
-            serializer = EmpSerializer(employees, many=True)
-            return Response(serializer.data)
+#         elif dropdown_type=='created_by':
+#             employees = Employee.objects.all()
+#             serializer = EmpSerializer(employees, many=True)
+#             return Response(serializer.data)
         
-        elif dropdown_type=='vertical':
-            verticals = Vertical.objects.all()
-            serializer = VerticalSerializer(verticals, many=True)
-            return Response(serializer.data)
+#         elif dropdown_type=='vertical':
+#             verticals = Vertical.objects.all()
+#             serializer = VerticalSerializer(verticals, many=True)
+#             return Response(serializer.data)
         
-        elif dropdown_type == 'assigned_to':
-            designations = ['TM', 'BDM', 'BDE']
-            employees = Employee.objects.filter(designation__designation__in=designations, is_active=True)
-            serializer = EmpSerializer(employees, many=True)
-            return Response(serializer.data)
+#         elif dropdown_type == 'assigned_to':
+#             designations = ['TM', 'BDM', 'BDE']
+#             employees = Employee.objects.filter(designation__designation__in=designations, is_active=True)
+#             serializer = EmpSerializer(employees, many=True)
+#             return Response(serializer.data)
         
 
-        else:
-            return Response({'error': 'Invalid dropdown type or missing parameters.'}, status=status.HTTP_400_BAD_REQUEST)
+#         else:
+#             return Response({'error': 'Invalid dropdown type or missing parameters.'}, status=status.HTTP_400_BAD_REQUEST)
 
-from django.db.models import Q, Min, Max
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import Lead
-from .serializers.leadfilterserializer import LeadFilterSerializer
+# from django.db.models import Q, Min, Max
+# from rest_framework.pagination import PageNumberPagination
+# from rest_framework.response import Response
+# from rest_framework.views import APIView
+# from .models import Lead
+# from .serializers.leadfilterserializer import LeadFilterSerializer
 
-class LeadPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 1000
+# class LeadPagination(PageNumberPagination):
+#     page_size = 10
+#     page_size_query_param = 'page_size'
+#     max_page_size = 1000
 
-class LeadFilterView(APIView):
-    pagination_class = LeadPagination
-    def post(self, request, *args, **kwargs):
-        return self.filter_and_paginate(request)
+# class LeadFilterView(APIView):
+#     pagination_class = LeadPagination
+#     def post(self, request, *args, **kwargs):
+#         return self.filter_and_paginate(request)
 
-    def get(self, request, *args, **kwargs):
-        return self.filter_and_paginate(request)
+#     def get(self, request, *args, **kwargs):
+#         return self.filter_and_paginate(request)
 
-    def filter_and_paginate(self, request):
-        try:
-            body = request.data if request.method == 'POST' else request.query_params
-            user = request.user
-            if user.employee.designation.designation=='ADMIN':
-                leads=Lead.objects.filter(is_active=True).order_by('-id')
-            else:
-                leads = Lead.objects.filter(Q(lead_owner=user)|Q(created_by=user)|Q(lead_assignment__assigned_to=user),is_active=True).distinct().order_by('-id')
+#     def filter_and_paginate(self, request):
+#         try:
+#             body = request.data if request.method == 'POST' else request.query_params
+#             user = request.user
+#             if user.employee.designation.designation=='ADMIN':
+#                 leads=Lead.objects.filter(is_active=True).order_by('-id')
+#             else:
+#                 leads = Lead.objects.filter(Q(lead_owner=user)|Q(created_by=user)|Q(lead_assignment__assigned_to=user),is_active=True).distinct().order_by('-id')
 
-            # Apply filters
-            if vertical_ids := body.get('vertical_id'):
-                leads = leads.filter(focus_segment__vertical__id__in=vertical_ids)
-            if focus_segment_ids := body.get('focus_segment'):
-                leads = leads.filter(focus_segment__id__in=focus_segment_ids)
-            if market_segment_ids := body.get('market_segment'):
-                leads = leads.filter(market_segment__id__in=market_segment_ids)
-            if state_ids := body.get('state_id'):
-                leads = leads.filter(state__id__in=state_ids)
-            if country_ids := body.get('country_id'):
-                leads = leads.filter(country__id__in=country_ids)
-            if created_on_dates := body.get('created_on'):
-                leads = leads.filter(created_on__in=created_on_dates)
-            if tag_ids := body.get('tags'):
-                leads = leads.filter(tags__in=tag_ids).distinct()
-            if min_revenue := body.get('min_revenue'):
-                leads = leads.filter(annual_revenue__gte=min_revenue).exclude(annual_revenue__isnull=True)
-            if max_revenue := body.get('max_revenue'):
-                leads = leads.filter(annual_revenue__lte=max_revenue).exclude(annual_revenue__isnull=True)
+#             # Apply filters
+#             if vertical_ids := body.get('vertical_id'):
+#                 leads = leads.filter(focus_segment__vertical__id__in=vertical_ids)
+#             if focus_segment_ids := body.get('focus_segment'):
+#                 leads = leads.filter(focus_segment__id__in=focus_segment_ids)
+#             if market_segment_ids := body.get('market_segment'):
+#                 leads = leads.filter(market_segment__id__in=market_segment_ids)
+#             if state_ids := body.get('state_id'):
+#                 leads = leads.filter(state__id__in=state_ids)
+#             if country_ids := body.get('country_id'):
+#                 leads = leads.filter(country__id__in=country_ids)
+#             if created_on_dates := body.get('created_on'):
+#                 leads = leads.filter(created_on__in=created_on_dates)
+#             if tag_ids := body.get('tags'):
+#                 leads = leads.filter(tags__in=tag_ids).distinct()
+#             if min_revenue := body.get('min_revenue'):
+#                 leads = leads.filter(annual_revenue__gte=min_revenue).exclude(annual_revenue__isnull=True)
+#             if max_revenue := body.get('max_revenue'):
+#                 leads = leads.filter(annual_revenue__lte=max_revenue).exclude(annual_revenue__isnull=True)
 
-            if search_key := body.get('key'):
-                leads = leads.filter(
-                    Q(name__icontains=search_key) |
-                    Q(company_email__icontains=search_key) |
-                    Q(company_number__icontains=search_key) |
-                    Q(fax__icontains=search_key) |
-                    Q(tags__tag__icontains=search_key) |
-                    Q(lead_owner__username__icontains=search_key) |
-                    Q(created_by__username__icontains=search_key) |
-                    Q(state__state_name__icontains=search_key) |
-                    Q(country__country_name__icontains=search_key) |
-                    Q(focus_segment__focus_segment__icontains=search_key) |
-                    Q(focus_segment__vertical__vertical__icontains=search_key) |
-                    Q(market_segment__market_segment__icontains=search_key)
-                ).distinct()
+#             if search_key := body.get('key'):
+#                 leads = leads.filter(
+#                     Q(name__icontains=search_key) |
+#                     Q(company_email__icontains=search_key) |
+#                     Q(company_number__icontains=search_key) |
+#                     Q(fax__icontains=search_key) |
+#                     Q(tags__tag__icontains=search_key) |
+#                     Q(lead_owner__username__icontains=search_key) |
+#                     Q(created_by__username__icontains=search_key) |
+#                     Q(state__state_name__icontains=search_key) |
+#                     Q(country__country_name__icontains=search_key) |
+#                     Q(focus_segment__focus_segment__icontains=search_key) |
+#                     Q(focus_segment__vertical__vertical__icontains=search_key) |
+#                     Q(market_segment__market_segment__icontains=search_key)
+#                 ).distinct()
 
-            leads_with_revenue = leads.exclude(annual_revenue__isnull=True)  # Exclude null revenue entries
-            min_revenue = leads_with_revenue.aggregate(min_revenue=Min('annual_revenue'))['min_revenue']
-            max_revenue = leads_with_revenue.aggregate(max_revenue=Max('annual_revenue'))['max_revenue']
+#             leads_with_revenue = leads.exclude(annual_revenue__isnull=True)  # Exclude null revenue entries
+#             min_revenue = leads_with_revenue.aggregate(min_revenue=Min('annual_revenue'))['min_revenue']
+#             max_revenue = leads_with_revenue.aggregate(max_revenue=Max('annual_revenue'))['max_revenue']
 
-            # Pagination
-            paginator = self.pagination_class()
-            page = paginator.paginate_queryset(leads, request)
-            serializer = LeadSerializer(page, many=True)
+#             # Pagination
+#             paginator = self.pagination_class()
+#             page = paginator.paginate_queryset(leads, request)
+#             serializer = LeadSerializer(page, many=True)
             
-            # Add min_revenue and max_revenue to paginated response
-            response_data = paginator.get_paginated_response(serializer.data)
-            response_data.data['min_revenue'] = min_revenue
-            response_data.data['max_revenue'] = max_revenue
-            return response_data
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#             # Add min_revenue and max_revenue to paginated response
+#             response_data = paginator.get_paginated_response(serializer.data)
+#             response_data.data['min_revenue'] = min_revenue
+#             response_data.data['max_revenue'] = max_revenue
+#             return response_data
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
         
@@ -405,166 +405,166 @@ from lead.models import Opportunity, Note
 from lead.serializers.noteserializer import NoteSerializer
 
 
-class OpportunityNotesView(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, opportunity_id):
-        try:
-            user=request.user
-            if user.employee.designation.designation=='ADMIN':
-                notes = Note.objects.filter(
-            opportunity=opportunity_id).order_by('-id')
-            else:
-                notes = Note.objects.filter(
-                opportunity=opportunity_id,  
-            ).filter(
-                Q(opportunity__lead__lead_owner=user) |  
-                Q(opportunity__lead__created_by=user) |  # Filter based on lead creator
-                Q(opportunity__created_by=user) |       
-                Q(note_by=user)                      
-            ).order_by('-id')
+# class OpportunityNotesView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, opportunity_id):
+#         try:
+#             user=request.user
+#             if user.employee.designation.designation=='ADMIN':
+#                 notes = Note.objects.filter(
+#             opportunity=opportunity_id).order_by('-id')
+#             else:
+#                 notes = Note.objects.filter(
+#                 opportunity=opportunity_id,  
+#             ).filter(
+#                 Q(opportunity__lead__lead_owner=user) |  
+#                 Q(opportunity__lead__created_by=user) |  # Filter based on lead creator
+#                 Q(opportunity__created_by=user) |       
+#                 Q(note_by=user)                      
+#             ).order_by('-id')
 
-            if not notes.exists():
-                return Response([])
+#             if not notes.exists():
+#                 return Response([])
 
-            serializer = NoteSerializer(notes, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Opportunity.DoesNotExist:
-            return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#             serializer = NoteSerializer(notes, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Opportunity.DoesNotExist:
+#             return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def post(self, request, *args, **kwargs):
-        try:
-            body = request.data
-            user=request.user
-            opportunity_id = body.get('opportunity_id')
-            note_by = user
-            note = body.get('note')
-            if not opportunity_id or not note or not note_by:
-                return Response({"error": "opportunity_id, note, and note_by are required fields."}, status=status.HTTP_400_BAD_REQUEST)
-            try:
-                opportunity = Opportunity.objects.get(id=opportunity_id)
-            except Opportunity.DoesNotExist:
-                return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
-            # try:
-            #     note_by = User.objects.get(id=note_by)
-            # except User.DoesNotExist:
-            #     return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-            new_note = Note.objects.create(
-                opportunity=opportunity,
-                note=note,
-                note_by=note_by
-            )
-            serializer = NoteSerializer(new_note)
-            return Response("Note added successfully", status=status.HTTP_201_CREATED)
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             body = request.data
+#             user=request.user
+#             opportunity_id = body.get('opportunity_id')
+#             note_by = user
+#             note = body.get('note')
+#             if not opportunity_id or not note or not note_by:
+#                 return Response({"error": "opportunity_id, note, and note_by are required fields."}, status=status.HTTP_400_BAD_REQUEST)
+#             try:
+#                 opportunity = Opportunity.objects.get(id=opportunity_id)
+#             except Opportunity.DoesNotExist:
+#                 return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
+#             # try:
+#             #     note_by = User.objects.get(id=note_by)
+#             # except User.DoesNotExist:
+#             #     return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+#             new_note = Note.objects.create(
+#                 opportunity=opportunity,
+#                 note=note,
+#                 note_by=note_by
+#             )
+#             serializer = NoteSerializer(new_note)
+#             return Response("Note added successfully", status=status.HTTP_201_CREATED)
 
-        except Exception as e:
-            return Response({"error ": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    def put(self, request, note_id):
-        try:
-            try:
-                note = Note.objects.get(id=note_id)
-            except Note.DoesNotExist:
-                return Response({"error": "Note not found for the specified opportunity"}, status=status.HTTP_404_NOT_FOUND)
-            new_note_content = request.data.get("note", None)
-            if new_note_content:
-                note.note = new_note_content 
-                note.save()
-                serializer = NoteSerializer(note)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "New note content is required"}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({"error ": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#     def put(self, request, note_id):
+#         try:
+#             try:
+#                 note = Note.objects.get(id=note_id)
+#             except Note.DoesNotExist:
+#                 return Response({"error": "Note not found for the specified opportunity"}, status=status.HTTP_404_NOT_FOUND)
+#             new_note_content = request.data.get("note", None)
+#             if new_note_content:
+#                 note.note = new_note_content 
+#                 note.save()
+#                 serializer = NoteSerializer(note)
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+#             else:
+#                 return Response({"error": "New note content is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class GetNotesByLeadView(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, lead_id):
-        try:
-            try:
-                lead = Lead.objects.get(id=lead_id)
-            except Lead.DoesNotExist:
-                return Response({"error": "Lead not found"}, status=status.HTTP_404_NOT_FOUND)
-            opportunities = Opportunity.objects.filter(lead=lead)
-            notes = Note.objects.filter(opportunity__in=opportunities).order_by('-id')
-            serializer = NoteSerializer(notes, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+# class GetNotesByLeadView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, lead_id):
+#         try:
+#             try:
+#                 lead = Lead.objects.get(id=lead_id)
+#             except Lead.DoesNotExist:
+#                 return Response({"error": "Lead not found"}, status=status.HTTP_404_NOT_FOUND)
+#             opportunities = Opportunity.objects.filter(lead=lead)
+#             notes = Note.objects.filter(opportunity__in=opportunities).order_by('-id')
+#             serializer = NoteSerializer(notes, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 #--------------sumith--------
 
 
-from .models import Task, Contact, Task_Assignment
-from .serializers.taskserializer import TaskSerializer, GetTaskSerializer
-from django.utils.timezone import now, timedelta
-class CreateTaskView(APIView):
-    permission_classes = [IsAuthenticated]
+# from .models import Task, Contact, Task_Assignment
+# from .serializers.taskserializer import TaskSerializer, GetTaskSerializer
+# from django.utils.timezone import now, timedelta
+# class CreateTaskView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        assigned_by_user = request.user  # User creating the task
-        contact_id = request.data.get('contact_id')
-        log_id = request.data.get('log_id')
-        task_date_time = request.data.get('task_date_time')
-        task_detail = request.data.get('task_detail')
-        task_type = 'M'  # Task type is manual
+#     def post(self, request):
+#         assigned_by_user = request.user  # User creating the task
+#         contact_id = request.data.get('contact_id')
+#         log_id = request.data.get('log_id')
+#         task_date_time = request.data.get('task_date_time')
+#         task_detail = request.data.get('task_detail')
+#         task_type = 'M'  # Task type is manual
 
-        try:
-            # Retrieve the Contact object
-            contact = Contact.objects.get(id=contact_id)
+#         try:
+#             # Retrieve the Contact object
+#             contact = Contact.objects.get(id=contact_id)
 
-            # Retrieve the Log object if provided
-            log = Log.objects.get(id=log_id) if log_id else None
+#             # Retrieve the Log object if provided
+#             log = Log.objects.get(id=log_id) if log_id else None
 
-            # Create a task instance
-            task = Task.objects.create(
-                contact=contact,
-                log=log,
-                task_date_time=task_date_time,
-                task_detail=task_detail,
-                created_by=assigned_by_user,
-                tasktype=task_type
-            )
+#             # Create a task instance
+#             task = Task.objects.create(
+#                 contact=contact,
+#                 log=log,
+#                 task_date_time=task_date_time,
+#                 task_detail=task_detail,
+#                 created_by=assigned_by_user,
+#                 tasktype=task_type
+#             )
 
-            # Prepare the serializer response
-            serializer = TaskSerializer(task)
+#             # Prepare the serializer response
+#             serializer = TaskSerializer(task)
 
-            # Email notification to the lead owner, if they exist
-            lead_owner = getattr(contact, 'lead_owner', None)
+#             # Email notification to the lead owner, if they exist
+#             lead_owner = getattr(contact, 'lead_owner', None)
             
 
-            # Email notification to the task creator (task owner)
-            subject_task_owner = "Create New Task"
-            message_task_owner = (
-                f"Hello {assigned_by_user.username},\n\n"
-                f"You have successfully created a new task.\n"
-                "Please log in to the CRM system to view more details and take further action:\n"
-                "http://crm.decodeschool.com/\n\n"
+#             # Email notification to the task creator (task owner)
+#             subject_task_owner = "Create New Task"
+#             message_task_owner = (
+#                 f"Hello {assigned_by_user.username},\n\n"
+#                 f"You have successfully created a new task.\n"
+#                 "Please log in to the CRM system to view more details and take further action:\n"
+#                 "http://crm.decodeschool.com/\n\n"
                 
                 
-            )
-            try:
-                send_mail(
-                    subject_task_owner,
-                    message_task_owner,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [assigned_by_user.email],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                return Response({"error": f"Failed to send email to task owner: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#             )
+#             try:
+#                 send_mail(
+#                     subject_task_owner,
+#                     message_task_owner,
+#                     settings.DEFAULT_FROM_EMAIL,
+#                     [assigned_by_user.email],
+#                     fail_silently=False,
+#                 )
+#             except Exception as e:
+#                 return Response({"error": f"Failed to send email to task owner: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            return Response({"message": "Task created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
+#             return Response({"message": "Task created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
 
-        except Contact.DoesNotExist:
-            return Response({'error': 'Contact not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Log.DoesNotExist:
-            return Response({'error': 'Log not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Contact.DoesNotExist:
+#             return Response({'error': 'Contact not found'}, status=status.HTTP_404_NOT_FOUND)
+#         except Log.DoesNotExist:
+#             return Response({'error': 'Log not found'}, status=status.HTTP_404_NOT_FOUND)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
 
 from rest_framework.views import APIView
@@ -801,249 +801,249 @@ class TaskManagement(APIView):
         
     
 
-class OpportunityPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 1000
-class Opportunity_ByLeadId(APIView):
-    pagination_class = OpportunityPagination
-    permission_classes=[IsAuthenticated]
-    def get(self, request, lead_id):
-        if lead_id:
-            user=request.user
-            if user.employee.designation.designation=='ADMIN':
-                opportunities = Opportunity.objects.filter(lead__id=lead_id)
-                opportunities=opportunities.filter(is_active=True).order_by('-id')
-            else:
-                opportunities = Opportunity.objects.filter(Q(lead__id=lead_id),
-                Q(lead__lead_owner=user)|Q(lead__created_by=user)|Q(created_by=user)).distinct().order_by('-id')
-            if opportunities.exists():
-                paginator = self.pagination_class()
-                page = paginator.paginate_queryset(opportunities, request)
-                if page is not None:
-                    serializer = OpportunitySerializer(page, many=True)
-                    return paginator.get_paginated_response(serializer.data)
-                else:
-                    serializer = OpportunitySerializer(opportunities, many=True)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response([], status=status.HTTP_200_OK)
+# class OpportunityPagination(PageNumberPagination):
+#     page_size = 10
+#     page_size_query_param = 'page_size'
+#     max_page_size = 1000
+# class Opportunity_ByLeadId(APIView):
+#     pagination_class = OpportunityPagination
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, lead_id):
+#         if lead_id:
+#             user=request.user
+#             if user.employee.designation.designation=='ADMIN':
+#                 opportunities = Opportunity.objects.filter(lead__id=lead_id)
+#                 opportunities=opportunities.filter(is_active=True).order_by('-id')
+#             else:
+#                 opportunities = Opportunity.objects.filter(Q(lead__id=lead_id),
+#                 Q(lead__lead_owner=user)|Q(lead__created_by=user)|Q(created_by=user)).distinct().order_by('-id')
+#             if opportunities.exists():
+#                 paginator = self.pagination_class()
+#                 page = paginator.paginate_queryset(opportunities, request)
+#                 if page is not None:
+#                     serializer = OpportunitySerializer(page, many=True)
+#                     return paginator.get_paginated_response(serializer.data)
+#                 else:
+#                     serializer = OpportunitySerializer(opportunities, many=True)
+#                     return Response(serializer.data, status=status.HTTP_200_OK)
+#             else:
+#                 return Response([], status=status.HTTP_200_OK)
 
     
-class Opportunity_details(APIView):
-    permission_classes=[IsAuthenticated]
-    class OpportunityPagination(PageNumberPagination):
-        page_size = 10
-        page_size_query_param="page_size"
-        max_page_size = 1000
+# class Opportunity_details(APIView):
+#     permission_classes=[IsAuthenticated]
+#     class OpportunityPagination(PageNumberPagination):
+#         page_size = 10
+#         page_size_query_param="page_size"
+#         max_page_size = 1000
 
-    def get(self, request, opportunity_id=None):
-        if opportunity_id:
-            try:
-                opportunity = Opportunity.objects.get(id=opportunity_id)
-                serializer = OpportunitySerializer(opportunity) 
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Opportunity.DoesNotExist:
-                return Response({"detail": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            user = request.user
-            if user.employee.designation.designation=='ADMIN':
-                opportunities=Opportunity.objects.filter(is_active=True)
-            else:
-                opportunities = Opportunity.objects.filter(
-                    Q(created_by=user) |    Q(owner=user)        |         
-                    Q(lead__lead_owner=user) |                
-                    Q(lead__created_by=user)                 
-                ).distinct().order_by('-created_on', '-id')    
+#     def get(self, request, opportunity_id=None):
+#         if opportunity_id:
+#             try:
+#                 opportunity = Opportunity.objects.get(id=opportunity_id)
+#                 serializer = OpportunitySerializer(opportunity) 
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+#             except Opportunity.DoesNotExist:
+#                 return Response({"detail": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
+#         else:
+#             user = request.user
+#             if user.employee.designation.designation=='ADMIN':
+#                 opportunities=Opportunity.objects.filter(is_active=True)
+#             else:
+#                 opportunities = Opportunity.objects.filter(
+#                     Q(created_by=user) |    Q(owner=user)        |         
+#                     Q(lead__lead_owner=user) |                
+#                     Q(lead__created_by=user)                 
+#                 ).distinct().order_by('-created_on', '-id')    
 
            
-            paginator=self.OpportunityPagination()
-            Opportunity_pages=paginator.paginate_queryset(opportunities,request)
-            serializer = OpportunitySerializer(Opportunity_pages, many=True)
-            return paginator.get_paginated_response(serializer.data)
+#             paginator=self.OpportunityPagination()
+#             Opportunity_pages=paginator.paginate_queryset(opportunities,request)
+#             serializer = OpportunitySerializer(Opportunity_pages, many=True)
+#             return paginator.get_paginated_response(serializer.data)
     
 
-    def post(self, request, opportunity_id=None):
-        data = request.data.copy()
-        data.update(request.FILES)
+#     def post(self, request, opportunity_id=None):
+#         data = request.data.copy()
+#         data.update(request.FILES)
         
-        serializer = PostOpportunitySerializer(data=data)
+#         serializer = PostOpportunitySerializer(data=data)
         
-        if serializer.is_valid():
-            opportunity = serializer.save(created_by=request.user)
-            created_by = request.user
+#         if serializer.is_valid():
+#             opportunity = serializer.save(created_by=request.user)
+#             created_by = request.user
 
-            # Handle the Stage update or stage creation
-            stage_data = {
-                'opportunity': opportunity.id,  
-                'stage': data.get('stage'),   # Assuming stage_id is included in the request data
-                'moved_by': created_by.id, 
-            }
+#             # Handle the Stage update or stage creation
+#             stage_data = {
+#                 'opportunity': opportunity.id,  
+#                 'stage': data.get('stage'),   # Assuming stage_id is included in the request data
+#                 'moved_by': created_by.id, 
+#             }
 
-            serializer1 = StageUpdateSerializer(data=stage_data)
+#             serializer1 = StageUpdateSerializer(data=stage_data)
             
-            if serializer1.is_valid():
-                serializer1.save()  
-            else:
-                return Response(serializer1.errors, status=status.HTTP_400_BAD_REQUEST) 
+#             if serializer1.is_valid():
+#                 serializer1.save()  
+#             else:
+#                 return Response(serializer1.errors, status=status.HTTP_400_BAD_REQUEST) 
             
            
 
-            # Send email to the lead owner
-            lead = opportunity.lead  # Assuming 'lead' is a related field on the Opportunity model
-            lead_owner = lead.lead_owner  # Assuming 'lead_owner' is a field on Lead
-            subject_lead_owner = "Opportunity Linked to Your Lead"
-            message_lead_owner = (
-                f"Hello {lead_owner.username},\n\n"
-                f"The opportunity '{opportunity.name}' has been linked to your lead '{lead.name}'.\n"
-                "Please log in to the CRM system to view more details:\n"
-                "http://crm.decodeschool.com/\n\n"
+#             # Send email to the lead owner
+#             lead = opportunity.lead  # Assuming 'lead' is a related field on the Opportunity model
+#             lead_owner = lead.lead_owner  # Assuming 'lead_owner' is a field on Lead
+#             subject_lead_owner = "Opportunity Linked to Your Lead"
+#             message_lead_owner = (
+#                 f"Hello {lead_owner.username},\n\n"
+#                 f"The opportunity '{opportunity.name}' has been linked to your lead '{lead.name}'.\n"
+#                 "Please log in to the CRM system to view more details:\n"
+#                 "http://crm.decodeschool.com/\n\n"
                 
-            )
+#             )
 
-            try:
+#             try:
                 
 
-                # Email to lead owner
-                send_mail(
-                    subject_lead_owner,
-                    message_lead_owner,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [lead_owner.email],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                return Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#                 # Email to lead owner
+#                 send_mail(
+#                     subject_lead_owner,
+#                     message_lead_owner,
+#                     settings.DEFAULT_FROM_EMAIL,
+#                     [lead_owner.email],
+#                     fail_silently=False,
+#                 )
+#             except Exception as e:
+#                 return Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            return Response({"message": "Opportunity created", "data": serializer.data}, status=status.HTTP_201_CREATED)
+#             return Response({"message": "Opportunity created", "data": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
   
 
-    def put(self, request, opportunity_id=None):
-        try:
-            # Retrieve the opportunity object
-            opportunity = Opportunity.objects.get(id=opportunity_id)
+#     def put(self, request, opportunity_id=None):
+#         try:
+#             # Retrieve the opportunity object
+#             opportunity = Opportunity.objects.get(id=opportunity_id)
             
-            # Store old stage value
-            old_stage = opportunity.stage.id if opportunity.stage else None
+#             # Store old stage value
+#             old_stage = opportunity.stage.id if opportunity.stage else None
 
-            # Update opportunity with incoming data
-            data = request.data.copy()
-            data.update(request.FILES) 
+#             # Update opportunity with incoming data
+#             data = request.data.copy()
+#             data.update(request.FILES) 
             
-            # Create serializer instance for updating the opportunity
-            serializer = PostOpportunitySerializer(opportunity, data=data, partial=True)
+#             # Create serializer instance for updating the opportunity
+#             serializer = PostOpportunitySerializer(opportunity, data=data, partial=True)
             
-            if serializer.is_valid():
-                updated_opportunity = serializer.save()  # Save the updated opportunity
+#             if serializer.is_valid():
+#                 updated_opportunity = serializer.save()  # Save the updated opportunity
 
-                # Check if the stage has changed
-                new_stage = updated_opportunity.stage.id if updated_opportunity.stage else None
-                if old_stage != new_stage:
-                    # Fetch the new stage object to get its probability
-                    stage = Stage.objects.get(id=new_stage)
+#                 # Check if the stage has changed
+#                 new_stage = updated_opportunity.stage.id if updated_opportunity.stage else None
+#                 if old_stage != new_stage:
+#                     # Fetch the new stage object to get its probability
+#                     stage = Stage.objects.get(id=new_stage)
                     
-                    # Update the probability_in_percentage field based on the new stage's probability
-                    updated_opportunity.probability_in_percentage = stage.probability
-                    updated_opportunity.save()  # Save the updated opportunity with new probability
+#                     # Update the probability_in_percentage field based on the new stage's probability
+#                     updated_opportunity.probability_in_percentage = stage.probability
+#                     updated_opportunity.save()  # Save the updated opportunity with new probability
 
-                    # Create a new entry in the Stage model (this is done when the stage changes)
-                    stage_data = {
-                        'opportunity': updated_opportunity.id,
-                        'stage': new_stage,
-                        'moved_by': updated_opportunity.created_by.id,
-                    }
+#                     # Create a new entry in the Stage model (this is done when the stage changes)
+#                     stage_data = {
+#                         'opportunity': updated_opportunity.id,
+#                         'stage': new_stage,
+#                         'moved_by': updated_opportunity.created_by.id,
+#                     }
 
-                    serializer1 = StageUpdateSerializer(data=stage_data)
+#                     serializer1 = StageUpdateSerializer(data=stage_data)
 
-                    if serializer1.is_valid():
-                        serializer1.save()  # Save the new stage record
-                    else:
-                        return Response(serializer1.errors, status=status.HTTP_400_BAD_REQUEST)
+#                     if serializer1.is_valid():
+#                         serializer1.save()  # Save the new stage record
+#                     else:
+#                         return Response(serializer1.errors, status=status.HTTP_400_BAD_REQUEST)
 
-                # Return a success response
-                serializer3 = OpportunitySerializer(updated_opportunity) 
-                return Response({"message": "Opportunity updated", "data": serializer3.data}, status=status.HTTP_200_OK)
+#                 # Return a success response
+#                 serializer3 = OpportunitySerializer(updated_opportunity) 
+#                 return Response({"message": "Opportunity updated", "data": serializer3.data}, status=status.HTTP_200_OK)
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        except Opportunity.DoesNotExist:
-            return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         except Opportunity.DoesNotExist:
+#             return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
-    def delete(self, request, opportunity_id=None):
-        if not opportunity_id:
-            return Response({"error": "Opportunity ID required for delete"}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            opportunity = Opportunity.objects.get(id=opportunity_id)
-            opportunity.is_active = False
-            opportunity.save()
-            return Response({"message": "Opportunity deactivated"}, status=status.HTTP_204_NO_CONTENT)
-        except Opportunity.DoesNotExist:
-            return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
+#     def delete(self, request, opportunity_id=None):
+#         if not opportunity_id:
+#             return Response({"error": "Opportunity ID required for delete"}, status=status.HTTP_400_BAD_REQUEST)
+#         try:
+#             opportunity = Opportunity.objects.get(id=opportunity_id)
+#             opportunity.is_active = False
+#             opportunity.save()
+#             return Response({"message": "Opportunity deactivated"}, status=status.HTTP_204_NO_CONTENT)
+#         except Opportunity.DoesNotExist:
+#             return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
         
-class StageHistory(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, opportunity_id=None):
-        if opportunity_id:
-            # Fetch stage history for a specific opportunity
-            user=request.user
-            if user.employee.designation.designation=='ADMIN':
-                stage_history = Opportunity_Stage.objects.filter(opportunity_id=opportunity_id).order_by('-id')
+# class StageHistory(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, opportunity_id=None):
+#         if opportunity_id:
+#             # Fetch stage history for a specific opportunity
+#             user=request.user
+#             if user.employee.designation.designation=='ADMIN':
+#                 stage_history = Opportunity_Stage.objects.filter(opportunity_id=opportunity_id).order_by('-id')
            
-            else:
-                stage_history = Opportunity_Stage.objects.filter(opportunity_id=opportunity_id)
-                stage_history &= Opportunity_Stage.objects.filter(Q(opportunity__created_by=user)|
-                             Q(opportunity__lead__created_by=user)|Q(opportunity__lead__lead_owner=user)).order_by('-id')
+#             else:
+#                 stage_history = Opportunity_Stage.objects.filter(opportunity_id=opportunity_id)
+#                 stage_history &= Opportunity_Stage.objects.filter(Q(opportunity__created_by=user)|
+#                              Q(opportunity__lead__created_by=user)|Q(opportunity__lead__lead_owner=user)).order_by('-id')
 
 
-            # contacts = Contact.objects.filter(Q(lead_id=lead_id)&
-            #        ( Q(lead__lead_owner=user)|Q(lead__created_by=user)|Q(created_by=user)))
-            # logs = Log.objects.filter(contact__in=contacts, is_active=True).order_by('-id')  
+#             # contacts = Contact.objects.filter(Q(lead_id=lead_id)&
+#             #        ( Q(lead__lead_owner=user)|Q(lead__created_by=user)|Q(created_by=user)))
+#             # logs = Log.objects.filter(contact__in=contacts, is_active=True).order_by('-id')  
 
-            if not stage_history.exists():
-                return Response([])
+#             if not stage_history.exists():
+#                 return Response([])
 
-            serializer = StageGetSerializer(stage_history, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+#             serializer = StageGetSerializer(stage_history, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        else:
-            # Fetch all stage histories
-            stage_history = Opportunity_Stage.objects.all().order_by( '-id')
-            paginator = CustomPagination()
-            result_page = paginator.paginate_queryset(stage_history, request)
+#         else:
+#             # Fetch all stage histories
+#             stage_history = Opportunity_Stage.objects.all().order_by( '-id')
+#             paginator = CustomPagination()
+#             result_page = paginator.paginate_queryset(stage_history, request)
             
-            return paginator.get_paginated_response(StageGetSerializer(result_page, many=True).data)
+#             return paginator.get_paginated_response(StageGetSerializer(result_page, many=True).data)
 
 
 
-class Opportunity_Dropdown(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request):
-        dropdown_type = request.query_params.get("type")
+# class Opportunity_Dropdown(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request):
+#         dropdown_type = request.query_params.get("type")
         
-        if dropdown_type == 'lead':
-            leads = Lead.objects.all()
-            serializer = LeadNameSerializer(leads, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+#         if dropdown_type == 'lead':
+#             leads = Lead.objects.all()
+#             serializer = LeadNameSerializer(leads, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
         
-        elif dropdown_type == 'stage':
-            stages = Stage.objects.all()
-            serializer = StageNameSerializer(stages, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+#         elif dropdown_type == 'stage':
+#             stages = Stage.objects.all()
+#             serializer = StageNameSerializer(stages, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        elif dropdown_type == 'currency_type':
-            currencies = Country.objects.all()
-            serializer = CurrencySerializer(currencies, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+#         elif dropdown_type == 'currency_type':
+#             currencies = Country.objects.all()
+#             serializer = CurrencySerializer(currencies, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
      
-        else:
-            return Response("error : Invaild field", status=status.HTTP_200_OK)
+#         else:
+#             return Response("error : Invaild field", status=status.HTTP_200_OK)
 
 from django.db.models import Sum, Count, Q
 
@@ -1291,78 +1291,78 @@ class OpportunityChart(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 #---------SANJESH-------------
-from rest_framework.pagination import PageNumberPagination
-from django.shortcuts import get_object_or_404
+# from rest_framework.pagination import PageNumberPagination
+# from django.shortcuts import get_object_or_404
 
-class ContactPagination(PageNumberPagination):
-    page_size = 10  # Number of contacts per page
-    page_size_query_param = 'page_size'  # Allow client to set page size using URL parameter
-    max_page_size = 100  # Maximum limit of page size that can be requested
+# class ContactPagination(PageNumberPagination):
+#     page_size = 10  # Number of contacts per page
+#     page_size_query_param = 'page_size'  # Allow client to set page size using URL parameter
+#     max_page_size = 100  # Maximum limit of page size that can be requested
 
-class ContactView(APIView):
-    permission_classes=[IsAuthenticated]
-    pagination_class = ContactPagination
+# class ContactView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     pagination_class = ContactPagination
 
-    def post(self, request):
-        serializer = PostContactSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(created_by=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         serializer = PostContactSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save(created_by=request.user)
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, contact_id=None):
-        if contact_id:  # Retrieve a specific contact by 'contact_id'
-            try:
-                contact = Contact.objects.get(id=contact_id)
-                serializer = ContactSerializer(contact)
-                return Response(serializer.data)
-            except Contact.DoesNotExist:
-                return Response([])  # Return an empty list if no contact is found
-        else:
-            contacts = Contact.objects.all()  # Retrieve all contacts if no 'contact_id' is provided
-            paginator = self.pagination_class()
-            paginated_contacts = paginator.paginate_queryset(contacts, request)
-            serializer = ContactSerializer(paginated_contacts, many=True)
-            return paginator.get_paginated_response(serializer.data)
+#     def get(self, request, contact_id=None):
+#         if contact_id:  # Retrieve a specific contact by 'contact_id'
+#             try:
+#                 contact = Contact.objects.get(id=contact_id)
+#                 serializer = ContactSerializer(contact)
+#                 return Response(serializer.data)
+#             except Contact.DoesNotExist:
+#                 return Response([])  # Return an empty list if no contact is found
+#         else:
+#             contacts = Contact.objects.all()  # Retrieve all contacts if no 'contact_id' is provided
+#             paginator = self.pagination_class()
+#             paginated_contacts = paginator.paginate_queryset(contacts, request)
+#             serializer = ContactSerializer(paginated_contacts, many=True)
+#             return paginator.get_paginated_response(serializer.data)
 
-    def put(self, request, contact_id=None):
-        contact = get_object_or_404(Contact, id=contact_id)
-        serializer = ContactSerializer(contact, data=request.data, partial=True)  # Allow partial updates
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def put(self, request, contact_id=None):
+#         contact = get_object_or_404(Contact, id=contact_id)
+#         serializer = ContactSerializer(contact, data=request.data, partial=True)  # Allow partial updates
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, contact_id):
-        contact = get_object_or_404(Contact, id=contact_id)
-        contact.is_active = False
-        contact.save()
-        return Response({"message": "Contact deactivated successfully."}, status=status.HTTP_200_OK)
+#     def delete(self, request, contact_id):
+#         contact = get_object_or_404(Contact, id=contact_id)
+#         contact.is_active = False
+#         contact.save()
+#         return Response({"message": "Contact deactivated successfully."}, status=status.HTTP_200_OK)
     
-class LeadContactsPagination(PageNumberPagination):
-    page_size = 10  # Number of contacts per page
-    page_size_query_param = 'page_size'  # Allow client to set page size using URL parameter
-    max_page_size = 100  # Maximum limit of page size that can be requested
+# class LeadContactsPagination(PageNumberPagination):
+#     page_size = 10  # Number of contacts per page
+#     page_size_query_param = 'page_size'  # Allow client to set page size using URL parameter
+#     max_page_size = 100  # Maximum limit of page size that can be requested
 
-class LeadContactsView(APIView):
-    permission_classes=[IsAuthenticated]
-    pagination_class = LeadContactsPagination
+# class LeadContactsView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     pagination_class = LeadContactsPagination
 
-    def get(self, request, lead_id=None):
-        if lead_id: 
-            user=request.user # Retrieve contacts for a specific lead
-            if user.employee.designation.designation=='ADMIN':
-                contacts=Contact.objects.filter(lead__id=lead_id,is_active=True).order_by('-id')
+#     def get(self, request, lead_id=None):
+#         if lead_id: 
+#             user=request.user # Retrieve contacts for a specific lead
+#             if user.employee.designation.designation=='ADMIN':
+#                 contacts=Contact.objects.filter(lead__id=lead_id,is_active=True).order_by('-id')
 
-            else:
-                contacts = Contact.objects.filter(Q(lead__id=lead_id),
-                    Q(lead__lead_owner=user)|Q(lead__created_by=user)|Q(created_by=user))
-            paginator = self.pagination_class()
-            paginated_contacts = paginator.paginate_queryset(contacts, request)
-            serializer = ContactSerializer(paginated_contacts, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            return Response({"detail": "Lead ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+#             else:
+#                 contacts = Contact.objects.filter(Q(lead__id=lead_id),
+#                     Q(lead__lead_owner=user)|Q(lead__created_by=user)|Q(created_by=user))
+#             paginator = self.pagination_class()
+#             paginated_contacts = paginator.paginate_queryset(contacts, request)
+#             serializer = ContactSerializer(paginated_contacts, many=True)
+#             return paginator.get_paginated_response(serializer.data)
+#         else:
+#             return Response({"detail": "Lead ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
 # CountView 
 class CountView(APIView):
@@ -1492,156 +1492,156 @@ class CountView(APIView):
         except Exception as e:
             # Handle any errors and return a 500 error response
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-class Contactdropdownlistview(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request):
-        dropdown_type = request.query_params.get('type')
+# class Contactdropdownlistview(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request):
+#         dropdown_type = request.query_params.get('type')
 
-        if dropdown_type == 'contactstatus':
-            contact_status = Contact_Status.objects.all()
-            serializer = ContactStatusSerializer(contact_status, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+#         if dropdown_type == 'contactstatus':
+#             contact_status = Contact_Status.objects.all()
+#             serializer = ContactStatusSerializer(contact_status, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        elif dropdown_type == 'lead_source':
-            source = Lead_Source.objects.all()
-            serializer = LeadSourceSerializer(source, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+#         elif dropdown_type == 'lead_source':
+#             source = Lead_Source.objects.all()
+#             serializer = LeadSourceSerializer(source, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
         
-        elif dropdown_type=='lead':
-            leads = Lead.objects.all()
-            serializer=LeadSerializer(leads,many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+#         elif dropdown_type=='lead':
+#             leads = Lead.objects.all()
+#             serializer=LeadSerializer(leads,many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-        return Response({'error': 'Invalid dropdown type'}, status=status.HTTP_400_BAD_REQUEST)
+#         return Response({'error': 'Invalid dropdown type'}, status=status.HTTP_400_BAD_REQUEST)
 
 # OpportunityFilterView
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.pagination import PageNumberPagination
-from django.db.models import Q
-from .models import Opportunity  # Assuming you have the Opportunity model
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework import status
+# from rest_framework.pagination import PageNumberPagination
+# from django.db.models import Q
+# from .models import Opportunity  # Assuming you have the Opportunity model
 
-class OpportunityFilterView(APIView):
-    permission_classes=[IsAuthenticated]
-    class OpportunityPagination(PageNumberPagination):
-        page_size = 10  # Default page size
-        page_size_query_param = 'page_size'
-        max_page_size = 1000  # Max limit for page size
+# class OpportunityFilterView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     class OpportunityPagination(PageNumberPagination):
+#         page_size = 10  # Default page size
+#         page_size_query_param = 'page_size'
+#         max_page_size = 1000  # Max limit for page size
 
-    def post(self, request, *args, **kwargs):
-        return self.filter_and_paginate(request)
+#     def post(self, request, *args, **kwargs):
+#         return self.filter_and_paginate(request)
 
-    def get(self, request, *args, **kwargs):
-        return self.filter_and_paginate(request)
+#     def get(self, request, *args, **kwargs):
+#         return self.filter_and_paginate(request)
 
-    def filter_and_paginate(self, request):
-        try:
-            # Load the body as JSON
-            body = request.data if request.method == 'POST' else request.query_params
+#     def filter_and_paginate(self, request):
+#         try:
+#             # Load the body as JSON
+#             body = request.data if request.method == 'POST' else request.query_params
 
-            # Start by querying all opportunities
-            user = request.user
-            if user.employee.designation.designation=='ADMIN':
-                opportunities=Opportunity.objects.filter(is_active=True)
-            else:
-                opportunities = Opportunity.objects.filter(
-                    Q(created_by=user) |    Q(owner=user)        |         
-                    Q(lead__lead_owner=user) |                
-                    Q(lead__created_by=user)                 
-                ).distinct().order_by('-created_on', '-id')     
+#             # Start by querying all opportunities
+#             user = request.user
+#             if user.employee.designation.designation=='ADMIN':
+#                 opportunities=Opportunity.objects.filter(is_active=True)
+#             else:
+#                 opportunities = Opportunity.objects.filter(
+#                     Q(created_by=user) |    Q(owner=user)        |         
+#                     Q(lead__lead_owner=user) |                
+#                     Q(lead__created_by=user)                 
+#                 ).distinct().order_by('-created_on', '-id')     
 
-            # Filter by vertical IDs through the Lead and Focus_Segment relationships
-            focus_segment_ids = body.get('vertical', [])
-            if focus_segment_ids:
-                opportunities = opportunities.filter(lead__focus_segment__id__in=focus_segment_ids)
-            lead_ids = body.get('lead_id', [])
-            if lead_ids:
-                opportunities = opportunities.filter(lead__id__in=lead_ids)
+#             # Filter by vertical IDs through the Lead and Focus_Segment relationships
+#             focus_segment_ids = body.get('vertical', [])
+#             if focus_segment_ids:
+#                 opportunities = opportunities.filter(lead__focus_segment__id__in=focus_segment_ids)
+#             lead_ids = body.get('lead_id', [])
+#             if lead_ids:
+#                 opportunities = opportunities.filter(lead__id__in=lead_ids)
 
-            owner_ids = body.get('owner_id', [])
-            if owner_ids:
-                opportunities = opportunities.filter(owner__id__in=owner_ids)
+#             owner_ids = body.get('owner_id', [])
+#             if owner_ids:
+#                 opportunities = opportunities.filter(owner__id__in=owner_ids)
 
-            stage_ids = body.get('stage_id', [])
-            if stage_ids:
-                opportunities = opportunities.filter(stage__id__in=stage_ids)
+#             stage_ids = body.get('stage_id', [])
+#             if stage_ids:
+#                 opportunities = opportunities.filter(stage__id__in=stage_ids)
 
-            currency_ids = body.get('currency_type', [])
-            if currency_ids:
-                opportunities = opportunities.filter(currency_type__id__in=currency_ids)
+#             currency_ids = body.get('currency_type', [])
+#             if currency_ids:
+#                 opportunities = opportunities.filter(currency_type__id__in=currency_ids)
 
-            start_date = body.get('start_date')
-            end_date = body.get('end_date')
+#             start_date = body.get('start_date')
+#             end_date = body.get('end_date')
 
-            # Ensure both dates are provided
-            if start_date and end_date:
+#             # Ensure both dates are provided
+#             if start_date and end_date:
                 
-                opportunities = opportunities.filter(closing_date__range=[start_date, end_date])
+#                 opportunities = opportunities.filter(closing_date__range=[start_date, end_date])
 
-            opportunity_value_range = body.get('opportunity_value', [])
+#             opportunity_value_range = body.get('opportunity_value', [])
             
-            if len(opportunity_value_range) == 2:
-                min_value, max_value = opportunity_value_range
-                opportunities = opportunities.filter(opportunity_value__gte=min_value, opportunity_value__lte=max_value)
+#             if len(opportunity_value_range) == 2:
+#                 min_value, max_value = opportunity_value_range
+#                 opportunities = opportunities.filter(opportunity_value__gte=min_value, opportunity_value__lte=max_value)
 
-            search_key = body.get('key', None)
-            if search_key:
-                opportunities = opportunities.filter(
-                    Q(name__icontains=search_key) |
-                    Q(owner__username__icontains=search_key) |
-                    Q(stage__stage__icontains=search_key) |
-                    Q(note__icontains=search_key) |
-                    Q(currency_type__currency_full__icontains=search_key) |
-                    Q(created_by__username__icontains=search_key) |
-                    Q(lead__name__icontains=search_key)
-                ).distinct()
+#             search_key = body.get('key', None)
+#             if search_key:
+#                 opportunities = opportunities.filter(
+#                     Q(name__icontains=search_key) |
+#                     Q(owner__username__icontains=search_key) |
+#                     Q(stage__stage__icontains=search_key) |
+#                     Q(note__icontains=search_key) |
+#                     Q(currency_type__currency_full__icontains=search_key) |
+#                     Q(created_by__username__icontains=search_key) |
+#                     Q(lead__name__icontains=search_key)
+#                 ).distinct()
 
 
-            # Additional filters based on other fields can go here, e.g., owner, stage, created_on, etc.
+#             # Additional filters based on other fields can go here, e.g., owner, stage, created_on, etc.
 
-            # Handle pagination
-            paginator = self.OpportunityPagination()
-            opportunities_page = paginator.paginate_queryset(opportunities, request)
+#             # Handle pagination
+#             paginator = self.OpportunityPagination()
+#             opportunities_page = paginator.paginate_queryset(opportunities, request)
 
-            # Prepare the response data
-            opportunity_data = [
-                {
-                    "id": opportunity.id,
-                    "name": opportunity.name,
-                    "owner": {
-                        "id": opportunity.owner.id,
-                        "username": opportunity.owner.username,
-                    },
-                    "lead": {
-                        "id": opportunity.lead.id if opportunity.lead else None,
-                        "name": opportunity.lead.name if opportunity.lead else None,
-                    },
-                    "stage": {
-                        "id": opportunity.stage.id,
-                        "stage": opportunity.stage.stage
-                    },
-                    "opportunity_value": opportunity.opportunity_value,
-                    "recurring_value_per_year":opportunity.recurring_value_per_year,
-                    "currency_type": {
-                        "id": opportunity.currency_type.id,
-                        "currency_short": opportunity.currency_type.currency_short,
-                    },
-                    "closing_date": opportunity.closing_date,
-                    "probability_in_percentage": opportunity.probability_in_percentage,
-                    "created_on": opportunity.created_on,
-                    # Add other fields as necessary
-                }
-                for opportunity in opportunities_page
-            ]
+#             # Prepare the response data
+#             opportunity_data = [
+#                 {
+#                     "id": opportunity.id,
+#                     "name": opportunity.name,
+#                     "owner": {
+#                         "id": opportunity.owner.id,
+#                         "username": opportunity.owner.username,
+#                     },
+#                     "lead": {
+#                         "id": opportunity.lead.id if opportunity.lead else None,
+#                         "name": opportunity.lead.name if opportunity.lead else None,
+#                     },
+#                     "stage": {
+#                         "id": opportunity.stage.id,
+#                         "stage": opportunity.stage.stage
+#                     },
+#                     "opportunity_value": opportunity.opportunity_value,
+#                     "recurring_value_per_year":opportunity.recurring_value_per_year,
+#                     "currency_type": {
+#                         "id": opportunity.currency_type.id,
+#                         "currency_short": opportunity.currency_type.currency_short,
+#                     },
+#                     "closing_date": opportunity.closing_date,
+#                     "probability_in_percentage": opportunity.probability_in_percentage,
+#                     "created_on": opportunity.created_on,
+#                     # Add other fields as necessary
+#                 }
+#                 for opportunity in opportunities_page
+#             ]
 
-            # Return the filtered and paginated opportunity data with pagination links
-            return paginator.get_paginated_response(opportunity_data)
+#             # Return the filtered and paginated opportunity data with pagination links
+#             return paginator.get_paginated_response(opportunity_data)
 
-        except Exception as e:
-            # Return error response in case of an issue
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         except Exception as e:
+#             # Return error response in case of an issue
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -1761,16 +1761,16 @@ class LeadAssignmentView(APIView):
 
         return JsonResponse({"message": "Lead assigned successfully"}, status=201)
     
-# Call the function to get contact detail
-class ContactDetailView(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, contact_id):
-        try:
-            contact = Contact.objects.get(id=contact_id)  # Fetch the contact by ID
-            serializer = ContactSerializer(contact)
-            return JsonResponse(serializer.data, status=200)
-        except Contact.DoesNotExist:
-            return JsonResponse({"message": "Contact not found"}, status=404)
+# # Call the function to get contact detail
+# class ContactDetailView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, contact_id):
+#         try:
+#             contact = Contact.objects.get(id=contact_id)  # Fetch the contact by ID
+#             serializer = ContactSerializer(contact)
+#             return JsonResponse(serializer.data, status=200)
+#         except Contact.DoesNotExist:
+#             return JsonResponse({"message": "Contact not found"}, status=404)
 
 # Creating, Editing, Deleting Log and Task
 # class LogManagement(APIView):
@@ -2260,27 +2260,27 @@ class StageandProbability(APIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 
-from .models import Department,Designation
-from .serializers.employeeserializer import DepartmentSerializer, DesignationSerializer
-class GetAllDepartment(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request):
-        try:
-            department = Department.objects.all()
-            serializer=DepartmentSerializer(department,many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+# from .models import Department,Designation
+# from .serializers.employeeserializer import DepartmentSerializer, DesignationSerializer
+# class GetAllDepartment(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request):
+#         try:
+#             department = Department.objects.all()
+#             serializer=DepartmentSerializer(department,many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetAllDesignation(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request):
-        try:
-            designation = Designation.objects.all()
-            serializer = DesignationSerializer(designation,many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+# class GetAllDesignation(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request):
+#         try:
+#             designation = Designation.objects.all()
+#             serializer = DesignationSerializer(designation,many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
