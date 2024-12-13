@@ -12,3 +12,14 @@ class TagViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TagFilter
     pagination_class = Paginator
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        instance.is_active = False
+        instance.save()
+
+        return Response(
+            {"detail": "Deactivated Successfully."},
+            status=status.HTTP_200_OK
+        )

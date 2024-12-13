@@ -25,3 +25,13 @@ class LogViewSet(viewsets.ModelViewSet):
             return LogUpdateSerializer
         return LogRetrieveSerializer    
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        instance.is_active = False
+        instance.save()
+
+        return Response(
+            {"detail": "Deactivated Successfully."},
+            status=status.HTTP_200_OK
+        )

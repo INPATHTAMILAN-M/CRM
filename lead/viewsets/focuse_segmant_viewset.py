@@ -21,3 +21,14 @@ class FocusSegmentViewSet(viewsets.ModelViewSet):
         if self.action in ['update', 'partial_update']:
             return PatchFocusSegmentSerializer
         return GetFocusSegmentSerializer  
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        instance.is_active = False
+        instance.save()
+
+        return Response(
+            {"detail": "Deactivated Successfully."},
+            status=status.HTTP_200_OK
+        )
