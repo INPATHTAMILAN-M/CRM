@@ -24,6 +24,3 @@ class NoteViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(note_by=self.request.user)
-
-    def get_queryset(self):
-        return Note.objects.filter(opportunity__company__created_by=self.request.user)

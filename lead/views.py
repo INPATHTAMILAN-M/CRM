@@ -2122,16 +2122,16 @@ class TaskListVIew(APIView):
 
 
 
-# API for retrieving a specific note
-class NoteDetailView(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, note_id):
-        try:
-            note = Note.objects.get(id = note_id)
-            serializer = NoteSerializer(note)
-            return JsonResponse(serializer.data, status = 200)
-        except Note.DoesNotExist:
-            return JsonResponse({"message" : "Note nor found"}, status = 404)
+# # API for retrieving a specific note
+# class NoteDetailView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, note_id):
+#         try:
+#             note = Note.objects.get(id = note_id)
+#             serializer = NoteSerializer(note)
+#             return JsonResponse(serializer.data, status = 200)
+#         except Note.DoesNotExist:
+#             return JsonResponse({"message" : "Note nor found"}, status = 404)
         
 
 from rest_framework.pagination import PageNumberPagination
