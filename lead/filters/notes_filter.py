@@ -9,4 +9,4 @@ class NoteFilter(django_filters.FilterSet):
 
     class Meta:
         model = Note
-        fields = ['llead','opportunity', 'note_by', 'note_on']  # Fields you want to filter on
+        fields = ['lead','opportunity', 'note_by', 'note_on']  # Fields you want to filter on
