@@ -44,8 +44,8 @@ urlpatterns = [
     path('contactlog/<int:contact_id>/', logsbyContactView.as_view(), name='log-stage-list'),  # API for all the Logs under a Contact
     path('opportunityreport/', OpportunityReportView.as_view(), name="opportunity-report"), # API for opportunity report
     path('task/<int:id>/assign/', TaskAssignmentView.as_view(), name="task-assignment"),  # API for Task Assignment
-    path('gettask/<int:id>/', TaskListVIew.as_view(), name='task'),  # API for all the tasks under a Contact with search with task name and date
-    path('note/<int:note_id>/', NoteDetailView.as_view(), name = "note-details"), 
+    # path('gettask/<int:id>/', TaskListVIew.as_view(), name='task'),  # API for all the tasks under a Contact with search with task name and date
+    # path('note/<int:note_id>/', NoteDetailView.as_view(), name = "note-details"), 
     path('alltask/',TaskListView.as_view(),name="task_view"), # API for retrieving a specific note
 
  #-----------Sumith---------------

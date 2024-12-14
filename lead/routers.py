@@ -9,6 +9,7 @@ from lead.viewsets.department_viewset import DepartmentViewSet
 from lead.viewsets.lead_assignment_viewset import LeadAssignmentViewSet
 from lead.viewsets.lead_status_viewset import LeadStatusViewSet
 from lead.viewsets.market_segment_viewset import MarketSegmentViewSet
+from lead.viewsets.note_viewset import NoteViewSet
 from lead.viewsets.source_from_viewset import LeadSourceFromViewSet
 from lead.viewsets.source_viewset import LeadSourceViewSet
 from lead.viewsets.lead_viewset import LeadViewSet
@@ -48,6 +49,6 @@ router.register(r'lead-bucket', LeadBucketViewSet, basename='lead-bucket')
 router.register(r'lead_status_count', LeadStatusCountViewSet, basename='lead-status-count')
 router.register(r'contact_statuses', ContactStatusViewSet)
 router.register(r'task_assignments', TaskAssignmentViewSet)
-router.register(r'lead_assignments', LeadAssignmentViewSet)
+router.register(r'notes', NoteViewSet)
 
 urlpatterns = router.urls
