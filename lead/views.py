@@ -630,174 +630,174 @@ class OpportunityReportView(APIView):
 
 #-----For PUT & DELETE (Is_active=false)-------------------------------------------------
 
-class TaskManagement(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, id):
-        try:
-            # Get the user object
-          #  user = User.objects.get(id=id)
-            user=request.user
-            # 1. Gather all tasks that are associated with leads owned by the user
-            leads_owned_by_user = Lead.objects.filter(lead_owner=user)
-            tasks_related_to_leads = Task.objects.filter(contact__lead__in=leads_owned_by_user)
+# class TaskManagement(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, id):
+#         try:
+#             # Get the user object
+#           #  user = User.objects.get(id=id)
+#             user=request.user
+#             # 1. Gather all tasks that are associated with leads owned by the user
+#             leads_owned_by_user = Lead.objects.filter(lead_owner=user)
+#             tasks_related_to_leads = Task.objects.filter(contact__lead__in=leads_owned_by_user)
 
-            # 2. Gather all tasks directly associated with the user (created_by or assigned_to)
-            tasks_created_by_user = Task.objects.filter(created_by=user)
-            tasks_assigned_to_user = Task_Assignment.objects.filter(assigned_to=user).values_list('task', flat=True)
-            tasks_assigned_to_user = Task.objects.filter(id__in=tasks_assigned_to_user)
+#             # 2. Gather all tasks directly associated with the user (created_by or assigned_to)
+#             tasks_created_by_user = Task.objects.filter(created_by=user)
+#             tasks_assigned_to_user = Task_Assignment.objects.filter(assigned_to=user).values_list('task', flat=True)
+#             tasks_assigned_to_user = Task.objects.filter(id__in=tasks_assigned_to_user)
 
             
-            if user.employee.designation.designation=='ADMIN':
-                all_tasks=Task.objects.filter(is_active=True).order_by('-id')
+#             if user.employee.designation.designation=='ADMIN':
+#                 all_tasks=Task.objects.filter(is_active=True).order_by('-id')
 
-            else:
-                all_tasks = tasks_related_to_leads | tasks_created_by_user | tasks_assigned_to_user
-                all_tasks = all_tasks.distinct()
+#             else:
+#                 all_tasks = tasks_related_to_leads | tasks_created_by_user | tasks_assigned_to_user
+#                 all_tasks = all_tasks.distinct()
 
-            # Get current date
-            today = now().date()
+#             # Get current date
+#             today = now().date()
 
-            # Get all tasks from today onwards
-            tasks_from_today_onwards = all_tasks.filter(task_date_time__date__gte=today)
+#             # Get all tasks from today onwards
+#             tasks_from_today_onwards = all_tasks.filter(task_date_time__date__gte=today)
 
-            # Serialize the tasks
-            tasks_serialized = GetTaskSerializer(tasks_from_today_onwards, many=True).data
+#             # Serialize the tasks
+#             tasks_serialized = GetTaskSerializer(tasks_from_today_onwards, many=True).data
 
-            # Response data
-            response_data = {
-                'tasks_from_today_onwards': tasks_serialized,
-            }
+#             # Response data
+#             response_data = {
+#                 'tasks_from_today_onwards': tasks_serialized,
+#             }
 
-            return Response(response_data, status=status.HTTP_200_OK)
+#             return Response(response_data, status=status.HTTP_200_OK)
 
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+#         except User.DoesNotExist:
+#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, id):
-        try:
-            # Get the user object
-           # user = User.objects.get(id=id)
-            user=request.user
-            category = request.data.get('category')  # Get category from the body
-            page = request.data.get('page', 1)  # Default to the first page if not provided
+#     def post(self, request, id):
+#         try:
+#             # Get the user object
+#            # user = User.objects.get(id=id)
+#             user=request.user
+#             category = request.data.get('category')  # Get category from the body
+#             page = request.data.get('page', 1)  # Default to the first page if not provided
             
-            # Current time and time ranges
-            today = now().date()
-            tomorrow = today + timedelta(days=1)
-            next_7_days = today + timedelta(days=7)
+#             # Current time and time ranges
+#             today = now().date()
+#             tomorrow = today + timedelta(days=1)
+#             next_7_days = today + timedelta(days=7)
 
-            # Get all tasks related to the user
-            leads_owned_by_user = Lead.objects.filter(lead_owner=user)
-            tasks_related_to_leads = Task.objects.filter(contact__lead__in=leads_owned_by_user)
-            tasks_created_by_user = Task.objects.filter(created_by=user)
-            tasks_assigned_to_user = Task_Assignment.objects.filter(assigned_to=user).values_list('task', flat=True)
-            tasks_assigned_to_user = Task.objects.filter(id__in=tasks_assigned_to_user)
+#             # Get all tasks related to the user
+#             leads_owned_by_user = Lead.objects.filter(lead_owner=user)
+#             tasks_related_to_leads = Task.objects.filter(contact__lead__in=leads_owned_by_user)
+#             tasks_created_by_user = Task.objects.filter(created_by=user)
+#             tasks_assigned_to_user = Task_Assignment.objects.filter(assigned_to=user).values_list('task', flat=True)
+#             tasks_assigned_to_user = Task.objects.filter(id__in=tasks_assigned_to_user)
 
-            if user.employee.designation.designation=='ADMIN':
-                all_tasks=Task.objects.filter(is_active=True).order_by('-id')
-            else:
-                all_tasks = tasks_related_to_leads | tasks_created_by_user | tasks_assigned_to_user
-                all_tasks = all_tasks.distinct()
-
-
+#             if user.employee.designation.designation=='ADMIN':
+#                 all_tasks=Task.objects.filter(is_active=True).order_by('-id')
+#             else:
+#                 all_tasks = tasks_related_to_leads | tasks_created_by_user | tasks_assigned_to_user
+#                 all_tasks = all_tasks.distinct()
 
 
 
 
-            # Filter tasks based on the category
-            if category == "today":
-                filtered_tasks = all_tasks.filter(task_date_time__date=today)
-            elif category == "tomorrow":
-                filtered_tasks = all_tasks.filter(task_date_time__date=tomorrow)
-            elif category == "next_7_days":
-                filtered_tasks = all_tasks.filter(task_date_time__date__range=[tomorrow + timedelta(days=1), next_7_days])
-            else:
-                return Response({'error': 'Invalid category'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Paginate the results
-            paginator = CustomPagination()
-            paginated_tasks = paginator.paginate_queryset(filtered_tasks, request)
 
-            # Serialize paginated tasks
-            tasks_serialized = GetTaskSerializer(paginated_tasks, many=True).data
+#             # Filter tasks based on the category
+#             if category == "today":
+#                 filtered_tasks = all_tasks.filter(task_date_time__date=today)
+#             elif category == "tomorrow":
+#                 filtered_tasks = all_tasks.filter(task_date_time__date=tomorrow)
+#             elif category == "next_7_days":
+#                 filtered_tasks = all_tasks.filter(task_date_time__date__range=[tomorrow + timedelta(days=1), next_7_days])
+#             else:
+#                 return Response({'error': 'Invalid category'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Response data
-            response_data = {
-                'count': paginator.page.paginator.count,
-                'tasks': tasks_serialized
-            }
-            return paginator.get_paginated_response(response_data)
+#             # Paginate the results
+#             paginator = CustomPagination()
+#             paginated_tasks = paginator.paginate_queryset(filtered_tasks, request)
 
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+#             # Serialize paginated tasks
+#             tasks_serialized = GetTaskSerializer(paginated_tasks, many=True).data
+
+#             # Response data
+#             response_data = {
+#                 'count': paginator.page.paginator.count,
+#                 'tasks': tasks_serialized
+#             }
+#             return paginator.get_paginated_response(response_data)
+
+#         except User.DoesNotExist:
+#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-    def put(self, request, id):
-       # assigned_by_user = User.objects.get(id=2)  # Static assignment, change if needed
-        try:
-            # Retrieve the task object
-            task = Task.objects.get(id=id)
+#     def put(self, request, id):
+#        # assigned_by_user = User.objects.get(id=2)  # Static assignment, change if needed
+#         try:
+#             # Retrieve the task object
+#             task = Task.objects.get(id=id)
 
-            # Get data from request body
-            contact_id = request.data.get('contact_id')
-            log_id = request.data.get('log_id')
-            task_date_time = request.data.get('task_date_time')
-            task_detail = request.data.get('task_detail')
-            task_type = request.data.get('tasktype', 'M')  # Default to 'M' if not provided
+#             # Get data from request body
+#             contact_id = request.data.get('contact_id')
+#             log_id = request.data.get('log_id')
+#             task_date_time = request.data.get('task_date_time')
+#             task_detail = request.data.get('task_detail')
+#             task_type = request.data.get('tasktype', 'M')  # Default to 'M' if not provided
             
-            log = None
-            if log_id:
-                try:
-                    log = Log.objects.get(id=log_id)
-                except Log.DoesNotExist:
-                    return Response({"error": "Log not found"}, status=status.HTTP_404_NOT_FOUND)
+#             log = None
+#             if log_id:
+#                 try:
+#                     log = Log.objects.get(id=log_id)
+#                 except Log.DoesNotExist:
+#                     return Response({"error": "Log not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Update task fields
-            task.contact = Contact.objects.get(id=contact_id)
-            task.log = log
-            task.task_date_time = task_date_time
-            task.task_detail = task_detail
-            task.created_by = request.user  # Or request.user for dynamic assignment
-            task.tasktype = task_type
+#             # Update task fields
+#             task.contact = Contact.objects.get(id=contact_id)
+#             task.log = log
+#             task.task_date_time = task_date_time
+#             task.task_detail = task_detail
+#             task.created_by = request.user  # Or request.user for dynamic assignment
+#             task.tasktype = task_type
 
-            # Save updated task
-            task.save()
-            serializer = TaskSerializer(task)
-            return Response({"message": "Task updated successfully", "task": serializer.data}, status=status.HTTP_200_OK)
+#             # Save updated task
+#             task.save()
+#             serializer = TaskSerializer(task)
+#             return Response({"message": "Task updated successfully", "task": serializer.data}, status=status.HTTP_200_OK)
 
-        except Task.DoesNotExist:
-            return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+#         except Task.DoesNotExist:
+#             return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        except Contact.DoesNotExist:
-            return Response({'error': 'Contact not found'}, status=status.HTTP_404_NOT_FOUND)
+#         except Contact.DoesNotExist:
+#             return Response({'error': 'Contact not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, id):
-        try:
-            # Retrieve the task object
-            task = Task.objects.get(id=id)
+#     def delete(self, request, id):
+#         try:
+#             # Retrieve the task object
+#             task = Task.objects.get(id=id)
 
-            if not task.is_active:
-                return Response({"message": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+#             if not task.is_active:
+#                 return Response({"message": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Delete the task
-            task.is_active = False
-            task.save()
+#             # Delete the task
+#             task.is_active = False
+#             task.save()
 
-            return Response({"message": "Task deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+#             return Response({"message": "Task deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
-        except Task.DoesNotExist:
-            return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+#         except Task.DoesNotExist:
+#             return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     
 
@@ -1918,53 +1918,53 @@ class LeadAssignmentView(APIView):
 #         return JsonResponse({'message': 'Log and Task deleted successfully'}, status=200)
 
 # Calling log_status for creating Log
-class LogStageListView(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request):
-            log_stages = Log_Stage.objects.filter(is_active=True)  
-            serializer = LogStageSerializer(log_stages, many=True)
-            return JsonResponse(serializer.data, status=200, safe=False)
+# class LogStageListView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request):
+#             log_stages = Log_Stage.objects.filter(is_active=True)  
+#             serializer = LogStageSerializer(log_stages, many=True)
+#             return JsonResponse(serializer.data, status=200, safe=False)
         
 #Calling all the logs in a Lead
-class logsbyLeadsView(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, lead_id):
-        user=request.user
-        try:
-            if user.employee.designation.designation=='ADMIN':
-                contacts= Contact.objects.filter(lead_id=lead_id)
-            else:
-                contacts = Contact.objects.filter(Q(lead_id=lead_id)&
-                    ( Q(lead__lead_owner=user)|Q(lead__created_by=user)|Q(created_by=user)))
-            logs = Log.objects.filter(contact__in=contacts, is_active=True).order_by('-id')  
+# class logsbyLeadsView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, lead_id):
+#         user=request.user
+#         try:
+#             if user.employee.designation.designation=='ADMIN':
+#                 contacts= Contact.objects.filter(lead_id=lead_id)
+#             else:
+#                 contacts = Contact.objects.filter(Q(lead_id=lead_id)&
+#                     ( Q(lead__lead_owner=user)|Q(lead__created_by=user)|Q(created_by=user)))
+#             logs = Log.objects.filter(contact__in=contacts, is_active=True).order_by('-id')  
             
-            paginator = CustomPagination()
-            result_page = paginator.paginate_queryset(logs, request)
-            log_serializer = LogReadSerializer(result_page, many=True)
+#             paginator = CustomPagination()
+#             result_page = paginator.paginate_queryset(logs, request)
+#             log_serializer = LogReadSerializer(result_page, many=True)
 
-            return paginator.get_paginated_response(log_serializer.data)
-        except Contact.DoesNotExist:
-            return JsonResponse({'message': 'No contacts found for this lead'}, status=404)
+#             return paginator.get_paginated_response(log_serializer.data)
+#         except Contact.DoesNotExist:
+#             return JsonResponse({'message': 'No contacts found for this lead'}, status=404)
         
 #calling all the logs of a Contact
-class logsbyContactView(APIView):
-    permission_classes=[IsAuthenticated]
-    def get(self, request, contact_id):
-        try:
-            user=request.user
-            if user.employee.designation.designation=='ADMIN':
-                logs= Log.objects.filter(contact_id=contact_id,is_active=True).order_by('-id')
-            else:
-                logs = Log.objects.filter(Q(contact_id=contact_id)&(Q(contact__lead__lead_owner=user)|
-                Q(contact__lead__created_by=user)| Q(contact__created_by=user)| Q(created_by=user))).order_by('-id')  
+# class logsbyContactView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def get(self, request, contact_id):
+#         try:
+#             user=request.user
+#             if user.employee.designation.designation=='ADMIN':
+#                 logs= Log.objects.filter(contact_id=contact_id,is_active=True).order_by('-id')
+#             else:
+#                 logs = Log.objects.filter(Q(contact_id=contact_id)&(Q(contact__lead__lead_owner=user)|
+#                 Q(contact__lead__created_by=user)| Q(contact__created_by=user)| Q(created_by=user))).order_by('-id')  
             
-            paginator = CustomPagination()
-            result_page = paginator.paginate_queryset(logs, request)
-            log_serializer = LogReadSerializer(result_page, many=True)
+#             paginator = CustomPagination()
+#             result_page = paginator.paginate_queryset(logs, request)
+#             log_serializer = LogReadSerializer(result_page, many=True)
 
-            return paginator.get_paginated_response(log_serializer.data)
-        except Log.DoesNotExist:
-            return JsonResponse({'message': 'Log does not exist'}, status=404)
+#             return paginator.get_paginated_response(log_serializer.data)
+#         except Log.DoesNotExist:
+#             return JsonResponse({'message': 'Log does not exist'}, status=404)
 
 # Opportunity Report
 class OpportunityReportView(APIView):
@@ -2004,118 +2004,118 @@ class OpportunityReportView(APIView):
         return Response(data)
 
 # Task Assignment
-class TaskAssignmentView(APIView):
-    permission_classes = [IsAuthenticated]
+# class TaskAssignmentView(APIView):
+#     permission_classes = [IsAuthenticated]
     
-    def post(self, request, id):
-        # Attempt to retrieve the task
-        try:
-            task = Task.objects.get(id=id)
-        except Task.DoesNotExist:
-            return JsonResponse({'message': 'Task does not exist'}, status=404)
+#     def post(self, request, id):
+#         # Attempt to retrieve the task
+#         try:
+#             task = Task.objects.get(id=id)
+#         except Task.DoesNotExist:
+#             return JsonResponse({'message': 'Task does not exist'}, status=404)
         
-        assigned_to = request.data.get('assigned_to')
-        if not assigned_to:
-            return JsonResponse({'message': 'No employee selected'}, status=400)
+#         assigned_to = request.data.get('assigned_to')
+#         if not assigned_to:
+#             return JsonResponse({'message': 'No employee selected'}, status=400)
         
-        try:
-            # Retrieve the user to whom the task is being assigned
-            user = User.objects.get(id=assigned_to)
-            Task_Assignment.objects.create(
-                task=task, 
-                assigned_to=user, 
-                assigned_by=request.user,  # Using the authenticated user as assigned_by
+#         try:
+#             # Retrieve the user to whom the task is being assigned
+#             user = User.objects.get(id=assigned_to)
+#             Task_Assignment.objects.create(
+#                 task=task, 
+#                 assigned_to=user, 
+#                 assigned_by=request.user,  # Using the authenticated user as assigned_by
                 
-            )
+#             )
             
-            # Email details
-            subject = "New Task Assignment"
-            message = (
-                f"Hello {user.username},\n\n"
-                "You have been assigned a new task:\n\n"
-                "Please log in to the CRM system to view more details:\n"
-                "http://crm.decodeschool.com/\n\n"
+#             # Email details
+#             subject = "New Task Assignment"
+#             message = (
+#                 f"Hello {user.username},\n\n"
+#                 "You have been assigned a new task:\n\n"
+#                 "Please log in to the CRM system to view more details:\n"
+#                 "http://crm.decodeschool.com/\n\n"
                 
-            )
+#             )
             
-            # Send email to the assigned user
-            try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                return JsonResponse({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#             # Send email to the assigned user
+#             try:
+#                 send_mail(
+#                     subject,
+#                     message,
+#                     settings.DEFAULT_FROM_EMAIL,
+#                     [user.email],
+#                     fail_silently=False,
+#                 )
+#             except Exception as e:
+#                 return JsonResponse({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            return JsonResponse({"message": "Task assigned successfully"}, status=201)
+#             return JsonResponse({"message": "Task assigned successfully"}, status=201)
         
-        except User.DoesNotExist:
-            return JsonResponse({'message': f'User {assigned_to} does not exist'}, status=404)
+#         except User.DoesNotExist:
+#             return JsonResponse({'message': f'User {assigned_to} does not exist'}, status=404)
         
 #API for all the tasks under a Contact with search with task name and date
-class TaskListVIew(APIView):
-    permission_classes=[IsAuthenticated]
-    def post(self, request, id):
-        try:
-            user = request.user
+# class TaskListVIew(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def post(self, request, id):
+#         try:
+#             user = request.user
 
-            # Retrieve search parameters from request body
-            search_query = request.data.get('task_name', '').strip()
-            task_date_str = request.data.get('task_date_time', '').strip()
-            task_date = parse_date(task_date_str) if task_date_str else None
+#             # Retrieve search parameters from request body
+#             search_query = request.data.get('task_name', '').strip()
+#             task_date_str = request.data.get('task_date_time', '').strip()
+#             task_date = parse_date(task_date_str) if task_date_str else None
 
-            # Build base filter conditions
-            filter_conditions = Q()
-            if search_query:
-                filter_conditions &= Q(task_detail__icontains=search_query)
-            if task_date:
-                filter_conditions &= Q(task_date_time__date=task_date)
+#             # Build base filter conditions
+#             filter_conditions = Q()
+#             if search_query:
+#                 filter_conditions &= Q(task_detail__icontains=search_query)
+#             if task_date:
+#                 filter_conditions &= Q(task_date_time__date=task_date)
 
-            # Tasks associated with leads owned by the user
-            leads_owned_by_user = Lead.objects.filter(lead_owner=user)
-            tasks_related_to_leads = Task.objects.filter(contact__lead__in=leads_owned_by_user).filter(filter_conditions)
+#             # Tasks associated with leads owned by the user
+#             leads_owned_by_user = Lead.objects.filter(lead_owner=user)
+#             tasks_related_to_leads = Task.objects.filter(contact__lead__in=leads_owned_by_user).filter(filter_conditions)
 
-            # Tasks directly associated with the user
-            tasks_created_by_user = Task.objects.filter(created_by=user).filter(filter_conditions)
-            tasks_assigned_to_user_ids = Task_Assignment.objects.filter(assigned_to=user).values_list('task', flat=True)
-            tasks_assigned_to_user = Task.objects.filter(id__in=tasks_assigned_to_user_ids).filter(filter_conditions)
+#             # Tasks directly associated with the user
+#             tasks_created_by_user = Task.objects.filter(created_by=user).filter(filter_conditions)
+#             tasks_assigned_to_user_ids = Task_Assignment.objects.filter(assigned_to=user).values_list('task', flat=True)
+#             tasks_assigned_to_user = Task.objects.filter(id__in=tasks_assigned_to_user_ids).filter(filter_conditions)
 
-            # Get tasks from today onwards
-            today = now().date()
+#             # Get tasks from today onwards
+#             today = now().date()
 
-            # Combine all tasks with categories in a single list
-            categorized_tasks = []
+#             # Combine all tasks with categories in a single list
+#             categorized_tasks = []
 
-            # Add "Owned Task" category if user created the task
-            for task in tasks_created_by_user:
-                if task.task_date_time.date() >= today:
-                    categorized_tasks.append({**GetTaskSerializer(task).data, "category": "Owned Task"})
+#             # Add "Owned Task" category if user created the task
+#             for task in tasks_created_by_user:
+#                 if task.task_date_time.date() >= today:
+#                     categorized_tasks.append({**GetTaskSerializer(task).data, "category": "Owned Task"})
 
-            # Add "Assigned Task" category if user is assigned the task
-            for task in tasks_assigned_to_user:
-                if task.task_date_time.date() >= today and task not in tasks_created_by_user:
-                    categorized_tasks.append({**GetTaskSerializer(task).data, "category": "Assigned Task"})
+#             # Add "Assigned Task" category if user is assigned the task
+#             for task in tasks_assigned_to_user:
+#                 if task.task_date_time.date() >= today and task not in tasks_created_by_user:
+#                     categorized_tasks.append({**GetTaskSerializer(task).data, "category": "Assigned Task"})
 
-            # Add "Others Task" category for other tasks related to leads owned by the user
-            for task in tasks_related_to_leads:
-                if task.task_date_time.date() >= today and task not in tasks_created_by_user and task not in tasks_assigned_to_user:
-                    categorized_tasks.append({**GetTaskSerializer(task).data, "category": "Others Task"})
+#             # Add "Others Task" category for other tasks related to leads owned by the user
+#             for task in tasks_related_to_leads:
+#                 if task.task_date_time.date() >= today and task not in tasks_created_by_user and task not in tasks_assigned_to_user:
+#                     categorized_tasks.append({**GetTaskSerializer(task).data, "category": "Others Task"})
             
-            categorized_tasks.sort(key=lambda x: x['id'], reverse=True)
-            #categorized_tasks.order_by('-id')
-            # Apply pagination
-            paginator = CustomPagination()
-            paginated_tasks = paginator.paginate_queryset(categorized_tasks, request)
-            return paginator.get_paginated_response(paginated_tasks)
+#             categorized_tasks.sort(key=lambda x: x['id'], reverse=True)
+#             #categorized_tasks.order_by('-id')
+#             # Apply pagination
+#             paginator = CustomPagination()
+#             paginated_tasks = paginator.paginate_queryset(categorized_tasks, request)
+#             return paginator.get_paginated_response(paginated_tasks)
 
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+#         except User.DoesNotExist:
+#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -2150,94 +2150,94 @@ class CustomPagination(PageNumberPagination):
             'results': data
         })
         
-class TaskListView(APIView):
-    permission_classes=[IsAuthenticated]
-    def post(self, request):
-        try:
-            # Retrieve search parameters from request body
-            search_key = request.data.get('key', '').strip()
-            from_date_str = request.data.get('start_date', '').strip()
-            to_date_str = request.data.get('end_date', '').strip()
-            lead_id = request.data.get('lead')
-            assigned_to_id = request.data.get('assigned_to')
+# class TaskListView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def post(self, request):
+#         try:
+#             # Retrieve search parameters from request body
+#             search_key = request.data.get('key', '').strip()
+#             from_date_str = request.data.get('start_date', '').strip()
+#             to_date_str = request.data.get('end_date', '').strip()
+#             lead_id = request.data.get('lead')
+#             assigned_to_id = request.data.get('assigned_to')
            
-            # Parse dates if provided
-            from_date = parse_date(from_date_str) if from_date_str else None
-            to_date = parse_date(to_date_str) if to_date_str else None
+#             # Parse dates if provided
+#             from_date = parse_date(from_date_str) if from_date_str else None
+#             to_date = parse_date(to_date_str) if to_date_str else None
 
-            # Build base filter conditions
-            filter_conditions = Q(is_active=True)
-            if search_key:
-                filter_conditions &= Q(task_detail__icontains=search_key) | Q(contact__name__icontains=search_key)
-            if from_date and to_date:
-                filter_conditions &= Q(task_date_time__date__range=(from_date, to_date))
-            elif from_date:
-                filter_conditions &= Q(task_date_time__date__gte=from_date)
-            elif to_date:
-                filter_conditions &= Q(task_date_time__date__lte=to_date)
-            if lead_id:
-                filter_conditions &= Q(contact__lead_id=lead_id)
-            if assigned_to_id:
-                assigned_user = User.objects.filter(id=assigned_to_id).first()
-                if not assigned_user:
-                    return Response({'error': 'Assigned user not found'}, status=status.HTTP_404_NOT_FOUND)
-                assigned_task_ids = Task_Assignment.objects.filter(assigned_to=assigned_user).values_list('task', flat=True)
-                filter_conditions &= Q(id__in=assigned_task_ids)
+#             # Build base filter conditions
+#             filter_conditions = Q(is_active=True)
+#             if search_key:
+#                 filter_conditions &= Q(task_detail__icontains=search_key) | Q(contact__name__icontains=search_key)
+#             if from_date and to_date:
+#                 filter_conditions &= Q(task_date_time__date__range=(from_date, to_date))
+#             elif from_date:
+#                 filter_conditions &= Q(task_date_time__date__gte=from_date)
+#             elif to_date:
+#                 filter_conditions &= Q(task_date_time__date__lte=to_date)
+#             if lead_id:
+#                 filter_conditions &= Q(contact__lead_id=lead_id)
+#             if assigned_to_id:
+#                 assigned_user = User.objects.filter(id=assigned_to_id).first()
+#                 if not assigned_user:
+#                     return Response({'error': 'Assigned user not found'}, status=status.HTTP_404_NOT_FOUND)
+#                 assigned_task_ids = Task_Assignment.objects.filter(assigned_to=assigned_user).values_list('task', flat=True)
+#                 filter_conditions &= Q(id__in=assigned_task_ids)
 
-            user = request.user
+#             user = request.user
 
-            leads_owned_by_user = Lead.objects.filter(lead_owner=user)
-            tasks_related_to_leads = Task.objects.filter(contact__lead__in=leads_owned_by_user).filter(filter_conditions)
-            tasks_created_by_user = Task.objects.filter(created_by=user).filter(filter_conditions)
-            tasks_assigned_to_user_ids = Task_Assignment.objects.filter(assigned_to=user).values_list('task', flat=True)
-            tasks_assigned_to_user = Task.objects.filter(id__in=tasks_assigned_to_user_ids).filter(filter_conditions)
-            today = now().date()
-            categorized_tasks=[]
-            if user.employee.designation.designation == 'ADMIN':
-                # If the user is an ADMIN, show all tasks, not limited to the user's assignments
-                tasks = Task.objects.filter(is_active=True).filter(filter_conditions).order_by('-id')
-                categorized_tasks = [
-                    {**GetTaskSerializer(task).data, "category": "All Tasks"}
-                    for task in tasks if task.task_date_time.date() >= today
-                ]
-            else:
+#             leads_owned_by_user = Lead.objects.filter(lead_owner=user)
+#             tasks_related_to_leads = Task.objects.filter(contact__lead__in=leads_owned_by_user).filter(filter_conditions)
+#             tasks_created_by_user = Task.objects.filter(created_by=user).filter(filter_conditions)
+#             tasks_assigned_to_user_ids = Task_Assignment.objects.filter(assigned_to=user).values_list('task', flat=True)
+#             tasks_assigned_to_user = Task.objects.filter(id__in=tasks_assigned_to_user_ids).filter(filter_conditions)
+#             today = now().date()
+#             categorized_tasks=[]
+#             if user.employee.designation.designation == 'ADMIN':
+#                 # If the user is an ADMIN, show all tasks, not limited to the user's assignments
+#                 tasks = Task.objects.filter(is_active=True).filter(filter_conditions).order_by('-id')
+#                 categorized_tasks = [
+#                     {**GetTaskSerializer(task).data, "category": "All Tasks"}
+#                     for task in tasks if task.task_date_time.date() >= today
+#                 ]
+#             else:
                 
-                owned_tasks = [
-                    {**GetTaskSerializer(task).data, "category": "Owned Task"}
-                    for task in tasks_created_by_user if task.task_date_time.date() >= today
-                ]
+#                 owned_tasks = [
+#                     {**GetTaskSerializer(task).data, "category": "Owned Task"}
+#                     for task in tasks_created_by_user if task.task_date_time.date() >= today
+#                 ]
                 
 
-                # 2. Categorize tasks as "Assigned Task"
-                assigned_tasks = [
-                    {**GetTaskSerializer(task).data, "category": "Assigned Task"}
-                    for task in tasks_assigned_to_user if task.task_date_time.date() >= today
-                ]
+#                 # 2. Categorize tasks as "Assigned Task"
+#                 assigned_tasks = [
+#                     {**GetTaskSerializer(task).data, "category": "Assigned Task"}
+#                     for task in tasks_assigned_to_user if task.task_date_time.date() >= today
+#                 ]
 
-                # Combine owned and assigned tasks
-                categorized_tasks.extend(owned_tasks)
-                categorized_tasks.extend(assigned_tasks)
+#                 # Combine owned and assigned tasks
+#                 categorized_tasks.extend(owned_tasks)
+#                 categorized_tasks.extend(assigned_tasks)
 
-                owned_task_ids = {task['id'] for task in owned_tasks}
-                assigned_task_ids = {task['id'] for task in assigned_tasks}
-                # 3. Categorize tasks as "Others Task"
-                # We will only add tasks that are not already categorized as owned or assigned
-                others_tasks = [
-                    {**GetTaskSerializer(task).data, "category": "Others Task"}
-                    for task in tasks_related_to_leads if task.task_date_time.date() >= today
-                    and task.id not in owned_task_ids and task.id not in assigned_task_ids  # Exclude tasks by ID
-    ]
-                categorized_tasks.extend(others_tasks)
+#                 owned_task_ids = {task['id'] for task in owned_tasks}
+#                 assigned_task_ids = {task['id'] for task in assigned_tasks}
+#                 # 3. Categorize tasks as "Others Task"
+#                 # We will only add tasks that are not already categorized as owned or assigned
+#                 others_tasks = [
+#                     {**GetTaskSerializer(task).data, "category": "Others Task"}
+#                     for task in tasks_related_to_leads if task.task_date_time.date() >= today
+#                     and task.id not in owned_task_ids and task.id not in assigned_task_ids  # Exclude tasks by ID
+#     ]
+#                 categorized_tasks.extend(others_tasks)
 
 
 
-            categorized_tasks.sort(key=lambda x: x['id'], reverse=True)
-            paginator = CustomPagination()
-            paginated_tasks = paginator.paginate_queryset(categorized_tasks, request)
-            return paginator.get_paginated_response(paginated_tasks)
+#             categorized_tasks.sort(key=lambda x: x['id'], reverse=True)
+#             paginator = CustomPagination()
+#             paginated_tasks = paginator.paginate_queryset(categorized_tasks, request)
+#             return paginator.get_paginated_response(paginated_tasks)
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
