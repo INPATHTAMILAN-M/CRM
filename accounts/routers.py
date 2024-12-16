@@ -5,7 +5,7 @@ from accounts.viewsets.users_viewset import GetLeadOwnerViewSet, UsersForLeadVie
 
 router = DefaultRouter()
 
-router.register(r'users_for_lead', UsersForLeadViewSet)
-router.register(r'get_lead_owner', GetLeadOwnerViewSet, basename='get_lead_owner_unique')
-router.register(r'salutations', SalutationViewSet)
+# router.register(r'users_for_lead', UsersForLeadViewSet)
+# router.register(r'get_lead_owner', GetLeadOwnerViewSet, basename='get_lead_owner_unique')
+# router.register(r'salutations', SalutationViewSet)
 urlpatterns = router.urls

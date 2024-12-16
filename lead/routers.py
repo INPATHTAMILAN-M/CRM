@@ -1,5 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
+from accounts.viewsets.salutation_viewset import SalutationViewSet
 from accounts.viewsets.users_viewset import GetLeadOwnerViewSet, UsersForLeadViewSet
 from lead.viewsets.contact_status_viewset import ContactStatusViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
@@ -51,4 +52,7 @@ router.register(r'contact_statuses', ContactStatusViewSet)
 router.register(r'task_assignments', TaskAssignmentViewSet)
 router.register(r'notes', NoteViewSet)
 
+
+# in accounts
+router.register(r'salutations', SalutationViewSet)
 urlpatterns = router.urls

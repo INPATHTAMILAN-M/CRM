@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from lead.serializers.log_serializer import LogStageSerializer
 from ..models import Lead,Employee,Contact, Log,Opportunity
 from accounts.models import Focus_Segment,Market_Segment,Country, Stage,State,Tag,Vertical,Lead_Source, Lead_Source_From
 from ..models import Lead_Status, Department, Contact_Status 
@@ -153,6 +155,23 @@ class OpportunitySerializer(serializers.ModelSerializer):
 #             'recurring_value_per_year', 'currency_type', 'closing_date', 'stage',
 #             'probability_in_percentage', 'file', 'primary_contact', 'created_by'
 #         ]
+class LogSerializer(serializers.ModelSerializer):
+    contact = ContactSerializer(read_only=True)
+    lead = LeadSerializer(read_only=True)
+    opportunity = OpportunitySerializer(read_only=True)
+    focus_segment = FocusSegmentSerializer(read_only=True)
+    log_stage = LogStageSerializer(read_only=True)
+    created_by = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Log
+        fields = '__all__'
+
+    def get_created_by(self, obj):
+        return {
+            'id': obj.created_by.id,
+            'username': obj.created_by.username
+        }
 
 class LeadSerializer(serializers.ModelSerializer):
     market_segment = MarketSegmentSerializer(read_only=True)
@@ -171,7 +190,7 @@ class LeadSerializer(serializers.ModelSerializer):
     lead_status = LeadStatusSerializer(read_only=True)  # Nested serializer for LeadStatus
     department = DepartmentSerializer(read_only=True)  # Nested serializer for Department
     last_log_follow_up = serializers.SerializerMethodField()
-    
+    logs = LogSerializer(many=True, read_only=True)
     class Meta:
         model = Lead
         fields = '__all__'
@@ -214,7 +233,7 @@ class LeadSerializer(serializers.ModelSerializer):
         # If no opportunities, include primary contact details only
         primary_contact_data = ContactSerializer(instance.contact_set.filter(is_primary=True).first()).data
         representation['primary_contact'] = primary_contact_data
-            
+        representation['logs'] = LogSerializer(instance.log_set.all(), many=True).data 
         representation['contacts'] = ContactSerializer(instance.contact_set.all(), many=True).data
         return representation
 
