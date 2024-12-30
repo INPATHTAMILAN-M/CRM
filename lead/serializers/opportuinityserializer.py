@@ -3,6 +3,8 @@ from lead.models import Opportunity, User, Lead, Opportunity_Stage, Note
 from accounts.models import Stage, Country, User
 from django.db import transaction
 
+from lead.serializers.lead_serializer import LogSerializer
+
 class OwnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -30,7 +32,7 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
     stage = StageSerializer(read_only=True)
     created_by=OwnerSerializer(read_only=True)
     file_url = serializers.SerializerMethodField()
-
+    logs = LogSerializer(many=True, read_only=True)
     class Meta:
         model = Opportunity
         fields = "__all__"
@@ -41,6 +43,12 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
             domain = "http://121.200.52.133:8000/"
             return f"{domain}{file_url}"
         return None
+    
+    def to_representation(self, instance):
+        # Get the basic representation first
+        representation = super().to_representation(instance)
+        representation['logs'] = LogSerializer(instance.log_set.all(), many=True).data 
+        return representation
     
 class OpportunityListSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)

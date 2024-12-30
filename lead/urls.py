@@ -63,8 +63,5 @@ urlpatterns = [
     # path('opportunity/stage_history/', StageHistory.as_view(), name='stage-history'),
     # path('opportunity/stage_history/<int:opportunity_id>/', StageHistory.as_view(), name='stage-history'),
 
-# ------------------------mitun-----------------------------
-
-    
-    
+# ------------------------mitun----------------------------- 
 ]

@@ -85,7 +85,7 @@ class Lead(models.Model):
         return f'{self.name} owner {self.lead_owner.username}'
 
 class Contact(models.Model):
-    lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     status = models.ForeignKey(Contact_Status, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.CharField(max_length=255, null=True, blank=True)
@@ -96,6 +96,7 @@ class Contact(models.Model):
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
+    is_archive = models.BooleanField(default=False)
     
     def __str__(self):
         return self.name

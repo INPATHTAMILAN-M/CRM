@@ -15,7 +15,7 @@ class LogStageViewSet(viewsets.ModelViewSet):
     # filterset_class = log_filter.LogFilter
     pagination_class = Paginator
     serializer_class = GetLogStageSerializer
-    alowed_methods = ['GET', 'POST', 'PATCH']
+    alowed_methods = ['GET', 'POST']
     
     # def get_serializer_class(self):
     #     if self.action == 'create':
