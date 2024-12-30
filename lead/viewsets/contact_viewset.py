@@ -34,6 +34,6 @@ class ContactViewSet(viewsets.ModelViewSet):
         instance.save()
         return Response({"message": "Contact deactivated successfully."}, status=status.HTTP_200_OK)
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.filter(created_by=self.request.user)
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #     return queryset.filter(created_by=self.request.user)
