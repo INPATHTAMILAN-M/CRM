@@ -27,6 +27,21 @@ class LeadViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # Save the lead and assign the current logged-in user as 'created_by'
         lead = serializer.save(created_by=self.request.user)
+        
+                # Get the contact_id from the request data (if provided)
+        contact_id = self.request.data.get('contact_id', None)
+
+        # If contact_id is provided, link the contact to the created lead
+        if contact_id:
+            try:
+                # Contact.objects.filter(lead=lead).update(is_primary=False)
+                contact = Contact.objects.get(id=contact_id)
+                contact.lead = lead 
+                contact.is_primary= True
+                contact.save()
+            except Contact.DoesNotExist:
+                raise Response({"error": "Contact with the provided ID does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+        
         try:
             lead_owner = lead.lead_owner
             if not lead_owner:
@@ -35,18 +50,6 @@ class LeadViewSet(viewsets.ModelViewSet):
         except (User.DoesNotExist, ValueError) as e:
             raise Response({"error": f"Notification email not set for user: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create the Contact instance
-        contact_data = {
-            "lead": lead,
-            "name": lead.name,
-            "email_id": lead.company_email,
-            "phone_number": lead.company_number,
-            "created_by": self.request.user,
-            "is_active": True,
-            "is_primary": True,
-        }
-        Contact.objects.create(**contact_data)
-        
         if lead.assigned_to :
             lead_assignment = {
                 "lead":lead,
