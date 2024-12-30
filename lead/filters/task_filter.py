@@ -1,7 +1,7 @@
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from ..models import Task
-
+import django_filters
 
 class TaskFilter(filters.FilterSet):
     created_on = filters.DateFromToRangeFilter()
@@ -15,6 +15,7 @@ class TaskFilter(filters.FilterSet):
     contact = filters.BaseInFilter()
     log = filters.BaseInFilter()
     search = filters.CharFilter(method='filter_search', lookup_expr='icontains')
+    from_date_to_date = django_filters.DateFromToRangeFilter(field_name='created_on', method='filter_from_date_to_date')
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(task_detail__icontains=value)
@@ -28,3 +29,9 @@ class TaskFilter(filters.FilterSet):
         fields = ['is_active', 'created_on', 'lead', 'owner', 
                  'task_date_time', 'task_detail', 'created_by', 'tasktype',
                  'contact', 'log', 'assigned_to', 'search']
+        
+    def filter_from_date_to_date(self, queryset, name, value):
+        # Custom filter for 'from_date_to_date', automatically handled by Django's DateFromToRangeFilter
+        if value:
+            return queryset.filter(created_on__range=[value.start, value.stop])
+        return queryset

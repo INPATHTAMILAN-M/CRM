@@ -30,3 +30,15 @@ class GetLeadOwnerViewSet(viewsets.ReadOnlyModelViewSet):
         # Filter users that belong to the target group BDM
         target_groups = Group.objects.filter(name="BDM")
         return queryset.filter(groups__in=target_groups).distinct()
+
+class GetTaskAssignedToViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = UserFilter
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filter users that belong to the target group BDM
+        target_groups = Group.objects.filter(name__in=["BDM","BDE"])
+        return queryset.filter(groups__in=target_groups).distinct()

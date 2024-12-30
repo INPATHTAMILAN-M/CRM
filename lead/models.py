@@ -92,6 +92,7 @@ class Contact(models.Model):
     department = models.CharField(max_length=255, null=True, blank=True)
     phone_number = models.CharField(max_length=25, null=True, blank=True)
     email_id = models.EmailField(max_length=255, null=True, blank=True)
+    remark = models.TextField(null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
