@@ -36,11 +36,18 @@ class TaskListSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     log = LogSerializer()
     created_by = UserSerializer()
-
+    assigned_to = serializers.SerializerMethodField()
+    
     class Meta:
         model = Task
-        fields = ['id', 'remark','contact', 'log', 'task_date_time', 'task_detail', 'created_by', 'created_on', 'is_active', 'tasktype']
+        fields = ['id', 'remark', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 'created_on', 'is_active', 'tasktype', 'assigned_to']
 
+    def get_assigned_to(self, obj):
+        # Get all Task_Assignment records related to this task
+        task_assignments = Task_Assignment.objects.filter(task=obj, is_active=True)
+        # Serialize the assignment data using TaskAssignmentSerializer
+        return TaskAssignmentSerializer(task_assignments, many=True).data
+    
 class TaskCreateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(required=False)
     class Meta:

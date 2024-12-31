@@ -29,7 +29,7 @@ class TaskFilter(filters.FilterSet):
         fields = ['is_active', 'created_on', 'lead',
                  'task_date_time', 'task_detail', 'created_by', 'tasktype',
                  'contact', 'log', 'search']
-        
+
     def filter_from_date_to_date(self, queryset, name, value):
         # Custom filter for 'from_date_to_date', automatically handled by Django's DateFromToRangeFilter
         if value:
