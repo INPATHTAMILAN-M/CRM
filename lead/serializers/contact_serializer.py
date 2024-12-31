@@ -23,7 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ContactListSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
     status = ContactStatusSerializer()
-    status = DepartmentSerializer()
+    department = DepartmentSerializer()
     created_by =UserSerializer()
     lead_source = LeadSourceSerializer(read_only=True)
     
@@ -34,7 +34,7 @@ class ContactListSerializer(serializers.ModelSerializer):
 class ContactDetailSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
     status = ContactStatusSerializer()
-    status = DepartmentSerializer()
+    department = DepartmentSerializer()
     created_by =UserSerializer()
     lead_source = LeadSourceSerializer(read_only=True)
     
