@@ -168,6 +168,7 @@ class Task(models.Model):
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     tasktype = models.CharField(max_length=10, choices=[('Manual', 'Manual'), ('Automatic', 'Automatic')])
+    remark = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'Task for {self.contact.name}'
