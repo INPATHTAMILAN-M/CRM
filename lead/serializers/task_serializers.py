@@ -38,13 +38,13 @@ class TaskListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ['id', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 'created_on', 'is_active', 'tasktype']
+        fields = ['id', 'remark','contact', 'log', 'task_date_time', 'task_detail', 'created_by', 'created_on', 'is_active', 'tasktype']
 
 class TaskCreateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(required=False)
     class Meta:
         model = Task
-        fields = ['contact', 'log', 'task_date_time', 'task_detail', 'tasktype', 'task_assignment']
+        fields = ['contact', 'log', 'task_date_time', 'task_detail', 'tasktype', 'task_assignment','remark']
 
     def create(self, validated_data):
         task_assignment_data = validated_data.pop('task_assignment', None)
@@ -58,7 +58,7 @@ class TaskCreateSerializer(serializers.ModelSerializer):
 class TaskUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ["contact","log",'task_date_time', 'task_detail', 'is_active']
+        fields = ["contact","log",'task_date_time', 'task_detail', 'is_active','remark']
 
 class TaskDetailSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
@@ -67,4 +67,4 @@ class TaskDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ['id', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 'created_on', 'is_active', 'tasktype']
+        fields = ['id', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 'created_on', 'is_active', 'tasktype','remark']
