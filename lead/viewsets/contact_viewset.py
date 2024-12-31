@@ -14,7 +14,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from ..filters.contact_filter import ContactFilter
 
 class ContactViewSet(viewsets.ModelViewSet):
-    queryset = Contact.objects.all()  
+    queryset = Contact.objects.all().order_by('-id')
     permission_classes = [IsAuthenticated]  
     pagination_class = Paginator
     filter_backends = [DjangoFilterBackend]

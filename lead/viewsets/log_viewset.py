@@ -9,7 +9,7 @@ from ..filters import log_filter
 
 
 class LogViewSet(viewsets.ModelViewSet):
-    queryset = Log.objects.all()
+    queryset = Log.objects.all().order_by('-id')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = log_filter.LogFilter

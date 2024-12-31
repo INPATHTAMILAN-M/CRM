@@ -21,7 +21,7 @@ from ..filters.opportunity_filter import OpportunityFilter
 
 
 class OpportunityViewset(viewsets.ModelViewSet):
-    queryset = Opportunity.objects.all()
+    queryset = Opportunity.objects.all().order_by('-id')
     # permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     pagination_class = Paginator

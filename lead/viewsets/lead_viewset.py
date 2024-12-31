@@ -17,7 +17,7 @@ from ..serializers.lead_serializer import (
 )
 
 class LeadViewSet(viewsets.ModelViewSet):
-    queryset = Lead.objects.all()
+    queryset = Lead.objects.all().order_by('-id')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = LeadFilter

@@ -8,7 +8,7 @@ from lead.serializers.contact_status_serializer import ContactStatusSerializer
 
 
 class ContactStatusViewSet(viewsets.ModelViewSet):
-    queryset = Contact_Status.objects.all()
+    queryset = Contact_Status.objects.all().order_by('-id')
     serializer_class = ContactStatusSerializer
     filter_backends = (filters.OrderingFilter, django_filters.DjangoFilterBackend)
     filterset_class = ContactStatusFilter

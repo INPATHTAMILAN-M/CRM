@@ -25,12 +25,17 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active']
 
-
 class TaskAssignmentSerializer(serializers.ModelSerializer):
-    assigned_to = UserSerializer()
+    
     class Meta:
         model = Task_Assignment
         fields = ['assigned_to',"assignment_note"]
+
+class TaskAssignmentListSerializer(serializers.ModelSerializer):
+    assigned_to = UserSerializer()
+    class Meta:
+        model = Task_Assignment
+        fields = ['id','assigned_to',"assignment_note"]
 
 class TaskListSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
@@ -46,7 +51,7 @@ class TaskListSerializer(serializers.ModelSerializer):
         # Get all Task_Assignment records related to this task
         task_assignments = Task_Assignment.objects.filter(task=obj, is_active=True)
         # Serialize the assignment data using TaskAssignmentSerializer
-        return TaskAssignmentSerializer(task_assignments, many=True).data
+        return TaskAssignmentListSerializer(task_assignments, many=True).data
     
 class TaskCreateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(required=False)
