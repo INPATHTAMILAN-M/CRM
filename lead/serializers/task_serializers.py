@@ -71,7 +71,7 @@ class TaskCreateSerializer(serializers.ModelSerializer):
 class TaskUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ["contact","log",'task_date_time', 'task_detail', 'is_active','remark']
+        fields = ["contact","log",'task_date_time', 'task_detail', 'is_active','remark','tasktype']
 
 class TaskDetailSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
