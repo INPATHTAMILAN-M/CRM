@@ -50,6 +50,11 @@ class ContactCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         exclude = ('created_by',)
+        
+class ContactImportCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = '__all__'
 
 class ContactUpdateSerializer(serializers.ModelSerializer):
     class Meta:

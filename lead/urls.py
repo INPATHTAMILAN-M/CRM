@@ -1,4 +1,6 @@
 from django.urls import path, include
+
+from lead.viewsets.contact_viewset import ImportContactsAPIView
 from .routers import router
 from .views import *
 
@@ -61,7 +63,7 @@ urlpatterns = [
     # path('opportunity/lead_id/<int:lead_id>/',Opportunity_ByLeadId.as_view(),name="opportunity_ByLead_Id"),
     # path('opportunity/drop-down/',Opportunity_Dropdown.as_view(),name="opportunity_dropdown"),
     # path('opportunity/stage_history/', StageHistory.as_view(), name='stage-history'),
-    # path('opportunity/stage_history/<int:opportunity_id>/', StageHistory.as_view(), name='stage-history'),
+    path('import_contacts/', ImportContactsAPIView.as_view(), name='import_contacts'),
 
 # ------------------------mitun----------------------------- 
 ]

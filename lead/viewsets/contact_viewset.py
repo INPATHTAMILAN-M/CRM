@@ -43,53 +43,76 @@ class ContactViewSet(viewsets.ModelViewSet):
     #     return queryset.filter(created_by=self.request.user)
 
 class ImportContactsAPIView(APIView):
-    parser_classes = [MultiPartParser, FormParser]  # To handle file uploads
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, *args, **kwargs):
-        """
-        Import contacts from an Excel file.
-        """
-        # Get the uploaded file from the request
+
         file = request.FILES.get('file')
 
         if not file:
             return Response({"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Load the workbook and get the active sheet
             workbook = openpyxl.load_workbook(file)
             sheet = workbook.active
 
-            # List to hold the contact data to be created
+            headers = [cell.value.strip() if cell.value else "" for cell in sheet[1]]
+
+            headers = [header for header in headers if header]
+
+            if len(headers) == 0:
+                return Response({"error": "Excel contains no valid header fields."}, status=status.HTTP_400_BAD_REQUEST)
+
+            column_mapping = {}
+            for index, header in enumerate(headers):
+                column_mapping[header.lower()] = index
+
             contacts_data = []
 
-            # Iterate over the rows in the Excel sheet starting from row 2 (skip header row)
             for row in sheet.iter_rows(min_row=2, values_only=True):
+                if not any(row):  
+                    continue
+
+                name = row[column_mapping.get('name')] if column_mapping.get('name') is not None else None
+                lead = row[column_mapping.get('lead')] if column_mapping.get('lead') is not None else None
+                contact_status = row[column_mapping.get('status')] if column_mapping.get('status') is not None else None
+                designation = row[column_mapping.get('designation')] if column_mapping.get('designation') is not None else None
+                department = row[column_mapping.get('department')] if column_mapping.get('department') is not None else None
+                phone_number = row[column_mapping.get('phone_number')] if column_mapping.get('phone_number') is not None else None
+                email_id = row[column_mapping.get('email_id')] if column_mapping.get('email_id') is not None else None
+                remark = row[column_mapping.get('remark')] if column_mapping.get('remark') is not None else None
+                lead_source = row[column_mapping.get('lead_source')] if column_mapping.get('lead_source') is not None else None
+                is_active = row[column_mapping.get('is_active')] == 'TRUE' if column_mapping.get('is_active') is not None else False
+                is_archive = row[column_mapping.get('is_archive')] == 'TRUE' if column_mapping.get('is_archive') is not None else False
+
+                if not name :
+                    print("Skipping row due to missing required fields: ", row)
+                    continue  
+
                 contact_data = {
-                    'lead': row[0] if row[0] else None,
-                    'name': row[1] if row[1] else '',  
-                    'status': row[2] if row[2] else None,  
-                    'designation': row[3] if row[3] else '', 
-                    'department': row[4] if row[4] else '',  
-                    'phone_number': row[5] if row[5] else '',  
-                    'email_id': row[6] if row[6] else None, 
-                    'remark': row[7] if row[7] else '',  
-                    'lead_source': row[8] if row[8] else None, 
-                    'is_active': row[9] == 'TRUE',  
-                    'is_archive': row[10] == 'TRUE',  
-                    'created_by': request.user.id,  
+                    'lead': lead,
+                    'name': name,
+                    'status': contact_status,
+                    'designation': designation,
+                    'department': department,
+                    'phone_number': phone_number,
+                    'email_id': email_id,
+                    'remark': remark,
+                    'lead_source': lead_source,
+                    'is_active': is_active,
+                    'is_archive': is_archive,
+                    'created_by': request.user.id, 
                 }
                 contacts_data.append(contact_data)
 
-            # Now, serialize the contact data
-            serializer = ContactCreateSerializer(data=contacts_data, many=True)
+            if not contacts_data:
+                return Response({"error": "No valid contacts found in the file."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check if the data is valid and save it
+            serializer = ContactImportCreateSerializer(data=contacts_data, many=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response({"message": "Contacts imported successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({"error": "Invalid data", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": f"Failed to process the Excel file: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
