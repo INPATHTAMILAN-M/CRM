@@ -253,6 +253,6 @@ class PostLeadSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'focus_segment', 'lead_owner', 'country', 'state', 
             'company_website', 'fax', 'annual_revenue', 'tags', 'market_segment', 
-            'is_active', 'lead_type', 'assigned_to', 'lead_source', 'lead_source_from', 'contact_id'
+            'is_active', 'lead_type', 'assigned_to', 'lead_source', 'lead_source_from', 'contact_id','remark','status_date'
         ]
         read_only_fields = ['created_by']

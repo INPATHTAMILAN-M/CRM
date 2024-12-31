@@ -70,6 +70,8 @@ class Lead(models.Model):
     lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.CASCADE, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     lead_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE, null=True, blank=True)
+    status_date = models.DateField(null=True, blank=True)
+    remark = models.TextField(null=True, blank=True)
     
     LEAD_TYPE_CHOICES = [
         ('Digital Lead', 'Digital Lead'),

@@ -114,6 +114,11 @@ class LeadViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             lead = serializer.save()
 
+            new_lead_status = serializer.validated_data.get('lead_status', None)
+            if new_lead_status and new_lead_status != lead.lead_status:
+                lead.status_date = timezone.now() 
+                lead.save()
+                
             # Notify about the update to lead owner and creator if necessary
             if lead.lead_owner and self.request.user != lead.lead_owner:
                 Notification.objects.create(receiver=lead.lead_owner, message=f"Lead '{lead.name}' has been updated by {self.request.user}.")
