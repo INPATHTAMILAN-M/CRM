@@ -39,7 +39,7 @@ class ContactDetailSerializer(serializers.ModelSerializer):
 class ContactCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
-        fields = '__all__'
+        exclude = ('created_by',)
 
 class ContactUpdateSerializer(serializers.ModelSerializer):
     class Meta:
