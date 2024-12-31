@@ -3,7 +3,12 @@ from rest_framework import serializers
 from lead.serializers.lead_serializer import  LeadSourceSerializer
 from ..models import Contact, Lead, Contact_Status, Lead_Source
 from django.contrib.auth.models import User
+from ..models import Department
 
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ['id', 'department'] 
 class LeadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lead
@@ -22,6 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ContactListSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
     status = ContactStatusSerializer()
+    department = DepartmentSerializer(read_only=True)
     created_by =UserSerializer()
     lead_source = LeadSourceSerializer(read_only=True)
     
@@ -32,6 +38,7 @@ class ContactListSerializer(serializers.ModelSerializer):
 class ContactDetailSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
     status = ContactStatusSerializer()
+    department = DepartmentSerializer(read_only=True)
     created_by =UserSerializer()
     lead_source = LeadSourceSerializer(read_only=True)
     

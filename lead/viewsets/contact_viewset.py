@@ -66,18 +66,18 @@ class ImportContactsAPIView(APIView):
             # Iterate over the rows in the Excel sheet starting from row 2 (skip header row)
             for row in sheet.iter_rows(min_row=2, values_only=True):
                 contact_data = {
-                    'lead': row[0],  # 'lead' is in the first column
-                    'name': row[1],  # 'name' is in the second column
-                    'status': row[2],  # 'status' is in the third column
-                    'designation': row[3],  # 'designation' is in the fourth column
-                    'department': row[4],  # 'department' is in the fifth column
-                    'phone_number': row[5],  # 'phone_number' is in the sixth column
-                    'email_id': row[6],  # 'email_id' is in the seventh column
-                    'remark': row[7],  # 'remark' is in the eighth column
-                    'lead_source': row[8],  # 'lead_source' is in the ninth column
-                    'is_active': row[9] == 'TRUE',  # Convert 'TRUE'/'FALSE' string to Boolean
-                    'is_archive': row[10] == 'TRUE',  # Convert 'TRUE'/'FALSE' string to Boolean
-                    'created_by': request.user.id,  # Set logged-in user as creator
+                    'lead': row[0] if row[0] else None,
+                    'name': row[1] if row[1] else '',  
+                    'status': row[2] if row[2] else None,  
+                    'designation': row[3] if row[3] else '', 
+                    'department': row[4] if row[4] else '',  
+                    'phone_number': row[5] if row[5] else '',  
+                    'email_id': row[6] if row[6] else None, 
+                    'remark': row[7] if row[7] else '',  
+                    'lead_source': row[8] if row[8] else None, 
+                    'is_active': row[9] == 'TRUE',  
+                    'is_archive': row[10] == 'TRUE',  
+                    'created_by': request.user.id,  
                 }
                 contacts_data.append(contact_data)
 

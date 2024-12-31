@@ -87,7 +87,7 @@ class Contact(models.Model):
     name = models.CharField(max_length=255)
     status = models.ForeignKey(Contact_Status, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.CharField(max_length=255, null=True, blank=True)
-    department = models.CharField(max_length=255, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     phone_number = models.CharField(max_length=25, null=True, blank=True)
     email_id = models.EmailField(max_length=255, null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
