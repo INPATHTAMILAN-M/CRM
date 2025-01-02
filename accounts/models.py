@@ -93,7 +93,13 @@ class State(models.Model):
     def __str__(self):
         return self.state_name
 
-
+class City(models.Model):
+    state = models.ForeignKey(State, null=True, blank=True, on_delete=models.CASCADE)
+    city_name = models.CharField(max_length=255)
+    
+    def __str__(self):
+        return self.city_name
+    
 class Lead_Source(models.Model):
     source = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)

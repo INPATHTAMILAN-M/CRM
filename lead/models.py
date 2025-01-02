@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from accounts.models import (
+    City,
     Focus_Segment,
     Market_Segment,
     Log_Stage,
@@ -73,7 +74,7 @@ class Lead(models.Model):
     status_date = models.DateField(null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
-    city = models.CharField(max_length=100)
+    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True)
     
     LEAD_TYPE_CHOICES = [
         ('Digital Lead', 'Digital Lead'),

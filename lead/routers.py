@@ -1,5 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
+from accounts.viewsets.city_viewset import CityViewSet
 from accounts.viewsets.salutation_viewset import SalutationViewSet
 from accounts.viewsets.users_viewset import GetLeadOwnerViewSet, GetTaskAssignedToViewSet, UsersForLeadViewSet
 from lead.viewsets.contact_status_viewset import ContactStatusViewSet
@@ -54,6 +55,7 @@ router.register(r'contact_statuses', ContactStatusViewSet)
 router.register(r'task_assignments', TaskAssignmentViewSet)
 router.register(r'notes', NoteViewSet)
 router.register(r'verticals', VerticalViewSet)
+router.register(r'City', CityViewSet)
 
 # in accounts
 router.register(r'salutations', SalutationViewSet)
