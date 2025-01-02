@@ -23,7 +23,7 @@ from lead.viewsets.log_stage_viewset import LogStageViewSet
 from lead.viewsets.state_viewset import StateViewSet
 from lead.viewsets.tag_viewset import TagViewSet
 from lead.viewsets.task_assignment_viewset import TaskAssignmentViewSet
-from lead.viewsets.task_viewset import TaskViewSet
+from lead.viewsets.task_viewset import CalanderTaskViewSet, TaskViewSet
 from lead.viewsets.lead_bucket_viewset import LeadBucketViewSet
 from lead.viewsets.vertical_viewset import VerticalViewSet
 
@@ -56,6 +56,7 @@ router.register(r'task_assignments', TaskAssignmentViewSet)
 router.register(r'notes', NoteViewSet)
 router.register(r'verticals', VerticalViewSet)
 router.register(r'City', CityViewSet)
+router.register(r'calander_task', CalanderTaskViewSet)
 
 # in accounts
 router.register(r'salutations', SalutationViewSet)

@@ -29,18 +29,6 @@ class LeadViewSet(viewsets.ModelViewSet):
         lead = serializer.save(created_by=self.request.user)
         
                 # Get the contact_id from the request data (if provided)
-        contact_id = self.request.data.get('contact_id', None)
-
-        # If contact_id is provided, link the contact to the created lead
-        if contact_id:
-            try:
-                # Contact.objects.filter(lead=lead).update(is_primary=False)
-                contact = Contact.objects.get(id=contact_id)
-                contact.lead = lead 
-                contact.is_primary= True
-                contact.save()
-            except Contact.DoesNotExist:
-                raise Response({"error": "Contact with the provided ID does not exist."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             lead_owner = lead.lead_owner
@@ -54,7 +42,6 @@ class LeadViewSet(viewsets.ModelViewSet):
             lead_assignment = {
                 "lead":lead,
                 "assigned_to": lead.assigned_to,
-                "assigned_on": lead.assigned_on,
                 "assigned_by": self.request.user,
                 "is_active": True,
             }
@@ -89,7 +76,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         elif user.groups.filter(name='DM').exists():
             return Lead.objects.filter(created_by=user, is_active=True).order_by('-id')
         elif user.groups.filter(name='TM').exists() or user.groups.filter(name='BDE').exists():
-            return Lead.objects.filter(lead_assignment__assigned_to=user, is_active=True).distinct().order_by('-id')
+            return Lead.objects.filter(assigned_to=user, is_active=True).distinct().order_by('-id')
         elif user.groups.filter(name='BDM').exists():
             return Lead.objects.filter(lead_owner=user, is_active=True).order_by('-id')
         else:
