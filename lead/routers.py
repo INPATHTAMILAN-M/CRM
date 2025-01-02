@@ -24,6 +24,7 @@ from lead.viewsets.tag_viewset import TagViewSet
 from lead.viewsets.task_assignment_viewset import TaskAssignmentViewSet
 from lead.viewsets.task_viewset import TaskViewSet
 from lead.viewsets.lead_bucket_viewset import LeadBucketViewSet
+from lead.viewsets.vertical_viewset import VerticalViewSet
 
 
 # Create a router and register the LeadViewSet
@@ -52,7 +53,7 @@ router.register(r'lead_status_count', LeadStatusCountViewSet, basename='lead-sta
 router.register(r'contact_statuses', ContactStatusViewSet)
 router.register(r'task_assignments', TaskAssignmentViewSet)
 router.register(r'notes', NoteViewSet)
-
+router.register(r'verticals', VerticalViewSet)
 
 # in accounts
 router.register(r'salutations', SalutationViewSet)
