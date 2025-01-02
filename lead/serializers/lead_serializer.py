@@ -251,7 +251,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lead
         fields = [
-            'id', 'name', 'focus_segment', 'lead_owner', 'country', 'state', 
+            'id', 'name', 'focus_segment', 'lead_owner', 'country', 'state', 'city','address',
             'company_website', 'fax', 'annual_revenue', 'tags', 'market_segment', 
             'is_active', 'lead_type', 'assigned_to', 'lead_source', 'lead_source_from', 'contact_id','remark','status_date'
         ]
