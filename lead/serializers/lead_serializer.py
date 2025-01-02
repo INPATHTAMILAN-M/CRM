@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from lead.serializers.log_serializer import LogStageSerializer
 from ..models import Lead,Employee,Contact, Log,Opportunity
-from accounts.models import Focus_Segment,Market_Segment,Country, Stage,State,Tag,Vertical,Lead_Source, Lead_Source_From
+from accounts.models import City, Focus_Segment,Market_Segment,Country, Stage,State,Tag,Vertical,Lead_Source, Lead_Source_From
 from ..models import Lead_Status, Department, Contact_Status 
 from django.contrib.auth.models import User
 
@@ -33,6 +33,12 @@ class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
         fields = ['id','state_name']
+        
+class CitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = City
+        fields = ['id', 'state', 'city_name']
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -175,6 +181,7 @@ class LeadSerializer(serializers.ModelSerializer):
     focus_segment = FocusSegmentSerializer(read_only=True)
     country = CountrySerializer(read_only=True)
     state = StateSerializer(read_only=True)
+    city = CitySerializer(read_only=True)
     tags = TagSerializer(many=True)
     lead_owner = serializers.SerializerMethodField()
     created_by = serializers.SerializerMethodField()
@@ -250,7 +257,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
         model = Lead
         fields = [
             'id', 'name', 'focus_segment', 'lead_owner', 'country', 'state', 'city','address',
-            'company_website', 'fax', 'annual_revenue', 'tags', 'market_segment', 
+            'company_website', 'fax', 'annual_revenue', 'tags', 'market_segment', 'lead_status',
             'is_active', 'lead_type', 'assigned_to', 'lead_source', 'lead_source_from', 'department','contact_id','remark','status_date'
         ]
         read_only_fields = ['created_by']
