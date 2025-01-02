@@ -24,49 +24,48 @@ class LeadViewSet(viewsets.ModelViewSet):
     serializer_class = LeadSerializer
     pagination_class = Paginator
     
+    
+    def get_serializer_class(self):
+        # Return the appropriate serializer based on the action (create or update)
+        if self.action in ['create', 'update']:
+            return PostLeadSerializer
+        return LeadSerializer
+    
     def perform_create(self, serializer):
         # Save the lead and assign the current logged-in user as 'created_by'
         lead = serializer.save(created_by=self.request.user)
-        
-                # Get the contact_id from the request data (if provided)
-        
-        try:
-            lead_owner = lead.lead_owner
-            if not lead_owner:
-                raise ValueError("Lead owner is not set.")
-            recipient_email = lead_owner.email
-        except (User.DoesNotExist, ValueError) as e:
-            raise Response({"error": f"Notification email not set for user: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if lead.assigned_to :
-            lead_assignment = {
-                "lead":lead,
-                "assigned_to": lead.assigned_to,
-                "assigned_by": self.request.user,
-                "is_active": True,
-            }
-            Lead_Assignment.objects.create(**lead_assignment)
-            
+        # Get the lead owner and handle potential errors
+        lead_owner = getattr(lead, 'lead_owner', None)
+        if not lead_owner or not hasattr(lead_owner, 'email'):
+            raise Response({"error": "Lead owner or email not set."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create lead assignment if 'assigned_to' exists
+        if lead.assigned_to:
+            Lead_Assignment.objects.create(
+                lead=lead,
+                assigned_to=lead.assigned_to,
+                assigned_by=self.request.user,
+                is_active=True
+            )
+
         # Send an email notification to the lead owner
         subject = "New Lead Created"
-        message = f"A new lead has been created by {self.request.user.username}.\n\nPlease log in to the CRM system to view more details and take further action:\nhttp://crm.decodeschool.com/"
+        message = f"A new lead has been created by {self.request.user.username}.\n\nPlease log in to the CRM system to view more details: http://crm.decodeschool.com/"
 
         try:
             send_mail(
                 subject,
                 message,
                 settings.DEFAULT_FROM_EMAIL,
-                [recipient_email],
+                [lead_owner.email],
                 fail_silently=False,
             )
         except Exception as e:
             raise Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         
-    def get_serializer_class(self):
-        # Return the appropriate serializer based on the action (create or update)
-        if self.action in ['create', 'update']:
-            return PostLeadSerializer
-        return LeadSerializer
+    
 
     def get_queryset(self):
         user = self.request.user

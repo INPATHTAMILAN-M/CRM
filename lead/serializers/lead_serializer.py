@@ -87,6 +87,8 @@ class ContactSerializerList(serializers.ModelSerializer):
     lead = LeadSerializer()
     status = ContactStatusSerializer()
     created_by =UserSerializer()
+    department = DepartmentSerializer(read_only=True)
+    lead_source = LeadSourceSerializer(read_only=True)
     
     class Meta:
         model = Contact
@@ -96,21 +98,17 @@ class ContactSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
     status = ContactStatusSerializer()
     created_by =UserSerializer()
-
+    department = DepartmentSerializer(read_only=True)
+    lead_source = LeadSourceSerializer(read_only=True)
+    
     class Meta:
         model = Contact
         fields = '__all__'
-
 
 class OwnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username']  
-
-# class LeadSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Lead
-#         fields = ['id', 'name']  
 
 class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
@@ -121,7 +119,6 @@ class StageSerializer(serializers.ModelSerializer):
     class Meta:
         model= Stage
         fields = ['id', 'stage']
-
 
 class OpportunitySerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
@@ -270,7 +267,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
         # If contact_id is provided, link the contact to the created lead using the ID (not the Contact object itself)
         if contact_id:
             try:
-                contact = Contact.objects.get(id=contact_id)
+                contact = Contact.objects.get(id=contact_id.id)
                 contact.lead = lead
                 contact.is_primary = True  # Optional: set this contact as the primary contact for the lead
                 contact.save()
