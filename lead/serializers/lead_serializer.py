@@ -107,10 +107,10 @@ class OwnerSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username']  
 
-class LeadSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lead
-        fields = ['id', 'name']  
+# class LeadSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Lead
+#         fields = ['id', 'name']  
 
 class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
