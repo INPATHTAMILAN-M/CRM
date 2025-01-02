@@ -3,10 +3,11 @@ from ..models import Contact, Lead
 
 
 class ContactFilter(django_filters.FilterSet):
-    lead = django_filters.ModelChoiceFilter(queryset=Lead.objects.all())
-    is_active = django_filters.BooleanFilter(field_name='is_active', lookup_expr='exact')
-    status = django_filters.NumberFilter(field_name='status__id', lookup_expr='icontains')  # assuming status is a ForeignKey to a model
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    lead = django_filters.ModelChoiceFilter(queryset=Lead.objects.all(), required=False)
+    is_active = django_filters.BooleanFilter(field_name='is_active', lookup_expr='exact', required=False)
+    status = django_filters.NumberFilter(field_name='status__id', lookup_expr='exact', required=False)
 
     class Meta:
         model = Contact
-        fields = '__all__'
+        fields = ['name', 'lead', 'is_active', 'status']
