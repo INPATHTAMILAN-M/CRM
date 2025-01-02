@@ -97,6 +97,7 @@ class Contact(models.Model):
     email_id = models.EmailField(max_length=255, null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
     lead_source = models.ForeignKey(Lead_Source, on_delete=models.CASCADE, null=True, blank=True)
+    lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.CASCADE, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
