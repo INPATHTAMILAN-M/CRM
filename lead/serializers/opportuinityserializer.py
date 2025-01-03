@@ -15,12 +15,6 @@ class LeadStatusSerializer(serializers.ModelSerializer):
         model = Lead_Status
         fields = '__all__'
         
-class LeadSerializer(serializers.ModelSerializer):
-    lead_status = LeadStatusSerializer(read_only=True)
-    class Meta:
-        model = Lead
-        fields = ['id', 'name','assigned_to', 'lead_status']  
-
 class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
@@ -50,6 +44,13 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active']
+        
+class LeadSerializer(serializers.ModelSerializer):
+    lead_status = LeadStatusSerializer(read_only=True)
+    assigned_to =UserSerializer()
+    class Meta:
+        model = Lead
+        fields = ['id', 'name','assigned_to', 'lead_status']  
 
 class ContactSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
@@ -62,7 +63,6 @@ class ContactSerializer(serializers.ModelSerializer):
         model = Contact
         fields = '__all__'
 
-
 class OpportunityDetailSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
     lead = LeadSerializer(read_only=True)
@@ -72,8 +72,6 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     logs = LogSerializer(many=True, read_only=True)
     primary_contact = ContactSerializer(read_only=True)
-    assigned_to =UserSerializer()
-    
     
     class Meta:
         model = Opportunity
