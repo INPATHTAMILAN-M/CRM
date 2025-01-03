@@ -78,7 +78,7 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
     def get_file_url(self, obj):
         if obj.file:
             file_url = obj.file.url
-            domain = "http://121.200.52.133:8000/"
+            domain = "http://121.200.52.133:8000"
             return f"{domain}{file_url}"
         return None
     
