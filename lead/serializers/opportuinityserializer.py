@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from lead.models import Opportunity, User, Lead, Opportunity_Stage, Note
-from accounts.models import Stage, Country, User
+from lead.models import Contact, Department, Lead_Status, Opportunity, User, Lead, Opportunity_Stage, Note
+from accounts.models import Contact_Status, Lead_Source, Stage, Country, User
 from django.db import transaction
 
 from lead.serializers.lead_serializer import LogSerializer
@@ -13,7 +13,7 @@ class OwnerSerializer(serializers.ModelSerializer):
 class LeadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lead
-        fields = ['id', 'name']  
+        fields = ['id', 'name','assigned_to', 'lead_status']  
 
 class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,6 +24,43 @@ class StageSerializer(serializers.ModelSerializer):
     class Meta:
         model= Stage
         fields = ['id', 'stage']
+       
+class LeadSourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Source
+        fields = '__all__'
+
+class LeadStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Status
+        fields = '__all__'
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = '__all__'
+
+class ContactStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact_Status
+        fields = '__all__'
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active']
+
+class ContactSerializer(serializers.ModelSerializer):
+    lead = LeadSerializer()
+    status = ContactStatusSerializer()
+    created_by =UserSerializer()
+    department = DepartmentSerializer(read_only=True)
+    lead_source = LeadSourceSerializer(read_only=True)
+    
+    class Meta:
+        model = Contact
+        fields = '__all__'
+
 
 class OpportunityDetailSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
@@ -33,6 +70,7 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
     created_by=OwnerSerializer(read_only=True)
     file_url = serializers.SerializerMethodField()
     logs = LogSerializer(many=True, read_only=True)
+    primary_contact = ContactSerializer(read_only=True)
     class Meta:
         model = Opportunity
         fields = "__all__"
@@ -57,7 +95,8 @@ class OpportunityListSerializer(serializers.ModelSerializer):
     stage = StageSerializer(read_only=True)
     created_by=OwnerSerializer(read_only=True)
     file_url = serializers.SerializerMethodField()
-
+    primary_contact = ContactSerializer(read_only=True)
+    
     class Meta:
         model = Opportunity
         fields = "__all__"
