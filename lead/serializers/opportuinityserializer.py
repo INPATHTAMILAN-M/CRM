@@ -118,7 +118,10 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
             'note',
             'recurring_value_per_year',
             'file',
-            "lead_bucket"
+            "lead_bucket",
+            'file',
+            'remark',
+            'is_active'
         ]
         read_only_fields = ['created_by']
     

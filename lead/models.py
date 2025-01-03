@@ -132,6 +132,8 @@ class Opportunity(models.Model):
     lead_bucket = models.ForeignKey(Lead_Bucket, null=True, blank=True, on_delete=models.SET_NULL)
     file = models.FileField(upload_to='opportunity_files', null=True, blank=True)
     created_by = models.ForeignKey(User, related_name='created_opportunities', on_delete=models.CASCADE)
+    remark = models.TextField(null=True, blank=True)
+    file = models.FileField(upload_to='opportunity_files', null=True, blank=True)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
