@@ -26,15 +26,6 @@ class OpportunityViewset(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     pagination_class = Paginator
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.groups.filter(name='Admin').exists():
-            return Opportunity.objects.all()
-        return Opportunity.objects.filter(
-            Q(created_by=user) | Q(owner=user) | 
-            Q(lead__lead_owner=user) | Q(lead__created_by=user)
-        ).distinct().order_by('-created_on', '-id')
-
     def get_serializer_class(self):
         if self.action == 'create':
             return OpportunityCreateSerializer
