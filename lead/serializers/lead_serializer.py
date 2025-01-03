@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.utils import timezone
-
 from lead.serializers.log_serializer import LogStageSerializer
 from ..models import Lead,Employee,Contact, Log,Opportunity
 from accounts.models import City, Focus_Segment,Market_Segment,Country, Stage,State,Tag,Vertical,Lead_Source, Lead_Source_From
@@ -298,7 +297,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
         
         # If the lead status has changed, update the status_date
         if instance.lead_status:
-            instance.status_date = timezone.now()
+            instance.status_date = timezone.now().date()
             instance.save()  # Save after updating the status_date
         
         return instance

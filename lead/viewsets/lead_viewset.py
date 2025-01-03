@@ -100,11 +100,6 @@ class LeadViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             lead = serializer.save()
 
-            # new_lead_status = serializer.validated_data.get('lead_status', None)
-            # if new_lead_status and new_lead_status != lead.lead_status:
-            #     lead.status_date = timezone.now() 
-            #     lead.save()
-                
             # Notify about the update to lead owner and creator if necessary
             if lead.lead_owner and self.request.user != lead.lead_owner:
                 Notification.objects.create(receiver=lead.lead_owner, message=f"Lead '{lead.name}' has been updated by {self.request.user}.")
@@ -129,7 +124,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 else: 
                     return Response({"error": "Primary contact ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-            return Response({"success": "Lead updated successfully.",}, status=status.HTTP_200_OK)
+            return Response({"success": "Lead updated successfully.", "data": PostLeadSerializer(lead).data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def perform_destroy(self, instance):
