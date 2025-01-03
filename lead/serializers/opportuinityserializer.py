@@ -141,7 +141,7 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
                     moved_by=self.context['request'].user  # Get the user making the change
                 )
                 opportunity_stage.save()  # Save the new Opportunity_Stage record
-
+            instance.save()
             return instance
         
 class OpportunityCreateSerializer(serializers.ModelSerializer):
