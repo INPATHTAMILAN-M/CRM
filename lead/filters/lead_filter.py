@@ -6,44 +6,46 @@ from django_filters import rest_framework as filters
 from django.utils import timezone
 
 from ..models import Lead, Lead_Status, Tag
-from accounts.models import Country, State
+from accounts.models import Country, Lead_Source, State
 
 
 
 class LeadFilter(filters.FilterSet):
     search = filters.CharFilter(method='filter_search', label="Search")  # Custom search filter
-    name = filters.CharFilter(lookup_expr='icontains')  # Case-insensitive partial match
-    lead_owner = filters.ModelChoiceFilter(queryset=User.objects.all())  # Filter by specific user
-    created_by = filters.ModelChoiceFilter(queryset=User.objects.all())
-    created_on = filters.DateFromToRangeFilter()  # Date range filter
-    country = filters.ModelChoiceFilter(queryset=Country.objects.all())
-    state = filters.ModelChoiceFilter(queryset=State.objects.all(), null_label='No State')  # Handles null states
-    annual_revenue = filters.RangeFilter()  # Allows range filtering
-    lead_type = filters.ChoiceFilter(choices=Lead.LEAD_TYPE_CHOICES)  # Dropdown for lead type
-    is_active = filters.BooleanFilter()  # Boolean filter
-    tags = filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all())  # Filter by tags
-    lead_status = filters.ModelChoiceFilter(queryset=Lead_Status.objects.all(), null_label='No Lead Status')
-    
+    # name = filters.CharFilter(lookup_expr='icontains')  # Case-insensitive partial match
+    # lead_owner = filters.ModelChoiceFilter(queryset=User.objects.all())  # Filter by specific user
+    # created_by = filters.ModelChoiceFilter(queryset=User.objects.all())
+    # created_on = filters.DateFromToRangeFilter()  # Date range filter
+    # country = filters.ModelChoiceFilter(queryset=Country.objects.all())
+    # state = filters.ModelChoiceFilter(queryset=State.objects.all(), null_label='No State')  # Handles null states
+    # annual_revenue = filters.RangeFilter()  # Allows range filtering
+    # lead_type = filters.ChoiceFilter(choices=Lead.LEAD_TYPE_CHOICES)  # Dropdown for lead type
+    # is_active = filters.BooleanFilter()  # Boolean filter
+    # tags = filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all())  # Filter by tags
+    # lead_status = filters.ModelChoiceFilter(queryset=Lead_Status.objects.all(), null_label='No Lead Status')
+    assigned_to = filters.ModelChoiceFilter(queryset=User.objects.all())
     # last_month = django_filters.BooleanFilter(method='filter_last_month', label="Last Month")
     # this_month = django_filters.BooleanFilter(method='filter_this_month', label="This Month")
     # last_7_days = django_filters.BooleanFilter(method='filter_last_7_days', label="Last 7 Days")
     from_date_to_date = django_filters.DateFromToRangeFilter(field_name='created_on', method='filter_from_date_to_date')
-
+    lead_source = filters.ModelChoiceFilter(queryset=Lead_Source.objects.all())
     
     class Meta:
         model = Lead
         fields = [
             'search',  # Include the search field
-            'name',
-            'lead_owner',
-            'created_by',
-            'created_on',
-            'country',
-            'state',
-            'annual_revenue',
-            'lead_type',
-            'is_active',
-            'tags',
+            # 'name',
+            # 'lead_owner',
+            # 'created_by',
+            # 'created_on',
+            # 'country',
+            # 'state',
+            # 'annual_revenue',
+            # 'lead_type',
+            # 'is_active',
+            # 'tags',
+            'assigned_to',
+            'lead_source'
         ]
 
     def filter_search(self, queryset, name, value):
@@ -92,3 +94,9 @@ class LeadFilter(filters.FilterSet):
         if value:
             return queryset.filter(created_on__range=[value.start, value.stop])
         return queryset
+    
+    
+    
+    
+    
+ 

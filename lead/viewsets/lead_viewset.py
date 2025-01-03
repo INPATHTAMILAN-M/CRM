@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Min, Max
 from django_filters.rest_framework import DjangoFilterBackend
-
+from django.db.models import Count
 from ..custompagination import Paginator
 from ..models import Lead, Contact, Lead_Assignment, Notification
 from ..filters.lead_filter import LeadFilter
@@ -138,6 +138,50 @@ class LeadViewSet(viewsets.ModelViewSet):
         if self.request.user != instance.created_by:
             Notification.objects.create(receiver=instance.created_by, message=f"Lead '{instance.name}' has been deactivated.")
 
+    # def list(self, request, *args, **kwargs):
+    #     # Get filtered queryset
+    #     queryset = self.filter_queryset(self.get_queryset())
+
+    #     # Aggregate min and max revenue
+    #     min_revenue = queryset.aggregate(min_revenue=Min('annual_revenue'))['min_revenue']
+    #     max_revenue = queryset.aggregate(max_revenue=Max('annual_revenue'))['max_revenue']
+
+    #     # Paginate the results
+    #     page = self.paginate_queryset(queryset)
+    #     if page is not None:
+    #         serializer = self.get_serializer(page, many=True)
+    #         return self.get_paginated_response(serializer.data)
+
+    #      # Aggregate the count for each lead_status
+    #     lead_status_counts = queryset.values('lead_status__name').annotate(count=Count('lead_status')).order_by('lead_status__name')
+
+    #     # Paginate the results
+    #     page = self.paginate_queryset(queryset)
+    #     if page is not None:
+    #         serializer = self.get_serializer(page, many=True)
+    #         response_data = self.get_paginated_response(serializer.data).data
+    #     else:
+    #         # Return unpaginated response with revenue data
+    #         serializer = self.get_serializer(queryset, many=True)
+    #         response_data = serializer.data
+
+    #     # Append lead_status counts to the response data
+    #     counts = [
+    #         {
+    #             'lead_status_name': item['lead_status__name'],
+    #             'count_for_lead_status_name': item['count'],
+    #         }
+    #         for item in lead_status_counts
+    #     ]
+        
+    #     # Return unpaginated response with revenue data
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     response_data = serializer.data
+    #     response_data.append({
+    #         "min_revenue": min_revenue,
+    #         "max_revenue": max_revenue,
+    #     })
+    #     return Response(response_data)
     def list(self, request, *args, **kwargs):
         # Get filtered queryset
         queryset = self.filter_queryset(self.get_queryset())
@@ -146,19 +190,37 @@ class LeadViewSet(viewsets.ModelViewSet):
         min_revenue = queryset.aggregate(min_revenue=Min('annual_revenue'))['min_revenue']
         max_revenue = queryset.aggregate(max_revenue=Max('annual_revenue'))['max_revenue']
 
+        # Aggregate the count for each lead_status
+        lead_status_counts = Lead.objects.values('lead_status__name') \
+                                          .annotate(count=Count('lead_status')) \
+                                          .order_by('lead_status__name')
+
         # Paginate the results
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            response_data = self.get_paginated_response(serializer.data).data
+        else:
+            # Return unpaginated response with revenue data
+            serializer = self.get_serializer(queryset, many=True)
+            response_data = serializer.data
 
-        # Return unpaginated response with revenue data
-        serializer = self.get_serializer(queryset, many=True)
-        response_data = serializer.data
-        response_data.append({
+        # Prepare the lead status counts in the correct format
+        counts = [
+            {
+                'lead_status_name': item['lead_status__name'],
+                'count_for_lead_status_name': item['count'],
+            }
+            for item in lead_status_counts
+        ]
+
+        # Append the counts to the response data
+        response_data.update({
             "min_revenue": min_revenue,
             "max_revenue": max_revenue,
+            # "counts": counts  # Adding the counts to the response data
         })
+
         return Response(response_data)
 
     @action(detail=True, methods=['get'])
