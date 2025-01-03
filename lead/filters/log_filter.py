@@ -1,7 +1,7 @@
 
 import django_filters
 from django.db import models
-from ..models import Log,Lead,Contact,Opportunity,Focus_Segment,Log_Stage
+from ..models import Lead_Status, Log,Lead,Contact,Opportunity,Focus_Segment,Log_Stage
 
 
 class LogFilter(django_filters.FilterSet):
@@ -14,9 +14,10 @@ class LogFilter(django_filters.FilterSet):
     log_stage = django_filters.ModelChoiceFilter(queryset=Log_Stage.objects.all())
     focus_segment = django_filters.ModelChoiceFilter(queryset=Focus_Segment.objects.all())
     is_active = django_filters.BooleanFilter()
+    lead_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all(), field_name='lead__lead_status')
     
     class Meta:
         model = Log
         fields = ['contact', 'lead', 'opportunity', 'focus_segment', 'log_stage', 
-                 'created_by', 'is_active', 'logtype']
+                 'created_by', 'is_active', 'logtype','lead_status']
     
