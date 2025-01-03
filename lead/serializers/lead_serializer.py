@@ -288,16 +288,16 @@ class PostLeadSerializer(serializers.ModelSerializer):
         # Return the created lead instance
         return lead
     
-    def update(self, instance, validated_data):
-        # Check if 'lead_status' has changed
-        new_lead_status = validated_data.get('lead_status', instance.lead_status)
+    # def update(self, instance, validated_data):
+    #     # Check if 'lead_status' has changed
+    #     new_lead_status = validated_data.get('lead_status', instance.lead_status)
         
-        # Perform the actual update of the instance
-        instance = super().update(instance, validated_data)
+    #     # Perform the actual update of the instance
+    #     instance = super().update(instance, validated_data)
         
-        # If the lead status has changed, update the status_date
-        if instance.lead_status:
-            instance.status_date = timezone.now().date()
-            instance.save()  # Save after updating the status_date
+    #     # If the lead status has changed, update the status_date
+    #     if instance.lead_status:
+    #         instance.status_date = timezone.now().date()
+    #         instance.save()  # Save after updating the status_date
         
-        return instance
+    #     return instance
