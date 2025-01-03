@@ -26,6 +26,15 @@ class OpportunityViewset(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     pagination_class = Paginator
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.groups.filter(name='Admin').exists():
+            return Opportunity.objects.all()
+        return Opportunity.objects.filter(
+            Q(created_by=user) | Q(owner=user) | 
+            Q(lead__lead_owner=user) | Q(lead__created_by=user)
+        ).distinct().order_by('-created_on', '-id')
+
     def get_serializer_class(self):
         if self.action == 'create':
             return OpportunityCreateSerializer
@@ -51,33 +60,33 @@ class OpportunityViewset(viewsets.ModelViewSet):
         except Opportunity.DoesNotExist:
             return Response({"error": "Opportunity not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    # def handle_stage_update(self, opportunity, data):
-    #     """Handle stage creation or update."""
-    #     old_stage = opportunity.stage.id if opportunity.stage else None
-    #     new_stage = data.get('stage')
+    def handle_stage_update(self, opportunity, data):
+        """Handle stage creation or update."""
+        old_stage = opportunity.stage.id if opportunity.stage else None
+        new_stage = data.get('stage')
 
-    #     if old_stage != new_stage:
-    #         # Get the new stage object
-    #         stage = Stage.objects.get(id=new_stage)
+        if old_stage != new_stage:
+            # Get the new stage object
+            stage = Stage.objects.get(id=new_stage)
             
-    #         # Update the probability_in_percentage based on the new stage
-    #         opportunity.probability_in_percentage = stage.probability
-    #         opportunity.save()
+            # Update the probability_in_percentage based on the new stage
+            opportunity.probability_in_percentage = stage.probability
+            opportunity.save()
 
-    #         # Create a new Opportunity_Stage record to track the stage change
-    #         opportunity_stage_data = {
-    #             'opportunity': opportunity.id,
-    #             'stage': new_stage,
-    #             'moved_by': self.request.user.id,  # The user who made the change
-    #         }
+            # Create a new Opportunity_Stage record to track the stage change
+            opportunity_stage_data = {
+                'opportunity': opportunity.id,
+                'stage': new_stage,
+                'moved_by': self.request.user.id,  # The user who made the change
+            }
             
-    #         # Serialize the Opportunity_Stage data and save it
-    #         stage_serializer = StageUpdateSerializer(data=opportunity_stage_data)
-    #         if stage_serializer.is_valid():
-    #             stage_serializer.save()  # Create the Opportunity_Stage
-    #         else:
-    #             # Handle errors in the serializer if any
-    #             raise serializers.ValidationError(stage_serializer.errors)
+            # Serialize the Opportunity_Stage data and save it
+            stage_serializer = StageUpdateSerializer(data=opportunity_stage_data)
+            if stage_serializer.is_valid():
+                stage_serializer.save()  # Create the Opportunity_Stage
+            else:
+                # Handle errors in the serializer if any
+                raise serializers.ValidationError(stage_serializer.errors)
 
 
     def send_lead_owner_email(self, opportunity):
