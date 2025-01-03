@@ -126,7 +126,7 @@ class Opportunity(models.Model):
     note = models.TextField(null=True, blank=True)
     opportunity_value = models.FloatField()
     recurring_value_per_year = models.FloatField(null=True, blank=True)
-    currency_type = models.ForeignKey(Country, on_delete=models.CASCADE)
+    currency_type = models.ForeignKey(Country, on_delete=models.CASCADE,null=True, blank=True)
     closing_date = models.DateField()
     probability_in_percentage = models.FloatField()
     lead_bucket = models.ForeignKey(Lead_Bucket, null=True, blank=True, on_delete=models.SET_NULL)
