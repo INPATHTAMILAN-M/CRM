@@ -10,7 +10,13 @@ class OwnerSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username']  
 
+class LeadStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Status
+        fields = '__all__'
+        
 class LeadSerializer(serializers.ModelSerializer):
+    lead_status = LeadStatusSerializer(read_only=True)
     class Meta:
         model = Lead
         fields = ['id', 'name','assigned_to', 'lead_status']  
@@ -28,11 +34,6 @@ class StageSerializer(serializers.ModelSerializer):
 class LeadSourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lead_Source
-        fields = '__all__'
-
-class LeadStatusSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lead_Status
         fields = '__all__'
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -71,6 +72,9 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     logs = LogSerializer(many=True, read_only=True)
     primary_contact = ContactSerializer(read_only=True)
+    assigned_to =UserSerializer()
+    
+    
     class Meta:
         model = Opportunity
         fields = "__all__"
@@ -96,6 +100,8 @@ class OpportunityListSerializer(serializers.ModelSerializer):
     created_by=OwnerSerializer(read_only=True)
     file_url = serializers.SerializerMethodField()
     primary_contact = ContactSerializer(read_only=True)
+    assigned_to =UserSerializer()
+    
     
     class Meta:
         model = Opportunity
