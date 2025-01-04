@@ -194,18 +194,31 @@ class LeadSerializer(serializers.ModelSerializer):
     lead_status = LeadStatusSerializer(read_only=True)  # Nested serializer for LeadStatus
     department = DepartmentSerializer(read_only=True)  # Nested serializer for Department
     last_log_follow_up = serializers.SerializerMethodField()
-    logs = LogSerializer(many=True, read_only=True)
+    logs = serializers.SerializerMethodField()
     class Meta:
         model = Lead
         fields = '__all__'
 
     def get_last_log_follow_up(self, obj):
-        # Retrieve the latest log for this lead
-        latest_log = Log.objects.filter(lead=obj).last()
-        # If a log exists, return the follow_up_date_time, otherwise return None
+        """
+        Custom method to get the last follow-up date from the logs
+        for this lead's contacts.
+        """
+        latest_log = Log.objects.filter(contact__lead=obj).order_by('-follow_up_date_time').first()
         if latest_log:
             return latest_log.follow_up_date_time
         return None
+    
+    def get_logs(self, obj):
+        """
+        Custom method to get all logs related to the contacts of this lead.
+        Fetches all logs for each contact linked to this lead.
+        """
+        contact_logs = Log.objects.filter(contact__lead=obj).select_related('contact').all()
+        
+        # Serialize the logs related to each contact
+        logs_serializer = LogSerializer(contact_logs, many=True)
+        return logs_serializer.data
     
     def get_lead_owner(self, obj):
         return {
@@ -224,27 +237,30 @@ class LeadSerializer(serializers.ModelSerializer):
             'id': obj.assigned_to.id,
             'username': obj.assigned_to.username
         }
-
     def to_representation(self, instance):
         # Get the basic representation first
         representation = super().to_representation(instance)
 
-       
-        # if instance.opportunity_set.exists():
-        
-        # representation['opportunities'] = OpportunitySerializer(instance.opportunity_set.all(), many=True).data.order_by('created_on')
-                # Ensure opportunities are ordered by 'created_on'
+        # Include opportunities ordered by 'created_on'
         opportunities = instance.opportunity_set.all().order_by('-id')
         representation['opportunities'] = OpportunitySerializer(opportunities, many=True).data
 
-        # Ensure contacts are ordered by 'created_on'
-        contacts = instance.contact_set.all().order_by('-id')
+        # Include contacts ordered by 'created_on'
+        contacts = instance.contact_leads.all().order_by('-id')  # Use 'contact_leads' instead of 'contact_set'
         representation['contacts'] = ContactSerializerList(contacts, many=True).data
-        # If no opportunities, include primary contact details only
-        primary_contact_data = ContactSerializer(instance.contact_set.filter(is_primary=True).first()).data
-        representation['primary_contact'] = primary_contact_data
-        representation['logs'] = LogSerializer(instance.log_set.all(), many=True).data 
-        # representation['contacts'] = ContactSerializer(instance.contact_set.all(), many=True).data.order_by('created_on')
+        
+        # Primary contact details (only one contact is marked as primary)
+        primary_contact = instance.contact_leads.filter(is_primary=True).first()  # Use 'contact_leads'
+        if primary_contact:
+            primary_contact_data = ContactSerializer(primary_contact).data
+            representation['primary_contact'] = primary_contact_data
+        else:
+            representation['primary_contact'] = None
+        
+        # Include logs related to the lead's contacts
+        logs = instance.log_set.all().order_by('-created_on')
+        representation['logs'] = LogSerializer(logs, many=True).data
+        
         return representation
 
 class PostContactSerializer(serializers.ModelSerializer):
