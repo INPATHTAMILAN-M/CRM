@@ -80,37 +80,35 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             )
 
         return task
-        
-            
-
+    
 class TaskUpdateSerializer(serializers.ModelSerializer):
+    task_assignment = TaskAssignmentSerializer(many=True, required=False)
     class Meta:
         model = Task
-        fields = ['id',"contact","log",'task_date_time', 'task_detail', 'is_active','remark','tasktype']
-    
-    # def update(self, instance, validated_data):
-       
-    #     if not validated_data.get('task_date_time'):
-    #         return None 
+        fields = ['id', "contact", "log", 'task_date_time', 'task_detail',
+                  'is_active', 'remark', 'tasktype', 'task_assignment']
 
-    #     task_assignment_data = validated_data.pop('task_assignment', [])
+    def update(self, instance, validated_data):
+        # Get the task assignment data from the request
+        task_assignment_data = validated_data.pop('task_assignment', [])
+        print(task_assignment_data)
 
-    #     for attr, value in validated_data.items():
-    #         setattr(instance, attr, value)
+        # Update the Task fields first
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
 
-    #     instance.save()
+        # Clear existing task assignments before adding new ones
+        if task_assignment_data:
+            # Create new task assignments from the provided data
+            for assignment in task_assignment_data:
+                Task_Assignment.objects.create(
+                    task=instance,
+                    assigned_to=assignment['assigned_to'],
+                    assigned_by=self.context['request'].user  # Set the current user as assigned_by
+                )
 
-    #     if task_assignment_data:
-    #         instance.task_assignment.all().delete()
-
-    #         for assignment_data in task_assignment_data:
-    #             Task_Assignment.objects.create(
-    #                 task=instance,
-    #                 assigned_to=assignment_data['assigned_to'],
-    #                 assigned_by=self.context['request'].user
-    #             )
-
-    #     return instance
+        return instance
 
 class TaskDetailSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
@@ -119,4 +117,5 @@ class TaskDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ['id', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 'created_on', 'is_active', 'tasktype','remark']
+        fields = ['id', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 
+                  'created_on', 'is_active', 'tasktype', 'remark']

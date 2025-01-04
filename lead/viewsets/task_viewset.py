@@ -78,28 +78,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         else:
             return Response({"detail": "Task date and time missing, a log was created instead."}, status=status.HTTP_200_OK)
 
-    def perform_update(self, serializer):
-        """
-        Override the perform_update method to handle task assignments on update.
-        This method is called when a task update is performed.
-        """
-        instance = serializer.save()  # Save the task object itself
-
-        # Now handle task assignments:
-        task_assignment_data = self.request.data.get('task_assignment', [])
-        if task_assignment_data:
-            # First, clear the existing task assignments for this task
-            instance.task_assignment.all().delete()
-
-            # Now, create new task assignments based on the provided data
-            for assignment in task_assignment_data:
-                Task_Assignment.objects.create(
-                    task=instance,
-                    assigned_to=assignment['assigned_to'],
-                    assigned_by=self.request.user  # Set the current user as assigned_by
-                )
-
-        return instance
+    
 class CalanderTaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     permission_classes = [IsAuthenticated]

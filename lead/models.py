@@ -180,7 +180,7 @@ class Task(models.Model):
         return f'Task for {self.contact.name}'
 
 class Task_Assignment(models.Model):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='task_task_assignments')
     assigned_to = models.ForeignKey(User, related_name='task_assignments', on_delete=models.CASCADE)
     assigned_by = models.ForeignKey(User, related_name='assigned_tasks', on_delete=models.CASCADE)
     assigned_on = models.DateField(auto_now_add=True)
