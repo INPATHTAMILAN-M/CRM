@@ -267,7 +267,7 @@ class LeadSerializer(serializers.ModelSerializer):
         else:
             representation['primary_contact'] = None
         # Include logs for the lead
-        logs = instance.log_set.all().order_by('-created_on')  # Assuming 'log_set' is the related name for the logs
+        logs = instance.log_set.all().order_by('-id')  # Assuming 'log_set' is the related name for the logs
         representation['logs'] = LogSerializer(logs, many=True).data
         
         return representation
