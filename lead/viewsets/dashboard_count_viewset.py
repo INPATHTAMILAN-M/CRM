@@ -44,12 +44,20 @@ class LeadStatusCountViewSet(viewsets.ViewSet):
 
         for status in lead_statuses:
             # Filter leads based on the status and calculate the counts
-            leads_today = queryset.filter(lead_status=status, created_on=today).count()
-            leads_this_month = queryset.filter(lead_status=status, created_on__gte=start_of_month).count()
+            leads_today_created_on = queryset.filter(lead_status=status, created_on=today).count()
+            leads_this_month_created_on = queryset.filter(lead_status=status, created_on__gte=start_of_month).count()
 
+            leads_today_status_date = queryset.filter(lead_status=status, status_date=today).count()
+            leads_this_month_status_date = queryset.filter(lead_status=status, status_date__gte=start_of_month).count()
+
+            # Calculate the total count for today and this month
+            total_leads_today = leads_today_created_on + leads_today_status_date
+            total_leads_this_month = leads_this_month_created_on + leads_this_month_status_date
+
+            # Store the counts in the dictionary
             lead_status_counts[status.name] = {
-                'today': leads_today,
-                'this_month': leads_this_month
+                'today': total_leads_today,
+                'this_month': total_leads_this_month
             }
 
         return lead_status_counts

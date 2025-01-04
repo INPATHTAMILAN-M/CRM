@@ -65,9 +65,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         except Exception as e:
             raise Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        
     
-
     def get_queryset(self):
         user = self.request.user
         # Filter leads based on user group
