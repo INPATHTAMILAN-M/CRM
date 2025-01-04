@@ -43,8 +43,7 @@ class CalanderTaskViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.groups.filter(name='Admin').exists():
             return Task.objects.all()
-        tasks = Task_Assignment.objects.filter(assigned_to=user,assigned_by=user).values_list("task", flat=True)
-        # print("45678oguyfouify-------------------------",tasks)
+        tasks = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
         return Task.objects.filter(id__in=tasks)    
     
     def get_serializer_class(self):
