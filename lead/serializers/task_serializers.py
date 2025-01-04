@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 from accounts.models import Log_Stage
 
-from ..models import Task, Contact, Log, Task_Assignment, Lead
+from ..models import Lead_Status, Task, Contact, Log, Task_Assignment, Lead
 
 class LeadContactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -38,12 +38,18 @@ class TaskAssignmentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task_Assignment
         fields = '__all__'
-
+        
+class LeadStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Status
+        fields = '__all__'
+        
 class TaskListSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     log = LogSerializer()
     created_by = UserSerializer()
     assignment_details = TaskAssignmentListSerializer(source='task_assignment_set', many=True, read_only=True)
+    lead_log_status =LeadStatusSerializer(read_only=True)
     
     class Meta:
         model = Task
@@ -85,29 +91,29 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
         model = Task
         fields = ['id',"contact","log",'task_date_time', 'task_detail', 'is_active','remark','tasktype']
     
-    def update(self, instance, validated_data):
+    # def update(self, instance, validated_data):
        
-        if not validated_data.get('task_date_time'):
-            return None 
+    #     if not validated_data.get('task_date_time'):
+    #         return None 
 
-        task_assignment_data = validated_data.pop('task_assignment', [])
+    #     task_assignment_data = validated_data.pop('task_assignment', [])
 
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+    #     for attr, value in validated_data.items():
+    #         setattr(instance, attr, value)
 
-        instance.save()
+    #     instance.save()
 
-        if task_assignment_data:
-            instance.task_assignment.all().delete()
+    #     if task_assignment_data:
+    #         instance.task_assignment.all().delete()
 
-            for assignment_data in task_assignment_data:
-                Task_Assignment.objects.create(
-                    task=instance,
-                    assigned_to=assignment_data['assigned_to'],
-                    assigned_by=self.context['request'].user
-                )
+    #         for assignment_data in task_assignment_data:
+    #             Task_Assignment.objects.create(
+    #                 task=instance,
+    #                 assigned_to=assignment_data['assigned_to'],
+    #                 assigned_by=self.context['request'].user
+    #             )
 
-        return instance
+    #     return instance
 
 class TaskDetailSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
