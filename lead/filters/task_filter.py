@@ -9,17 +9,18 @@ class TaskFilter(filters.FilterSet):
     contact = filters.CharFilter(field_name='contact__name', lookup_expr='icontains', label='Contact Name') 
     
     
-    # Add 'from_date' filter
-    from_date = filters.DateFilter(field_name='task_date_time', lookup_expr='gte', label='From Date')
+     # Add 'from_date' filter for 'created_on' field
+    from_date = filters.DateFilter(field_name='created_on', lookup_expr='gte', label='From Date')
     
-    # Add 'to_date' filter with custom logic
-    to_date = filters.DateFilter(field_name='task_date_time', lookup_expr='lte', label='To Date', required=False)
+    # Add 'to_date' filter for 'created_on' field with custom logic
+    to_date = filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
 
     def filter_to_date(self, queryset, name, value):
         # If 'to_date' is not provided, default to today
         if not value:
             value = timezone.now().date()  # Use today's date
-        return queryset.filter(task_date_time__lte=value)
+        return queryset.filter(created_on__lte=value)
+    
     
     def filter_search(self, queryset, name, value):
         return queryset.filter(task_detail__icontains=value)
