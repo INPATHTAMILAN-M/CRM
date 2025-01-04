@@ -15,6 +15,7 @@ from ..serializers.lead_serializer import (
     LeadSerializer,
     PostLeadSerializer
 )
+from django.db.models import Q
 
 class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.all().order_by('-id')
@@ -75,9 +76,9 @@ class LeadViewSet(viewsets.ModelViewSet):
         elif user.groups.filter(name='DM').exists():
             return Lead.objects.filter(created_by=user, is_active=True).order_by('-id')
         elif user.groups.filter(name='TM').exists() or user.groups.filter(name='BDE').exists():
-            return Lead.objects.filter(assigned_to=user, is_active=True).distinct().order_by('-id')
+            return Lead.objects.filter(Q(assigned_to=user) | Q(created_by=user) & Q(is_active=True)).distinct().order_by('-id')
         elif user.groups.filter(name='BDM').exists():
-            return Lead.objects.filter(lead_owner=user, is_active=True).order_by('-id')
+            return Lead.objects.filter(Q(assigned_to=user) | Q(created_by=user) & Q(is_active=True)).order_by('-id')
         else:
             return Lead.objects.none()
 

@@ -7,7 +7,7 @@ from ..serializers.task_serializers import *
 from ..custompagination import Paginator
 from ..serializers.log_serializer import *
 from ..filters.task_filter import TaskFilter
-
+from django.db.models import Q
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     permission_classes = [IsAuthenticated]
@@ -20,8 +20,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.groups.filter(name='Admin').exists():
             return Task.objects.all()
-        tasks = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
-        return Task.objects.filter(id__in=tasks)    
+        task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
+        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user))    
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -43,8 +43,8 @@ class CalanderTaskViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.groups.filter(name='Admin').exists():
             return Task.objects.all()
-        tasks = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
-        return Task.objects.filter(id__in=tasks)    
+        task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
+        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user))
     
     def get_serializer_class(self):
         if self.action == 'list':
