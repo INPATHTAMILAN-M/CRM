@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework.routers import DefaultRouter
 from django.contrib.auth.models import User
 
+from accounts.models import Log_Stage
+
 from ..models import Task, Contact, Log, Task_Assignment, Lead
 
 class LeadContactSerializer(serializers.ModelSerializer):
@@ -58,6 +60,10 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         fields = ['contact', 'log', 'task_date_time', 'task_detail', 'tasktype', 'task_assignment','remark']
 
     def create(self, validated_data):
+        # Check if 'task_date_time' is provided
+        if not validated_data.get('task_date_time'):
+            return None  # Return None instead of raising an error
+
         task_assignment_data = validated_data.pop('task_assignment', [])
         validated_data['created_by'] = self.context['request'].user  # Set created_by to the current user
         task = Task.objects.create(**validated_data)
@@ -69,8 +75,10 @@ class TaskCreateSerializer(serializers.ModelSerializer):
                 assigned_to=assignment_data['assigned_to'],  # Set the assigned_to user from the request data
                 assigned_by=self.context['request'].user  # Always set assigned_by to the current user
             )
-        
+
         return task
+        
+            
 
 class TaskUpdateSerializer(serializers.ModelSerializer):
     class Meta:

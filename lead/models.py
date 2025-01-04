@@ -88,7 +88,7 @@ class Lead(models.Model):
         return f'{self.name} owner {self.lead_owner.username}'
 
 class Contact(models.Model):
-    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, null=True, blank=True)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, null=True, blank=True,related_name="contact_leads")
     name = models.CharField(max_length=255)
     status = models.ForeignKey(Contact_Status, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.CharField(max_length=255, null=True, blank=True)
@@ -149,7 +149,7 @@ class Opportunity_Stage(models.Model):
         return f'Stage: {self.stage.stage} for {self.opportunity.name}'
 
 class Log(models.Model):
-    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE,related_name="contact_logs")
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE,null=True, blank=True)
     opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, null=True, blank=True)
     focus_segment = models.ForeignKey(Focus_Segment, null=True, blank=True, on_delete=models.CASCADE)
