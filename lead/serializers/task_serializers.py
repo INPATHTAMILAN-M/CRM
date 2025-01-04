@@ -39,17 +39,14 @@ class TaskAssignmentListSerializer(serializers.ModelSerializer):
         model = Task_Assignment
         fields = '__all__'
         
-class LeadStatusSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lead_Status
-        fields = '__all__'
+
         
 class TaskListSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     log = LogSerializer()
     created_by = UserSerializer()
     assignment_details = TaskAssignmentListSerializer(source='task_assignment_set', many=True, read_only=True)
-    lead_log_status =LeadStatusSerializer(read_only=True)
+    
     
     class Meta:
         model = Task

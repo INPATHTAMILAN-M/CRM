@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from ..models import Log, Task, Task_Assignment, Opportunity, Lead, Contact, Focus_Segment, Log_Stage
+from ..models import Lead_Status, Log, Task, Task_Assignment, Opportunity, Lead, Contact, Focus_Segment, Log_Stage
 
 class OpportunitySerializer(serializers.ModelSerializer):
     class Meta:
@@ -119,7 +119,11 @@ class LogUpdateSerializer(serializers.ModelSerializer):
             'id', 'contact', 'lead', 'opportunity', 'focus_segment', 'follow_up_date_time',
             'log_stage', 'details', 'file', 'created_by', 'created_on', 'is_active', 'lead_log_status'
         ]
-
+class LeadStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Status
+        fields = '__all__'
+        
 class LogListSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     lead = LeadSerializer()
@@ -127,7 +131,7 @@ class LogListSerializer(serializers.ModelSerializer):
     created_by = UserSerializer()
     focus_segment = FocusSegmentSerializer()
     log_stage = LogStageSerializer()
-
+    lead_log_status =LeadStatusSerializer(read_only=True)
     class Meta:
         model = Log
         fields = [
