@@ -93,13 +93,17 @@ class LogCreateSerializer(serializers.ModelSerializer):
         return log
   
 
-    
+class LeadStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Status
+        fields = '__all__'
+        
 class LogRetrieveSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     lead = LeadSerializer()
     opportunity = OpportunitySerializer()
     task = serializers.SerializerMethodField()
-
+    lead_log_status =LeadStatusSerializer(read_only=True)
     class Meta:
         model = Log
         fields = [
@@ -119,10 +123,7 @@ class LogUpdateSerializer(serializers.ModelSerializer):
             'id', 'contact', 'lead', 'opportunity', 'focus_segment', 'follow_up_date_time',
             'log_stage', 'details', 'file', 'created_by', 'created_on', 'is_active', 'lead_log_status'
         ]
-class LeadStatusSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lead_Status
-        fields = '__all__'
+
         
 class LogListSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
@@ -132,6 +133,7 @@ class LogListSerializer(serializers.ModelSerializer):
     focus_segment = FocusSegmentSerializer()
     log_stage = LogStageSerializer()
     lead_log_status =LeadStatusSerializer(read_only=True)
+    
     class Meta:
         model = Log
         fields = [
