@@ -194,7 +194,7 @@ class LeadSerializer(serializers.ModelSerializer):
     lead_status = LeadStatusSerializer(read_only=True)  # Nested serializer for LeadStatus
     department = DepartmentSerializer(read_only=True)  # Nested serializer for Department
     last_log_follow_up = serializers.SerializerMethodField()
-    logs = serializers.SerializerMethodField()
+    logs = LogSerializer(many=True, read_only=True)
     class Meta:
         model = Lead
         fields = '__all__'
@@ -208,17 +208,6 @@ class LeadSerializer(serializers.ModelSerializer):
         if latest_log:
             return latest_log.follow_up_date_time
         return None
-    
-    def get_logs(self, obj):
-        """
-        Custom method to get all logs related to the contacts of this lead.
-        Fetches all logs for each contact linked to this lead.
-        """
-        contact_logs = Log.objects.filter(contact__lead=obj).select_related('contact').all()
-        
-        # Serialize the logs related to each contact
-        logs_serializer = LogSerializer(contact_logs, many=True)
-        return logs_serializer.data
     
     def get_lead_owner(self, obj):
         return {
@@ -256,9 +245,8 @@ class LeadSerializer(serializers.ModelSerializer):
             representation['primary_contact'] = primary_contact_data
         else:
             representation['primary_contact'] = None
-        
-        # Include logs related to the lead's contacts
-        logs = instance.log_set.all().order_by('-created_on')
+        # Include logs for the lead
+        logs = instance.log_set.all().order_by('-created_on')  # Assuming 'log_set' is the related name for the logs
         representation['logs'] = LogSerializer(logs, many=True).data
         
         return representation

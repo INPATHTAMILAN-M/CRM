@@ -52,6 +52,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         # Create a log entry instead of a task
         log_data = {
             'contact': validated_data['contact'],
+            'lead': validated_data['contact'].lead if validated_data['contact'].lead else None,
             'log_stage': Log_Stage.objects.get(id=1),  # Assuming the log stage with id 1 exists
             'created_by': self.request.user,
         }
