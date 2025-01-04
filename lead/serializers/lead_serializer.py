@@ -232,13 +232,19 @@ class LeadSerializer(serializers.ModelSerializer):
        
         # if instance.opportunity_set.exists():
         
-        representation['opportunities'] = OpportunitySerializer(instance.opportunity_set.all(), many=True).data.order_by('created_on')
+        # representation['opportunities'] = OpportunitySerializer(instance.opportunity_set.all(), many=True).data.order_by('created_on')
+                # Ensure opportunities are ordered by 'created_on'
+        opportunities = instance.opportunity_set.all().order_by('created_on')
+        representation['opportunities'] = OpportunitySerializer(opportunities, many=True).data
 
+        # Ensure contacts are ordered by 'created_on'
+        contacts = instance.contact_set.all().order_by('created_on')
+        representation['contacts'] = ContactSerializerList(contacts, many=True).data
         # If no opportunities, include primary contact details only
         primary_contact_data = ContactSerializer(instance.contact_set.filter(is_primary=True).first()).data
         representation['primary_contact'] = primary_contact_data
         representation['logs'] = LogSerializer(instance.log_set.all(), many=True).data 
-        representation['contacts'] = ContactSerializer(instance.contact_set.all(), many=True).data.order_by('created_on')
+        # representation['contacts'] = ContactSerializer(instance.contact_set.all(), many=True).data.order_by('created_on')
         return representation
 
 class PostContactSerializer(serializers.ModelSerializer):
