@@ -84,6 +84,36 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ["contact","log",'task_date_time', 'task_detail', 'is_active','remark','tasktype']
+    
+    def update(self, instance, validated_data):
+        # Check if 'task_date_time' is provided, if not, don't update the task
+        if not validated_data.get('task_date_time'):
+            return None  # Return None if task_date_time is missing
+
+        # Pop task_assignment data
+        task_assignment_data = validated_data.pop('task_assignment', [])
+
+        # Update task fields with the validated data
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Save the task instance after updating the fields
+        instance.save()
+
+        # Check if task_assignment data was provided in the request
+        if task_assignment_data:
+            # Clear existing task assignments
+            instance.task_assignment.all().delete()  # This will delete all existing assignments for the task
+
+            # Now create new task assignments if data is provided
+            for assignment_data in task_assignment_data:
+                Task_Assignment.objects.create(
+                    task=instance,
+                    assigned_to=assignment_data['assigned_to'],
+                    assigned_by=self.context['request'].user  # Set the current user as assigned_by
+                )
+
+        return instance
 
 class TaskDetailSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()

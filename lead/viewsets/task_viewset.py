@@ -55,7 +55,8 @@ class TaskViewSet(viewsets.ModelViewSet):
             'lead': validated_data['contact'].lead if validated_data['contact'].lead else None,
             'log_stage': Log_Stage.objects.get(id=1),  # Assuming the log stage with id 1 exists
             'created_by': self.request.user,
-            'details':validated_data['remark']
+            'details':validated_data['remark'],
+            'lead_log_status':validated_data['contact'].lead.lead_status if validated_data['contact'].lead else None
         }
 
         # Assuming you have a Log model that accepts this information
