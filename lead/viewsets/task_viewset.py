@@ -22,9 +22,9 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.groups.filter(name='Admin').exists():
-            return Task.objects.all()
+            return Task.objects.all().order_by('-id')
         task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
-        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user))    
+        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user)).order_by('-id')    
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -56,7 +56,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             'log_stage': Log_Stage.objects.get(id=1),  # Assuming the log stage with id 1 exists
             'created_by': self.request.user,
             'details':validated_data['remark'],
-            'lead_log_status':validated_data['contact'].lead.lead_status if validated_data['contact'].lead else None
+            'lead_log_status':validated_data['contact'].lead.lead_status if validated_data['contact'].lead else None,
         }
 
         # Assuming you have a Log model that accepts this information
