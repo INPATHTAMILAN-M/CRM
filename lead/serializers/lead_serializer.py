@@ -158,9 +158,30 @@ class OpportunitySerializer(serializers.ModelSerializer):
 #             'recurring_value_per_year', 'currency_type', 'closing_date', 'stage',
 #             'probability_in_percentage', 'file', 'primary_contact', 'created_by'
 #         ]
+class LeadLogSerializer(serializers.ModelSerializer):
+    market_segment = MarketSegmentSerializer(read_only=True)
+    focus_segment = FocusSegmentSerializer(read_only=True)
+    country = CountrySerializer(read_only=True)
+    state = StateSerializer(read_only=True)
+    city = CitySerializer(read_only=True)
+    tags = TagSerializer(many=True)
+    lead_owner = UserSerializer()
+    created_by = UserSerializer()
+    primary_contact = ContactSerializer(read_only=True)
+    assigned_to = UserSerializer()
+    lead_source = LeadSourceSerializer(read_only=True)  # Nested serializer for LeadSource
+    lead_source_from = LeadSourceFromSerializer(read_only=True)  # Nested serializer for LeadSourceFrom
+    lead_status = LeadStatusSerializer(read_only=True)  # Nested serializer for LeadStatus
+    department = DepartmentSerializer(read_only=True)  # Nested serializer for Department
+
+    class Meta:
+        model = Lead
+        fields = '__all__'
+    
+    
 class LogSerializer(serializers.ModelSerializer):
     contact = ContactSerializer(read_only=True)
-    lead = LeadSerializer(read_only=True)
+    lead = LeadLogSerializer()
     opportunity = OpportunitySerializer(read_only=True)
     focus_segment = FocusSegmentSerializer(read_only=True)
     log_stage = LogStageSerializer(read_only=True)
