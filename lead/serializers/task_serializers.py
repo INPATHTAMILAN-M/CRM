@@ -35,27 +35,33 @@ class TaskAssignmentSerializer(serializers.ModelSerializer):
 
 class TaskAssignmentListSerializer(serializers.ModelSerializer):
     assigned_to = UserSerializer()
+    assigned_by = UserSerializer()
+
     class Meta:
         model = Task_Assignment
-        fields = '__all__'
-        
+        fields = ['assigned_to', 'assigned_by', 'assigned_on', 'assignment_note', 'is_active']
 
         
 class TaskListSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     log = LogSerializer()
     created_by = UserSerializer()
-    assignment_details = TaskAssignmentListSerializer(source='task_assignment_set', many=True, read_only=True)
-    
+    assignment_details = serializers.SerializerMethodField()
     
     class Meta:
         model = Task
-        fields = ['id', 'remark', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 'created_on', 'is_active', 'tasktype', 'assignment_details']
+        fields = ['id', 'remark', 'contact', 'log', 'task_date_time', 'task_detail', 
+                  'created_by', 'created_on', 'is_active', 'tasktype', 'assignment_details']
 
-    # def get_assignment_details(self, obj):
-    #     task_assignments = Task_Assignment.objects.filter(task=obj)
-    #     return TaskAssignmentListSerializer(task_assignments, many=True).data
+    def get_assignment_details(self, obj):
+        task_assignments = obj.task_task_assignments.all()
+        return TaskAssignmentListSerializer(task_assignments, many=True).data
     
+    
+    
+    
+    
+
 class TaskCreateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(many=True, required=False)
     class Meta:
