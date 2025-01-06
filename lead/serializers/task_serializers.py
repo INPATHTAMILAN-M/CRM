@@ -97,13 +97,12 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Get the task assignment data from the request
         task_assignment_data = validated_data.pop('task_assignment', [])
-        print(task_assignment_data)
 
         # Update the Task fields first
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
+        Task_Assignment.objects.filter(task=instance).delete()
         # Clear existing task assignments before adding new ones
         if task_assignment_data:
             # Create new task assignments from the provided data
