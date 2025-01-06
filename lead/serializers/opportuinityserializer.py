@@ -98,7 +98,7 @@ class OpportunityListSerializer(serializers.ModelSerializer):
     created_by=OwnerSerializer(read_only=True)
     file_url = serializers.SerializerMethodField()
     primary_contact = ContactSerializer(read_only=True)
-    assigned_to =UserSerializer()
+    created_by =UserSerializer()
     
     
     class Meta:

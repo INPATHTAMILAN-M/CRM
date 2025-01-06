@@ -17,6 +17,7 @@ class LeadFilter(filters.FilterSet):
      # Filtering by from_date and to_date for the created_on field
     from_date = filters.DateFilter(field_name='created_on', lookup_expr='gte', label='From Date')
     to_date = filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
+    lead_status = filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
 
     def filter_to_date(self, queryset, name, value):
         """If no 'to_date' is provided, defaults to today."""
@@ -29,7 +30,8 @@ class LeadFilter(filters.FilterSet):
         fields = [
             'search',  
             'assigned_to',
-            'lead_source'
+            'lead_status',
+            'lead_source',
         ]
 
     def filter_search(self, queryset, name, value):

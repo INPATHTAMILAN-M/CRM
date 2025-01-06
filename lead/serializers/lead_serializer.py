@@ -294,30 +294,25 @@ class PostLeadSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_by']
         
     def create(self, validated_data):
-        # Extract contact_id from validated_data and remove it
         contact_id = validated_data.pop('contact_id', None)
-        # Extract tags from validated_data before creating the lead
         tags_data = validated_data.pop('tags', [])
 
-        # Create the Lead instance
         lead = Lead.objects.create(**validated_data)
-
-        # If contact_id is provided, link the contact to the created lead using the ID (not the Contact object itself)
+        
         if contact_id:
             try:
                 contact = Contact.objects.get(id=contact_id.id)
                 contact.lead = lead
-                contact.is_primary = True  # Optional: set this contact as the primary contact for the lead
+                contact.is_primary = True
+                lead.lead_source = contact.lead_source
                 contact.save()
             except Contact.DoesNotExist:
                 raise serializers.ValidationError("Contact with the provided ID does not exist.")
-
-        # Assign tags to the lead using .set()
+        
         if tags_data:
             lead.tags.set(tags_data)
-
-        # Return the created lead instance
-        return lead
+            
+        lead.save()
     
     # def update(self, instance, validated_data):
     #     # Check if 'lead_status' has changed

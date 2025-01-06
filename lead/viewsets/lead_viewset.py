@@ -76,7 +76,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         elif user.groups.filter(name='TM').exists() or user.groups.filter(name='BDE').exists():
             return Lead.objects.filter(Q(assigned_to=user) | Q(created_by=user) & Q(is_active=True)).distinct().order_by('-id')
         elif user.groups.filter(name='BDM').exists():
-            return Lead.objects.filter(Q(assigned_to=user) | Q(created_by=user) & Q(is_active=True)).order_by('-id')
+            return Lead.objects.filter(Q(lead_owner=user) | Q(created_by=user) & Q(is_active=True)).order_by('-id')
         else:
             return Lead.objects.none()
 
