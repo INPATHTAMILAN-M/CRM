@@ -89,6 +89,7 @@ class Lead(models.Model):
 
 class Contact(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, null=True, blank=True,related_name="contact_leads")
+    company_name = models.CharField(max_length=255, null=True, blank=True)
     name = models.CharField(max_length=255)
     status = models.ForeignKey(Contact_Status, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.CharField(max_length=255, null=True, blank=True)

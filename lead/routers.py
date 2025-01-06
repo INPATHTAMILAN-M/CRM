@@ -2,7 +2,7 @@ from rest_framework.routers import DefaultRouter
 
 from accounts.viewsets.city_viewset import CityViewSet
 from accounts.viewsets.salutation_viewset import SalutationViewSet
-from accounts.viewsets.users_viewset import GetLeadOwnerViewSet, GetTaskAssignedToViewSet, UsersForLeadViewSet
+from accounts.viewsets.users_viewset import GetBdeUserToViewSet, GetLeadOwnerViewSet, GetTaskAssignedToViewSet, UsersForLeadViewSet
 from lead.viewsets.contact_status_viewset import ContactStatusViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
 from lead.viewsets.country_viewset import CountryViewSet
@@ -41,6 +41,7 @@ router.register(r'departments', DepartmentViewSet, basename='departments')
 router.register(r'users_for_lead', UsersForLeadViewSet, basename='users_for_lead')
 router.register(r'get_lead_owner', GetLeadOwnerViewSet, basename='get_lead_owner_unique')
 router.register(r'get_task_assinged_to', GetTaskAssignedToViewSet, basename='get_task_assinged_to')
+router.register(r'get_bde_user', GetBdeUserToViewSet, basename='get_bde_user')
 router.register(r'focuse_segmant', FocusSegmentViewSet, basename='focuse_segmant')
 router.register(r'contacts', ContactViewSet, basename='contact')
 router.register(r'market_segments', MarketSegmentViewSet, basename='market_segments')
