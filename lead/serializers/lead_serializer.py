@@ -313,6 +313,8 @@ class PostLeadSerializer(serializers.ModelSerializer):
             lead.tags.set(tags_data)
             
         lead.save()
+
+        return lead
     
     # def update(self, instance, validated_data):
     #     # Check if 'lead_status' has changed
