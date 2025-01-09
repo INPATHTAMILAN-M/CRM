@@ -275,7 +275,7 @@ class LeadSerializer(serializers.ModelSerializer):
 class PostContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
-        fields = ['name', 'status', 'designation', 'department', 'phone_number', 'email_id', 'lead_source', 'is_active', 'is_primary']
+        fields = ['name', 'status', 'designation', 'department', 'phone_number', 'email_id', 'lead_source', 'source_form','is_active', 'is_primary']
         read_only_fields = ['created_by']
 
 

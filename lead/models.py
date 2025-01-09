@@ -55,7 +55,7 @@ class Employee(models.Model):
         return f' {self.user.username} - {self.designation}'
 
 class Lead(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,unique=True)
     focus_segment = models.ForeignKey(Focus_Segment, on_delete=models.CASCADE)
     lead_owner = models.ForeignKey(User, related_name='leads_owned', on_delete=models.CASCADE)
     created_by = models.ForeignKey(User, related_name='leads_created', on_delete=models.CASCADE)
@@ -89,7 +89,7 @@ class Lead(models.Model):
 
 class Contact(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, null=True, blank=True,related_name="contact_leads")
-    company_name = models.CharField(max_length=255, null=True, blank=True)
+    company_name = models.CharField(max_length=255, null=True, blank=True,unique=True)
     name = models.CharField(max_length=255)
     status = models.ForeignKey(Contact_Status, on_delete=models.CASCADE, null=True, blank=True)
     designation = models.CharField(max_length=255, null=True, blank=True)
@@ -99,6 +99,7 @@ class Contact(models.Model):
     remark = models.TextField(null=True, blank=True)
     lead_source = models.ForeignKey(Lead_Source, on_delete=models.CASCADE, null=True, blank=True)
     lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.CASCADE, null=True, blank=True)
+    source_from = models.TextField(null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
