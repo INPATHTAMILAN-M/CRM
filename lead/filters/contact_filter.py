@@ -8,7 +8,13 @@ class ContactFilter(django_filters.FilterSet):
     is_active = django_filters.BooleanFilter(field_name='is_active', lookup_expr='exact', required=False)
     is_archive = django_filters.BooleanFilter(field_name='is_archive', lookup_expr='exact', required=False)
     status = django_filters.NumberFilter(field_name='status__id', lookup_expr='exact', required=False)
+    lead_is_null = django_filters.BooleanFilter(field_name='lead', method='filter_lead_is_null', required=False)
 
     class Meta:
         model = Contact
-        fields = ['name', 'lead', 'is_active', 'status','is_archive']
+        fields = ['name', 'lead', 'is_active', 'status', 'is_archive', 'lead_is_null']
+
+    def filter_lead_is_null(self, queryset, name, value):
+        if value:
+            return queryset.filter(lead__isnull=True)  
+        return queryset
