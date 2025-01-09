@@ -14,7 +14,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from ..filters.contact_filter import ContactFilter
 
 class ContactViewSet(viewsets.ModelViewSet):
-    # queryset = Contact.objects.all().order_by('-id')
+    queryset = Contact.objects.all().order_by('-id')
     permission_classes = [IsAuthenticated]  
     pagination_class = Paginator
     filter_backends = [DjangoFilterBackend]
@@ -28,14 +28,6 @@ class ContactViewSet(viewsets.ModelViewSet):
         if self.action in ['update', 'partial_update']:
             return ContactUpdateSerializer
         return ContactDetailSerializer
-    
-    def get_queryset(self):
-        queryset = Contact.objects.all().order_by('-id')
-        
-        if self.action == 'list':
-            queryset = queryset.filter(lead__isnull=True)  
-
-        return queryset
     
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
