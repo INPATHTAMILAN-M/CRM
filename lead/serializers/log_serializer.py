@@ -33,7 +33,7 @@ class ContactSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class TaskAssignmentSerializer(serializers.ModelSerializer):
-    # assigned_to = serializers.PrimaryKeyRelatedField(allow_null=True, required=False, queryset=User.objects.all())
+    assigned_to = serializers.PrimaryKeyRelatedField(allow_null=True, required=False, queryset=User.objects.all(),many=True)
     class Meta:
         model = Task_Assignment
         fields = ['assigned_to', 'assignment_note']
@@ -52,7 +52,7 @@ class LogCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Log
         fields = [
-            'id', 'contact', 'lead', 'opportunity', 'focus_segment', 'follow_up_date_time',
+            'id', 'contact', 'lead', 'opportunity', 'focus_segment', 'follow_up_date_time','log_type',
             'log_stage', 'details', 'file', 'created_on', 'is_active', 'lead_log_status', 'task_assignment'
         ]
 
@@ -83,15 +83,24 @@ class LogCreateSerializer(serializers.ModelSerializer):
                 created_by=log.created_by,
                 tasktype='Automatic',
             )
-            Task_Assignment.objects.create(
-                task=task,
-                assigned_to=task_assignment_data['assigned_to'],
-                assigned_by=log.created_by,
-                assignment_note=task_assignment_data.get('assignment_note', 'Task created automatically'),
-            )
+            # Task_Assignment.objects.create(
+            #     task=task,
+            #     assigned_to=task_assignment_data['assigned_to'],
+            #     assigned_by=log.created_by,
+            #     assignment_note=task_assignment_data.get('assignment_note', 'Task created automatically'),
+            # )
+
+
+            if task_assignment_data and task_assignment_data['assigned_to']:
+                    for user_id in task_assignment_data['assigned_to']:
+                        Task_Assignment.objects.create(
+                            task=task,
+                            assigned_to=user_id,
+                            assigned_by=log.created_by,
+                            assignment_note=task_assignment_data.get('assignment_note', 'Task created automatically'),
+                        )
 
         return log
-  
 
 class LeadStatusSerializer(serializers.ModelSerializer):
     class Meta:

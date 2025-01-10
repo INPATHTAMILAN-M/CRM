@@ -163,6 +163,14 @@ class Log(models.Model):
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     lead_log_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE, null=True, blank=True)
+    
+    LOG_TYPE_CHOICES = [
+    (' Call', ' Call'),
+    (' Follow Up', ' Follow Up'),
+    (' To Do', ' To Do'),
+    ]
+    log_type= models.CharField(max_length=20, choices=LOG_TYPE_CHOICES, null=True, blank=True)
+
 
     def __str__(self):
         return f'Log for {self.contact.name}'
