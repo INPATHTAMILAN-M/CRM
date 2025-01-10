@@ -10,7 +10,7 @@ class GetTaskSerializer(serializers.ModelSerializer):
     contact = serializers.SerializerMethodField()
     log = serializers.SerializerMethodField()
     created_by = serializers.SerializerMethodField()
-    tasktype = serializers.SerializerMethodField()
+    task_type = serializers.SerializerMethodField()
     assigned_to = serializers.SerializerMethodField()
 
     class Meta:
@@ -38,10 +38,10 @@ class GetTaskSerializer(serializers.ModelSerializer):
             'username' : obj.created_by.username
         } if obj.created_by else None
     
-    def get_tasktype(self, obj):
+    def get_task_type(self, obj):
         return {
-            'code' : obj.tasktype,
-            'label' : obj.get_tasktype_display()
+            'code' : obj.task_type,
+            'label' : obj.get_task_type_display()
         }
     # def get_assigned_to(self, obj):
     #     # Retrieve assigned users from Task_Assignment

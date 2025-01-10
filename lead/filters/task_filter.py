@@ -28,5 +28,5 @@ class TaskFilter(filters.FilterSet):
     class Meta:
         model = Task
         fields = ['is_active', 'created_on', 'lead',
-                 'task_date_time', 'task_detail', 'created_by', 'tasktype',
+                 'task_date_time', 'task_detail', 'created_by', 'task_type',
                  'contact', 'log', ]

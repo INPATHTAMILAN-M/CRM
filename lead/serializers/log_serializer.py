@@ -49,11 +49,12 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class LogCreateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(write_only=True, required=False)
+    task_type = serializers.CharField(write_only=True, required=True)
     class Meta:
         model = Log
         fields = [
             'id', 'contact', 'lead', 'opportunity', 'focus_segment', 'follow_up_date_time','log_type',
-            'log_stage', 'details', 'file', 'created_on', 'is_active', 'lead_log_status', 'task_assignment'
+            'log_stage', 'details', 'file', 'created_on', 'is_active', 'lead_log_status', 'task_assignment','task_type'
         ]
 
     def validate_follow_up_date_time(self, value):
@@ -72,6 +73,7 @@ class LogCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         task_assignment_data = validated_data.pop('task_assignment', None)
         validated_data['created_by'] = self.context['request'].user
+        task_type = validated_data.pop('task_type')
         log = super().create(validated_data)
 
         if log.follow_up_date_time and task_assignment_data:
@@ -81,16 +83,9 @@ class LogCreateSerializer(serializers.ModelSerializer):
                 task_date_time=log.follow_up_date_time,
                 task_detail=log.details,
                 created_by=log.created_by,
-                tasktype='Automatic',
+                task_creation_type='Automatic',
+                task_type = task_type,
             )
-            # Task_Assignment.objects.create(
-            #     task=task,
-            #     assigned_to=task_assignment_data['assigned_to'],
-            #     assigned_by=log.created_by,
-            #     assignment_note=task_assignment_data.get('assignment_note', 'Task created automatically'),
-            # )
-
-
             if task_assignment_data and task_assignment_data['assigned_to']:
                     for user_id in task_assignment_data['assigned_to']:
                         Task_Assignment.objects.create(

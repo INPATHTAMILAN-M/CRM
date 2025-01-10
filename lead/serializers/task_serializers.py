@@ -51,22 +51,20 @@ class TaskListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['id', 'remark', 'contact', 'log', 'task_date_time', 'task_detail', 
-                  'created_by', 'created_on', 'is_active', 'tasktype', 'assignment_details']
+                  'created_by', 'created_on', 'is_active', 'task_creation_type', 'assignment_details','task_type']
 
     def get_assignment_details(self, obj):
         task_assignments = obj.task_task_assignments.all()
         return TaskAssignmentListSerializer(task_assignments, many=True).data
     
     
-    
-    
-    
+
 
 class TaskCreateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(many=True, required=False)
     class Meta:
         model = Task
-        fields = ['id','contact', 'log', 'task_date_time', 'task_detail', 'tasktype', 'task_assignment','remark']
+        fields = ['id','contact', 'log', 'task_date_time', 'task_detail', 'task_type', 'task_assignment','remark']
 
     def create(self, validated_data):
         # Check if 'task_date_time' is provided
@@ -74,15 +72,17 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             return None  # Return None instead of raising an error
 
         task_assignment_data = validated_data.pop('task_assignment', [])
-        validated_data['created_by'] = self.context['request'].user  # Set created_by to the current user
+        validated_data['created_by'] = self.context['request'].user  
+        validated_data['task_creation_type'] = 'Manual'
         task = Task.objects.create(**validated_data)
 
         # Iterate over the task_assignment list
         for assignment_data in task_assignment_data:
+            assigned_by = assignment_data.get('assigned_by', self.context['request'].user)
             Task_Assignment.objects.create(
                 task=task,
                 assigned_to=assignment_data['assigned_to'],  # Set the assigned_to user from the request data
-                assigned_by=self.context['request'].user  # Always set assigned_by to the current user
+                assigned_by=assigned_by # Always set assigned_by to the current user
             )
 
         return task
@@ -92,7 +92,7 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['id', "contact", "log", 'task_date_time', 'task_detail',
-                  'is_active', 'remark', 'tasktype', 'task_assignment']
+                  'is_active', 'remark', 'task_type', 'task_assignment']
 
     def update(self, instance, validated_data):
         # Get the task assignment data from the request
@@ -123,4 +123,4 @@ class TaskDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['id', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 
-                  'created_on', 'is_active', 'tasktype', 'remark']
+                  'created_on', 'is_active', 'task_type', 'remark']

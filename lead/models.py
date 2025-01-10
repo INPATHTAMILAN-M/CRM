@@ -165,9 +165,9 @@ class Log(models.Model):
     lead_log_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE, null=True, blank=True)
     
     LOG_TYPE_CHOICES = [
-    (' Call', ' Call'),
-    (' Follow Up', ' Follow Up'),
-    (' To Do', ' To Do'),
+    ('Call', 'Call'),
+    ('Meeting', 'Meeting'),
+    ('Email', 'Email'),
     ]
     log_type= models.CharField(max_length=20, choices=LOG_TYPE_CHOICES, null=True, blank=True)
 
@@ -183,8 +183,15 @@ class Task(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    tasktype = models.CharField(max_length=10, choices=[('Manual', 'Manual'), ('Automatic', 'Automatic')])
+    task_creation_type = models.CharField(max_length=10, choices=[('Manual', 'Manual'), ('Automatic', 'Automatic')])
     remark = models.TextField(null=True, blank=True)
+    
+    TASK_TYPE_CHOICES = [
+    ('Call', 'Call'),
+    ('Follow Up', 'Follow Up'),
+    ('To Do', 'To Do'),
+    ]
+    task_type= models.CharField(max_length=20, choices=TASK_TYPE_CHOICES, null=True, blank=True)
 
     def __str__(self):
         return f'Task for {self.contact.name}'
