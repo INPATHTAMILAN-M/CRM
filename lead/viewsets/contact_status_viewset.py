@@ -13,8 +13,19 @@ class ContactStatusViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.OrderingFilter, django_filters.DjangoFilterBackend)
     filterset_class = ContactStatusFilter
     ordering_fields = '__all__'
-    ordering = ['status']  # Default ordering by 'status'
+    ordering = ['status']
 
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        instance.is_active = False
+        instance.save()
+
+        return Response(
+            {"detail": "Deactivated Successfully."},
+            status=status.HTTP_200_OK
+        )

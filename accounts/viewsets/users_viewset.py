@@ -51,6 +51,5 @@ class GetBdeUserToViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        # Filter users that belong to the target group BDM
         target_groups = Group.objects.filter(name__in=["BDE"])
         return queryset.filter(groups__in=target_groups).distinct()
