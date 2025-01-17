@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from django.db.models import Min, Max
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Count
+
+from accounts.models import Teams
 from ..custompagination import Paginator
 from ..models import Lead, Contact, Lead_Assignment, Notification
 from ..filters.lead_filter import LeadFilter
@@ -76,7 +78,11 @@ class LeadViewSet(viewsets.ModelViewSet):
         elif user.groups.filter(name='TM').exists() or user.groups.filter(name='BDE').exists():
             return Lead.objects.filter(Q(assigned_to=user) | Q(created_by=user) & Q(is_active=True)).distinct().order_by('-id')
         elif user.groups.filter(name='BDM').exists():
-            return Lead.objects.filter(Q(lead_owner=user) | Q(created_by=user) & Q(is_active=True)).order_by('-id')
+        # Get all BDE users associated with this BDM
+            bde_users = Teams.objects.filter(bdm_user=user).values_list('bde_user', flat=True)
+            return Lead.objects.filter(
+                Q(lead_owner=user) | Q(created_by=user) | Q(created_by__in=bde_users) | Q(assigned_to__in=bde_users) & Q(is_active=True)
+            ).order_by('-id')
         else:
             return Lead.objects.none()
 
