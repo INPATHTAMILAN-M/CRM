@@ -49,7 +49,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class LogCreateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(write_only=True, required=False)
-    task_type = serializers.CharField(write_only=True, required=True)
+    task_type = serializers.CharField(write_only=True, required=False)
     class Meta:
         model = Log
         fields = [
@@ -73,7 +73,7 @@ class LogCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         task_assignment_data = validated_data.pop('task_assignment', None)
         validated_data['created_by'] = self.context['request'].user
-        task_type = validated_data.pop('task_type')
+        task_type = validated_data.pop('task_type',None)
         log = super().create(validated_data)
 
         if log.follow_up_date_time and task_assignment_data:
