@@ -31,7 +31,7 @@ class GetLeadOwnerViewSet(viewsets.ReadOnlyModelViewSet):
         target_groups = Group.objects.filter(name="BDM")
         return queryset.filter(groups__in=target_groups).distinct()
 
-class GetTaskAssignedToViewSet(viewsets.ReadOnlyModelViewSet):
+class GetTaskAssignedToUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
@@ -43,7 +43,7 @@ class GetTaskAssignedToViewSet(viewsets.ReadOnlyModelViewSet):
         target_groups = Group.objects.filter(name__in=["BDM","BDE"])
         return queryset.filter(groups__in=target_groups).distinct()
     
-class GetBdeUserToViewSet(viewsets.ReadOnlyModelViewSet):
+class GetBdeUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
@@ -53,3 +53,15 @@ class GetBdeUserToViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = super().get_queryset()
         target_groups = Group.objects.filter(name__in=["BDE"])
         return queryset.filter(groups__in=target_groups).distinct()
+    
+class GetDmUserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = UserFilter
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        target_groups = Group.objects.filter(name__in=["DM"])
+        return queryset.filter(groups__in=target_groups).distinct()
+    

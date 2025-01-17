@@ -12,3 +12,4 @@ class LeadStatusViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)  # Specify the filter backend
     filterset_class = LeadStatusFilter  # Use the filter class here
     pagination_class = Paginator
+    

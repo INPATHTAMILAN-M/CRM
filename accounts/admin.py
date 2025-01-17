@@ -15,3 +15,5 @@ admin.site.register(Lead_Source)
 admin.site.register(Lead_Source_From)
 admin.site.register(User_Group)
 admin.site.register(City)
+admin.site.register(Teams)
+

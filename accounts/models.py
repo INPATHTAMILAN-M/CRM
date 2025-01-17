@@ -123,3 +123,11 @@ class User_Group(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.group.name}'
+    
+
+class Teams(models.Model):
+    bdm_user = models.ForeignKey(User, on_delete=models.CASCADE,related_name="bdm_user")
+    bde_user = models.ManyToManyField(User,related_name="bde_user") 
+
+    def __str__(self):
+        return f"BDE - {', '.join([user.username for user in self.bde_user.all()])} under BDM - {self.bdm_user.username}"
