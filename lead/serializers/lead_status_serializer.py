@@ -6,5 +6,5 @@ from ..models import Lead_Status
 class LeadStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lead_Status
-        fields = ['id', 'name']  # Specify the fields you want to include in the response
+        fields = ['id', 'name','is_active']  # Specify the fields you want to include in the response
 
