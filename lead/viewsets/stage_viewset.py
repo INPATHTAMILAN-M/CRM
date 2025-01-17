@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from ..custompagination import Paginator
 from ..models import Stage
 from ..serializers.stage_serializers import *
-
+from rest_framework import status
+from rest_framework.response import Response
 
 class StageViewSet(viewsets.ModelViewSet):
     queryset = Stage.objects.all()

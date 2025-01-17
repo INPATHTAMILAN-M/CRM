@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
-
+from rest_framework import status
+from rest_framework.response import Response
 from accounts.models import Vertical
 from lead.filters.vertical_filter import VerticalFilter
 from ..serializers.vertical_serializer import VerticalSerializer

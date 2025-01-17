@@ -6,6 +6,8 @@ from lead.custompagination import Paginator
 from ..models import Department
 from ..serializers.department_serializer import DepartmentSerializer
 from ..filters.department_filter import DepartmentFilter
+from rest_framework import status
+from rest_framework.response import Response
 
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()

@@ -4,7 +4,8 @@ from lead.custompagination import Paginator
 from lead.filters.market_segment_filter import MarketSegmentFilter
 from ..models import Market_Segment
 from ..serializers.market_segment_serializer import MarketSegmentSerializer
-
+from rest_framework import status
+from rest_framework.response import Response
 
 class MarketSegmentViewSet(viewsets.ModelViewSet):
     queryset = Market_Segment.objects.all()

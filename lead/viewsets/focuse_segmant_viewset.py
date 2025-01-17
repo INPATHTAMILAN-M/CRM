@@ -5,7 +5,8 @@ from lead.custompagination import Paginator
 from ..models import Focus_Segment
 from ..serializers.focus_segmant_serializers import GetFocusSegmentSerializer, PostFocusSegmentSerializer, PatchFocusSegmentSerializer, ListFocusSegmentSerializer
 from ..filters.focus_segment_filters import FocusSegmentFilter
-
+from rest_framework import status
+from rest_framework.response import Response
 class FocusSegmentViewSet(viewsets.ModelViewSet):
     queryset = Focus_Segment.objects.all()
     filter_backends = (DjangoFilterBackend,)  # Specify the filter backend

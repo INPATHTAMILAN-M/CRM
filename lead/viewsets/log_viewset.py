@@ -6,7 +6,8 @@ from ..custompagination import Paginator
 from ..models import Log
 from ..serializers.log_serializer import *
 from ..filters import log_filter
-
+from rest_framework import status
+from rest_framework.response import Response
 
 class LogViewSet(viewsets.ModelViewSet):
     queryset = Log.objects.all().order_by('-id')
