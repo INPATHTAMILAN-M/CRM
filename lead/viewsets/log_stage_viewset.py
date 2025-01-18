@@ -2,10 +2,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from lead.filters.log_stage_filter import LogStageFilter
+
 from ..custompagination import Paginator
 from ..models import Log_Stage
 from ..serializers.log_stageserializer import GetLogStageSerializer
-from ..filters import log_filter
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -13,7 +14,7 @@ class LogStageViewSet(viewsets.ModelViewSet):
     queryset = Log_Stage.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    # filterset_class = log_filter.LogFilter
+    filterset_class = LogStageFilter
     pagination_class = Paginator
     serializer_class = GetLogStageSerializer
     alowed_methods = ['GET', 'POST']

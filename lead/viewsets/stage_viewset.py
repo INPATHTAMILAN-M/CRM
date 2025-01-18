@@ -2,6 +2,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from lead.filters.stage_filter import StageFilter
+
 from ..custompagination import Paginator
 from ..models import Stage
 from ..serializers.stage_serializers import *
@@ -12,6 +14,7 @@ class StageViewSet(viewsets.ModelViewSet):
     queryset = Stage.objects.all()
     # permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
+    filterset_class = StageFilter
     pagination_class = Paginator
     http_method_names = ['get', 'post', 'patch', 'delete']
     

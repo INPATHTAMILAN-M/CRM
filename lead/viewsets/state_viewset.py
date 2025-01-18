@@ -5,7 +5,7 @@ from django_filters import rest_framework as filters
 from accounts.models import State
 from lead.custompagination import Paginator
 from lead.filters.state_filter import StateFilter
-from lead.serializers.lead_serializer import StateSerializer
+from lead.serializers.state_serializer import StateSerializer
 
 
 class StateViewSet(viewsets.ModelViewSet):
