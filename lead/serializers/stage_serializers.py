@@ -4,20 +4,20 @@ from rest_framework import serializers
 class StageRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stage
-        fields = ['id', 'stage', 'description', 'is_active']
+        fields = ['id', 'stage', 'description','probability', 'is_active']
 
 class StageCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stage
-        fields = ['id', 'stage', 'description', 'is_active']
+        fields = ['id', 'stage', 'description','probability', 'is_active']
 
 class StageUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stage
-        fields = ['id', 'stage', 'description', 'is_active']
+        fields = ['id', 'stage', 'description','probability', 'is_active']
 
 
 class StageListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stage
-        fields = ['id', 'stage', 'description', 'is_active']
+        fields = ['id', 'stage', 'description','probability', 'is_active']
