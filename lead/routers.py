@@ -9,6 +9,7 @@ from lead.viewsets.contact_viewset import ContactViewSet
 from lead.viewsets.country_viewset import CountryViewSet
 from lead.viewsets.dashboard_count_viewset import LeadStatusCountViewSet
 from lead.viewsets.department_viewset import DepartmentViewSet
+from lead.viewsets.dm_graph_viewset import LeadCountViewSet
 from lead.viewsets.lead_assignment_viewset import LeadAssignmentViewSet
 from lead.viewsets.lead_status_viewset import LeadStatusViewSet
 from lead.viewsets.market_segment_viewset import MarketSegmentViewSet
@@ -61,6 +62,7 @@ router.register(r'verticals', VerticalViewSet)
 router.register(r'City', CityViewSet)
 router.register(r'calander_task', CalanderTaskViewSet)
 router.register(r'bdm_team', TeamsViewSet)
+router.register(r'dm_graph_counts', LeadCountViewSet, basename='dm_graph_counts')
 
 
 # in accounts

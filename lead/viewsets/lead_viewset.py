@@ -228,33 +228,33 @@ class LeadViewSet(viewsets.ModelViewSet):
 
         return Response(response_data)
 
-    @action(detail=True, methods=['get'])
-    def opportunities(self, request, pk=None):
-        """
-        Custom action to get opportunities and contacts for a specific lead.
-        """
-        lead = self.get_object()  # Get the lead by pk
-        opportunities = lead.opportunity_set.all()
-        contacts = lead.contact_set.all()
+    # @action(detail=True, methods=['get'])
+    # def opportunities(self, request, pk=None):
+    #     """
+    #     Custom action to get opportunities and contacts for a specific lead.
+    #     """
+    #     lead = self.get_object()  # Get the lead by pk
+    #     opportunities = lead.opportunity_set.all()
+    #     contacts = lead.contact_set.all()
 
-        # Prepare the opportunity data
-        opportunity_data = [{
-            "name": opportunity.name,
-            "stage": opportunity.stage.name,
-            "opportunity_value": opportunity.opportunity_value,
-            "created_on": opportunity.created_on,
-        } for opportunity in opportunities]
+    #     # Prepare the opportunity data
+    #     opportunity_data = [{
+    #         "name": opportunity.name,
+    #         "stage": opportunity.stage.name,
+    #         "opportunity_value": opportunity.opportunity_value,
+    #         "created_on": opportunity.created_on,
+    #     } for opportunity in opportunities]
 
-        # Prepare the contact data
-        contact_data = [{
-            "name": contact.name,
-            "email": contact.email_id,
-            "phone": contact.phone_number,
-            "is_primary": contact.is_primary,
-        } for contact in contacts]
+    #     # Prepare the contact data
+    #     contact_data = [{
+    #         "name": contact.name,
+    #         "email": contact.email_id,
+    #         "phone": contact.phone_number,
+    #         "is_primary": contact.is_primary,
+    #     } for contact in contacts]
 
-        return Response({
-            "opportunities": opportunity_data,
-            "contacts": contact_data,
-        })
+    #     return Response({
+    #         "opportunities": opportunity_data,
+    #         "contacts": contact_data,
+    #     })
 
