@@ -15,6 +15,18 @@ class LeadStatusViewSet(viewsets.ModelViewSet):
     filterset_class = LeadStatusFilter  # Use the filter class here
     pagination_class = Paginator
     
+    def get_queryset(self):
+        # Get the user group
+        user_groups = self.request.user.groups.values_list('name', flat=True)
+        
+        # Check if the user belongs to the 'DM' group
+        if 'DM' in user_groups:
+            # If the user is in the 'DM' group, show all lead statuses
+            return Lead_Status.objects.all()
+        else:
+            # If not, exclude "InProgress Lead" and "Fresh Lead" lead statuses
+            return Lead_Status.objects.exclude(name__in=["InProgress Lead", "Fresh Lead"])
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         is_active = request.data.get('is_active')
