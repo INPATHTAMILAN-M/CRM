@@ -2284,3 +2284,151 @@ class StageandProbability(APIView):
 
 #         except Exception as e:
 #             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# -------------------------------------------------------------------------------------
+# # views.py
+# from rest_framework import viewsets
+# from rest_framework.response import Response
+# from django.db.models import Count
+# from django.utils import timezone
+# from .models import Lead
+# from .serializers import LeadCountRequestSerializer
+
+# class LeadCountViewSet(viewsets.ViewSet):
+#     """
+#     A simple ViewSet to get lead counts by date or month.
+#     """
+    
+#     def list(self, request):
+#         # Validate the input data
+#         serializer = LeadCountRequestSerializer(data=request.query_params)
+#         if serializer.is_valid():
+#             from_date = serializer.validated_data['from_date']
+#             to_date = serializer.validated_data['to_date']
+
+#             # Ensure that from_date and to_date are datetime objects (to ensure they are in correct format)
+#             from_date = timezone.datetime.strptime(str(from_date), "%Y-%m-%d").date()
+#             to_date = timezone.datetime.strptime(str(to_date), "%Y-%m-%d").date()
+
+#             # Check if the range is within 31 days
+#             if (to_date - from_date).days <= 31:
+#                 # Group leads by date
+#                 lead_counts_by_date = (
+#                     Lead.objects.filter(created_on__range=[from_date, to_date])
+#                     .values('created_on')
+#                     .annotate(lead_count=Count('id'))
+#                     .order_by('created_on')
+#                 )
+
+#                 result = {}
+#                 for lead in lead_counts_by_date:
+#                     result[str(lead['created_on'])] = lead['lead_count']
+
+#                 return Response(result)
+
+#             else:
+#                 # Group leads by month
+#                 lead_counts_by_month = (
+#                     Lead.objects.filter(created_on__range=[from_date, to_date])
+#                     .values('created_on__year', 'created_on__month')
+#                     .annotate(lead_count=Count('id'))
+#                     .order_by('created_on__year', 'created_on__month')
+#                 )
+
+#                 result = {}
+#                 for lead in lead_counts_by_month:
+#                     # Create a month name from the year and month
+#                     month_name = timezone.datetime(
+#                         lead['created_on__year'], lead['created_on__month'], 1
+#                     ).strftime('%B')  # Get the month name (e.g., "January")
+#                     result[month_name] = lead['lead_count']
+
+#                 return Response(result)
+
+#         return Response(serializer.errors, status=400)
+
+
+# # serializer
+# # serializers.py
+# from rest_framework import serializers
+
+# class LeadCountRequestSerializer(serializers.Serializer):
+#     from_date = serializers.DateField()
+#     to_date = serializers.DateField()
+
+
+# # urls.py
+# from django.urls import path, include
+# from rest_framework.routers import DefaultRouter
+# from .views import LeadCountViewSet
+
+# router = DefaultRouter()
+# router.register(r'lead-counts', LeadCountViewSet, basename='lead-counts')
+
+# urlpatterns = [
+#     path('api/', include(router.urls)),
+# ]
+
+
+# # api view
+# # views.py
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework import status
+# from django.db.models import Count
+# from django.utils import timezone
+# from .models import Lead
+# from .serializers import LeadCountRequestSerializer
+
+# class LeadCountAPIView(APIView):
+#     """
+#     A custom API view to get lead counts by date or month.
+#     """
+
+#     def get(self, request):
+#         # Validate the input data (from_date and to_date)
+#         serializer = LeadCountRequestSerializer(data=request.query_params)
+#         if serializer.is_valid():
+#             from_date = serializer.validated_data['from_date']
+#             to_date = serializer.validated_data['to_date']
+
+#             # Ensure that from_date and to_date are datetime objects (to ensure they are in the correct format)
+#             from_date = timezone.datetime.strptime(str(from_date), "%Y-%m-%d").date()
+#             to_date = timezone.datetime.strptime(str(to_date), "%Y-%m-%d").date()
+
+#             # Check if the range is within 31 days
+#             if (to_date - from_date).days <= 31:
+#                 # Group leads by date
+#                 lead_counts_by_date = (
+#                     Lead.objects.filter(created_on__range=[from_date, to_date])
+#                     .values('created_on')
+#                     .annotate(lead_count=Count('id'))
+#                     .order_by('created_on')
+#                 )
+
+#                 result = {}
+#                 for lead in lead_counts_by_date:
+#                     result[str(lead['created_on'])] = lead['lead_count']
+
+#                 return Response(result)
+
+#             else:
+#                 # Group leads by month
+#                 lead_counts_by_month = (
+#                     Lead.objects.filter(created_on__range=[from_date, to_date])
+#                     .values('created_on__year', 'created_on__month')
+#                     .annotate(lead_count=Count('id'))
+#                     .order_by('created_on__year', 'created_on__month')
+#                 )
+
+#                 result = {}
+#                 for lead in lead_counts_by_month:
+#                     # Create a month name from the year and month
+#                     month_name = timezone.datetime(
+#                         lead['created_on__year'], lead['created_on__month'], 1
+#                     ).strftime('%B')  # Get the month name (e.g., "January")
+#                     result[month_name] = lead['lead_count']
+
+#                 return Response(result)
+
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

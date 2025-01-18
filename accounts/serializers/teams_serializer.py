@@ -11,9 +11,11 @@ class TeamsCreateSerializer(serializers.ModelSerializer):
         fields = ['id', 'bdm_user', 'bde_user']
 
 class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source='get_full_name', read_only=True)
+    
     class Meta:
         model = User
-        fields = ['id','username', 'first_name', 'last_name','email' ]
+        fields = ['id','username', 'full_name','email' ]
 
 class TeamsListSerializer(serializers.ModelSerializer):
     bdm_user = UserSerializer()  # Nested serializer for BDM

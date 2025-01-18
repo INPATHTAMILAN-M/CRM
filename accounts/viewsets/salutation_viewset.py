@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 
 from accounts.filters.salutation_filter import SalutationFilter
+from lead.custompagination import Paginator
 from ..models import Salutation
 from ..serializers.salutation_serializer import SalutationSerializer
 from rest_framework import status
@@ -12,6 +13,7 @@ class SalutationViewSet(viewsets.ModelViewSet):
     serializer_class = SalutationSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SalutationFilter
+    pagination_class = Paginator
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

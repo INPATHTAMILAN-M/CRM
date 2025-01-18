@@ -10,11 +10,14 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 
+from lead.custompagination import Paginator
+
 class TeamsViewSet(viewsets.ModelViewSet):
     queryset = Teams.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TeamsFilter
+    pagination_class = Paginator
     
     def get_serializer_class(self):
         if self.action == 'list':

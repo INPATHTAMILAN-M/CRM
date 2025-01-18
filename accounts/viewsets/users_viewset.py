@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User, Group
 from accounts.filters.users_filter import UserFilter
+from lead.custompagination import Paginator
 from ..serializers.user_serializer import UserSerializer
 
 # ViewSet for Users for Lead
@@ -59,6 +60,7 @@ class GetDmUserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
+    pagination_class = Paginator
 
     def get_queryset(self):
         queryset = super().get_queryset()

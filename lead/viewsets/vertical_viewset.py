@@ -3,6 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
 from accounts.models import Vertical
+from lead.custompagination import Paginator
 from lead.filters.vertical_filter import VerticalFilter
 from ..serializers.vertical_serializer import VerticalSerializer
 
@@ -11,6 +12,7 @@ class VerticalViewSet(viewsets.ModelViewSet):
     serializer_class = VerticalSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = VerticalFilter
+    pagination_class = Paginator
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

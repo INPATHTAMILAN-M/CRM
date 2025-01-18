@@ -2,6 +2,8 @@ from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
 
+from lead.custompagination import Paginator
+
 from..filters.task_assignment_filter import TaskAssignmentFilter
 from ..models import Task_Assignment
 from ..serializers.task_assignment_serializer import TaskAssignmentSerializer
@@ -12,6 +14,7 @@ class TaskAssignmentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]  
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskAssignmentFilter
+    pagination_class = Paginator
     
     
     def destroy(self, request, *args, **kwargs):
