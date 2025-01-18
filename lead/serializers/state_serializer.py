@@ -9,8 +9,13 @@ class CountrySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 # Serializer for State
-class StateSerializer(serializers.ModelSerializer):
-    Country = CountrySerializer()
+class GetStateSerializer(serializers.ModelSerializer):
+    country = CountrySerializer()
+    class Meta:
+        model = State
+        fields = '__all__'
+
+class CreateStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
         fields = '__all__'

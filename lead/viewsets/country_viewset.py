@@ -4,7 +4,7 @@ from django_filters import rest_framework as filters
 from accounts.models import Country
 from lead.custompagination import Paginator
 from lead.filters.country_filter import CountryFilter
-from lead.serializers.lead_serializer import CountrySerializer
+from lead.serializers.country_serializer import CountrySerializer
 
 
 class CountryViewSet(viewsets.ModelViewSet):
