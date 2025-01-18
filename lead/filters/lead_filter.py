@@ -10,17 +10,41 @@ class LeadFilter(filters.FilterSet):
     search = filters.CharFilter(method='filter_search', label="Search") 
     assigned_to = filters.ModelChoiceFilter(queryset=User.objects.all())
     lead_source = filters.ModelChoiceFilter(queryset=Lead_Source.objects.all())
-     # Filtering by from_date and to_date for the created_on field
     from_date = filters.DateFilter(field_name='created_on', lookup_expr='gte', label='From Date')
     to_date = filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
     lead_status = filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
     created_by = filters.ModelChoiceFilter(queryset=User.objects.all())
+    bdm = filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
+    bde = filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
 
     def filter_to_date(self, queryset, name, value):
         """If no 'to_date' is provided, defaults to today."""
         if not value:
             value = timezone.now().date()  # Use today's date if no 'to_date' is provided
         return queryset.filter(created_on__lte=value)
+    
+    def filter_bdm(self, queryset, name, value):
+        """
+        Filter based on Business Development Manager (BDM).
+        If a user ID is passed, it filters based on lead_owner and created_by.
+        """
+        # print("-----------------------------------------------", value)
+        if value:  # If a BDM user ID is provided (value will be a list)
+            return queryset.filter(
+                Q(lead_owner__in=value) | Q(created_by__in=value)
+            )
+        return queryset
+
+    def filter_bde(self, queryset, name, value):
+        """
+        Filter based on Business Development Executive (BDE).
+        If a user ID is passed, it filters based on assigned_to and created_by.
+        """
+        if value:  # If a BDE user ID is provided
+            return queryset.filter(
+                Q(assigned_to=value) | Q(created_by=value)
+            )
+        return queryset
     
     class Meta:
         model = Lead
@@ -29,6 +53,8 @@ class LeadFilter(filters.FilterSet):
             'assigned_to',
             'lead_status',
             'lead_source',
+            'bdm',
+            'bde',
         ]
 
     def filter_search(self, queryset, name, value):
@@ -40,10 +66,3 @@ class LeadFilter(filters.FilterSet):
             Q(name__icontains=value) |
             Q(company_website__icontains=value) 
         )
-   
-
-    
-    
-    
-    
- 
