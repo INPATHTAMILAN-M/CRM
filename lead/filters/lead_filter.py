@@ -1,14 +1,10 @@
-import django_filters
-import datetime
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django.utils import timezone
 
-from ..models import Lead, Lead_Status, Tag
-from accounts.models import Country, Lead_Source, State
-
-
+from ..models import Lead, Lead_Status
+from accounts.models import Lead_Source
 
 class LeadFilter(filters.FilterSet):
     search = filters.CharFilter(method='filter_search', label="Search") 
@@ -18,6 +14,7 @@ class LeadFilter(filters.FilterSet):
     from_date = filters.DateFilter(field_name='created_on', lookup_expr='gte', label='From Date')
     to_date = filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
     lead_status = filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
+    created_by = filters.ModelChoiceFilter(queryset=User.objects.all())
 
     def filter_to_date(self, queryset, name, value):
         """If no 'to_date' is provided, defaults to today."""
