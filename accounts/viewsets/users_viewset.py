@@ -15,7 +15,7 @@ class UsersForLeadViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         # Filter users that belong to the target groups TM, BDE, or Tele Marketer
-        target_groups = Group.objects.filter(name__in=["TM", "BDE", "Tele Marketer"])
+        target_groups = Group.objects.filter(name__in=["TM", "Tele Marketer"])
         return queryset.filter(groups__in=target_groups).distinct()
 
 
