@@ -126,7 +126,7 @@ class User_Group(models.Model):
     
 
 class Teams(models.Model):
-    bdm_user = models.ForeignKey(User, on_delete=models.CASCADE,related_name="bdm_user")
+    bdm_user = models.OneToOneField(User, on_delete=models.CASCADE,related_name="bdm_user")
     bde_user = models.ManyToManyField(User,related_name="bde_user") 
 
     def __str__(self):
