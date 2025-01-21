@@ -11,6 +11,7 @@ class UsersForLeadViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
+    pagination_class = Paginator
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -25,6 +26,7 @@ class GetLeadOwnerViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
+    pagination_class = Paginator
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -37,6 +39,7 @@ class GetTaskAssignedToUserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
+    pagination_class = Paginator
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -49,6 +52,7 @@ class GetBdeUserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
+    pagination_class = Paginator
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -72,6 +76,7 @@ class GetOwnerUserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
+    pagination_class = Paginator
 
     def get_queryset(self):
         queryset = super().get_queryset()
