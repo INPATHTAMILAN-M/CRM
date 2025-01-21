@@ -2,7 +2,7 @@ from rest_framework.routers import DefaultRouter
 
 from accounts.viewsets.city_viewset import CityViewSet
 from accounts.viewsets.salutation_viewset import SalutationViewSet
-from accounts.viewsets.teams_viewset import TeamsViewSet
+from accounts.viewsets.teams_viewset import TeamsFilterViewSet, TeamsViewSet
 from accounts.viewsets.users_viewset import GetBdeUserViewSet, GetDmUserViewSet, GetLeadOwnerViewSet, GetOwnerUserViewSet, GetTaskAssignedToUserViewSet, UsersForLeadViewSet
 from lead.viewsets.contact_status_viewset import ContactStatusViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
@@ -63,6 +63,8 @@ router.register(r'verticals', VerticalViewSet)
 router.register(r'City', CityViewSet)
 router.register(r'calander_task', CalanderTaskViewSet)
 router.register(r'bdm_team', TeamsViewSet)
+router.register(r'bdm_bde_team', TeamsFilterViewSet, basename='bdm_bde_team')
+
 router.register(r'dm_graph_counts', LeadCountViewSet, basename='dm_graph_counts')
 
 

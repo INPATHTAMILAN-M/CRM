@@ -72,6 +72,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Count
 from django.utils import timezone
+
+from accounts.models import Teams
 from ..models import Lead  # Adjust import if needed
 from django.db.models import Q
 
@@ -109,14 +111,17 @@ class LeadStatusCountViewSet(viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         # Get the current user
         user = self.request.user
-
+ 
         # Define the query based on the user's group
         if user.groups.filter(name='Admin').exists():
             # Admin can see all leads
             leads = Lead.objects.all()
         elif user.groups.filter(name='BDM').exists():
             # BDM should filter by lead_owner
-            leads = Lead.objects.filter(lead_owner=user)
+            bde_users = Teams.objects.filter(bdm_user=user).values_list('bde_user', flat=True)
+            leads = Lead.objects.filter(
+                Q(lead_owner=user) | Q(created_by=user) | Q(created_by__in=bde_users) | Q(assigned_to__in=bde_users) & Q(is_active=True)
+            ).order_by('-id')
         elif user.groups.filter(name='TM').exists() or user.groups.filter(name='BDE').exists():
             # TM or BDE should filter by assigned_to
             leads = Lead.objects.filter(Q(assigned_to=user) | Q(created_by=user) & Q(is_active=True))
@@ -142,7 +147,6 @@ class LeadStatusCountViewSet(viewsets.ViewSet):
                 filter=Q(created_on__gte=first_day_of_month) | Q(status_date__gte=first_day_of_month)
             )
         )
-
         # Build the result in the required format
         result = {}
         for entry in lead_status_counts:

@@ -18,8 +18,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id','username', 'full_name','email' ]
 
 class TeamsListSerializer(serializers.ModelSerializer):
-    bdm_user = UserSerializer()  # Nested serializer for BDM
-    bde_user = UserSerializer(many=True)  # Nested serializer for multiple BDEs
+    bdm_user = UserSerializer()
+    bde_user = UserSerializer(many=True)
 
     class Meta:
         model = Teams
@@ -42,3 +42,10 @@ class TeamsUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+class TeamsFilterSerializer(serializers.ModelSerializer):
+    bde_user = UserSerializer(many=True)
+
+    class Meta:
+        model = Teams
+        fields = ['bde_user']
