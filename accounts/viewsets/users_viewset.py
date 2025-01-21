@@ -66,4 +66,14 @@ class GetDmUserViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = super().get_queryset()
         target_groups = Group.objects.filter(name__in=["DM"])
         return queryset.filter(groups__in=target_groups).distinct()
-    
+
+class GetOwnerUserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = UserFilter
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        target_groups = Group.objects.filter(name__in=["Admin"])
+        return queryset.filter(groups__in=target_groups).distinct()

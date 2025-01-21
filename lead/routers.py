@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from accounts.viewsets.city_viewset import CityViewSet
 from accounts.viewsets.salutation_viewset import SalutationViewSet
 from accounts.viewsets.teams_viewset import TeamsViewSet
-from accounts.viewsets.users_viewset import GetBdeUserViewSet, GetDmUserViewSet, GetLeadOwnerViewSet, GetTaskAssignedToUserViewSet, UsersForLeadViewSet
+from accounts.viewsets.users_viewset import GetBdeUserViewSet, GetDmUserViewSet, GetLeadOwnerViewSet, GetOwnerUserViewSet, GetTaskAssignedToUserViewSet, UsersForLeadViewSet
 from lead.viewsets.contact_status_viewset import ContactStatusViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
 from lead.viewsets.country_viewset import CountryViewSet
@@ -44,6 +44,7 @@ router.register(r'users_for_lead', UsersForLeadViewSet, basename='users_for_lead
 router.register(r'get_lead_owner', GetLeadOwnerViewSet, basename='get_lead_owner_unique')
 router.register(r'get_task_assinged_to', GetTaskAssignedToUserViewSet, basename='get_task_assinged_to')
 router.register(r'get_bde_user', GetBdeUserViewSet, basename='get_bde_user')
+router.register(r'get_owner_user', GetOwnerUserViewSet, basename='get_owner_user')
 router.register(r'get_dm_user', GetDmUserViewSet, basename='get_dm_user')
 router.register(r'focuse_segmant', FocusSegmentViewSet, basename='focuse_segmant')
 router.register(r'contacts', ContactViewSet, basename='contact')

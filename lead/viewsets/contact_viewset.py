@@ -75,6 +75,7 @@ class ImportContactsAPIView(APIView):
 
                 name = row[column_mapping.get('name')] if column_mapping.get('name') is not None else None
                 lead = row[column_mapping.get('lead')] if column_mapping.get('lead') is not None else None
+                company_name = row[column_mapping.get('company_name')] if column_mapping.get('company_name') is not None else None
                 contact_status = row[column_mapping.get('status')] if column_mapping.get('status') is not None else None
                 designation = row[column_mapping.get('designation')] if column_mapping.get('designation') is not None else None
                 department = row[column_mapping.get('department')] if column_mapping.get('department') is not None else None
@@ -82,6 +83,7 @@ class ImportContactsAPIView(APIView):
                 email_id = row[column_mapping.get('email_id')] if column_mapping.get('email_id') is not None else None
                 remark = row[column_mapping.get('remark')] if column_mapping.get('remark') is not None else None
                 lead_source = row[column_mapping.get('lead_source')] if column_mapping.get('lead_source') is not None else None
+                lead_source_from  = row[column_mapping.get('lead_source_from')] if column_mapping.get('lead_source_from') is not None else None
                 is_active = row[column_mapping.get('is_active')] == 'TRUE' if column_mapping.get('is_active') is not None else False
                 is_archive = row[column_mapping.get('is_archive')] == 'TRUE' if column_mapping.get('is_archive') is not None else False
 
@@ -92,13 +94,15 @@ class ImportContactsAPIView(APIView):
                 contact_data = {
                     'lead': lead,
                     'name': name,
-                    'status': contact_status,
+                    'company_name': company_name,
+                    'contact_status': contact_status,
                     'designation': designation,
                     'department': department,
                     'phone_number': phone_number,
                     'email_id': email_id,
                     'remark': remark,
                     'lead_source': lead_source,
+                    'lead_source_from':lead_source_from,
                     'is_active': is_active,
                     'is_archive': is_archive,
                     'created_by': request.user.id, 
