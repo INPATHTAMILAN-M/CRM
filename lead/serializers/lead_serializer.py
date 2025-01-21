@@ -83,11 +83,16 @@ class ContactStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact_Status
         fields = '__all__'
-
+ 
 class UserSerializer(serializers.ModelSerializer):
+    groups = serializers.SerializerMethodField()
+
+    def get_groups(self, obj):
+        # Get the group names from the groups associated with the user
+        return [group.name for group in obj.groups.all()]
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active','groups']
 
 class ContactSerializerList(serializers.ModelSerializer):
     lead = LeadSerializer()
@@ -209,7 +214,7 @@ class LeadSerializer(serializers.ModelSerializer):
     primary_contact = ContactSerializer(read_only=True)
     opportunities = OpportunitySerializer(many=True, read_only=True)
     contacts = ContactSerializerList(many=True, read_only=True)
-    assigned_to = serializers.SerializerMethodField()
+    assigned_to = UserSerializer()
     lead_source = LeadSourceSerializer(read_only=True)  # Nested serializer for LeadSource
     lead_source_from = LeadSourceFromSerializer(read_only=True)  # Nested serializer for LeadSourceFrom
     lead_status = LeadStatusSerializer(read_only=True)  # Nested serializer for LeadStatus
@@ -242,11 +247,11 @@ class LeadSerializer(serializers.ModelSerializer):
             'username': obj.created_by.username
         }
         
-    def get_assigned_to(self, obj):
-        return {
-            'id': obj.assigned_to.id,
-            'username': obj.assigned_to.username
-        }
+    # def get_assigned_to(self, obj):
+    #     return {
+    #         'id': obj.assigned_to.id,
+    #         'username': obj.assigned_to.username
+    #     }
     def to_representation(self, instance):
         # Get the basic representation first
         representation = super().to_representation(instance)
