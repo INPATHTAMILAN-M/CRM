@@ -24,7 +24,7 @@ class LogViewSet(viewsets.ModelViewSet):
             return LogListSerializer
         if self.action in ['update', 'partial_update']:
             return LogUpdateSerializer
-        return LogRetrieveSerializer    
+        return LogListSerializer    
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

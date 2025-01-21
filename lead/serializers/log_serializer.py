@@ -140,7 +140,4 @@ class LogListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Log
-        fields = [
-            'id', 'contact', 'lead', 'opportunity', 'focus_segment', 'follow_up_date_time',
-            'log_stage', 'details', 'file', 'created_by', 'created_on', 'is_active', 'lead_log_status'
-        ]
+        fields = '__all__'
