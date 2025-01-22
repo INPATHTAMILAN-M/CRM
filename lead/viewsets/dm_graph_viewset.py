@@ -26,7 +26,7 @@ class LeadCountViewSet(viewsets.ViewSet):
             if (to_date - from_date).days <= 31:
                 # Group leads by date
                 lead_counts_by_date = (
-                    Lead.objects.filter(created_on__range=[from_date, to_date])
+                    Lead.objects.filter(created_by= request.user,created_on__range=[from_date, to_date])
                     .values('created_on')
                     .annotate(lead_count=Count('id'))
                     .order_by('created_on')
@@ -36,11 +36,11 @@ class LeadCountViewSet(viewsets.ViewSet):
                 all_dates = {from_date + timedelta(days=i) for i in range((to_date - from_date).days + 1)}
 
                 # Create a dictionary with counts, filling in missing dates with a count of 0
-                result = {str(date.date()): 0 for date in all_dates}
+                result = { (from_date + timedelta(days=i)).strftime('%d-%m-%Y'): 0 for i in range((to_date - from_date).days + 1) }
 
                 # Populate the result with actual counts
                 for lead in lead_counts_by_date:
-                    result[str(lead['created_on'])] = lead['lead_count']
+                    result[lead['created_on'].strftime('%d-%m-%Y')] = lead['lead_count']
 
                 sorted_result = dict(sorted(result.items()))
 
