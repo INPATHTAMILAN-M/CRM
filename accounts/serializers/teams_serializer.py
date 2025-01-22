@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from accounts.models import Teams
 from django.contrib.auth.models import User
-
+from rest_framework.exceptions import ValidationError
 
 class TeamsCreateSerializer(serializers.ModelSerializer):
     bde_user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
@@ -10,6 +10,13 @@ class TeamsCreateSerializer(serializers.ModelSerializer):
         model = Teams
         fields = ['id', 'bdm_user', 'bde_user']
 
+    def validate(self, data):
+            # Ensure there's no duplicate bdm_user
+            bdm_user = data.get('bdm_user')
+            if Teams.objects.filter(bdm_user=bdm_user).exists():
+                raise ValidationError({'error': 'This BDM user is already assigned to another team.'})
+
+            return data
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source='get_full_name', read_only=True)
     
