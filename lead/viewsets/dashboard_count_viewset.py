@@ -43,7 +43,7 @@ class LeadStatusCountViewSet(viewsets.ViewSet):
             bde_users = Teams.objects.filter(bdm_user=user).values_list('bde_user', flat=True)
             leads = Lead.objects.filter(
                 Q(lead_owner=user) | Q(created_by=user) | Q(created_by__in=bde_users) | Q(assigned_to__in=bde_users) & Q(is_active=True)
-            ).order_by('-id')
+            )
         elif user.groups.filter(name='TM').exists() or user.groups.filter(name='BDE').exists():
             leads = Lead.objects.filter(Q(assigned_to=user) | Q(created_by=user) & Q(is_active=True))
         elif user.groups.filter(name='DM').exists():
