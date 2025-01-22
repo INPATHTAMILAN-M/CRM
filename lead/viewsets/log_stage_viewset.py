@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 class LogStageViewSet(viewsets.ModelViewSet):
-    queryset = Log_Stage.objects.all()
+    queryset = Log_Stage.objects.all().order_by('-id')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = LogStageFilter

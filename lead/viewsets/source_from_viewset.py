@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 class LeadSourceFromViewSet(viewsets.ModelViewSet):
-    queryset = Lead_Source_From.objects.all()
+    queryset = Lead_Source_From.objects.all().order_by('-id')
     serializer_class = LeadSourceFromSerializer
     filter_backends = (DjangoFilterBackend,)  
     filterset_class = LeadSourceFromFilter  

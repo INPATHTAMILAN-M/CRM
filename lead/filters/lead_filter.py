@@ -63,6 +63,6 @@ class LeadFilter(filters.FilterSet):
         Searches across multiple fields.
         """
         return queryset.filter(
-            Q(name__icontains=value) |
-            Q(company_website__icontains=value) 
+            Q(name__icontains=value)
+           
         )

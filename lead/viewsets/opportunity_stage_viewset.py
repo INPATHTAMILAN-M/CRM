@@ -5,7 +5,7 @@ from ..serializers.opportunity_stage_serializers import *
 
 
 class OpportunityStageViewSet(viewsets.ModelViewSet):
-    queryset = Opportunity_Stage.objects.all()
+    queryset = Opportunity_Stage.objects.all().order_by('-id')
     serializer_class = OpportunityStageListSerializer
     permission_classes = [IsAuthenticated]
 

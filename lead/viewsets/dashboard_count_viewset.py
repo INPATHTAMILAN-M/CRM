@@ -53,7 +53,7 @@ class LeadStatusCountViewSet(viewsets.ViewSet):
 
         # Get today's date and the first day of the current month
         today = timezone.now().date()
-        first_day_of_month = today.replace(day=1)
+        first_day_of_month = from_date
 
         filter_conditions = Q()
 
@@ -70,7 +70,7 @@ class LeadStatusCountViewSet(viewsets.ViewSet):
         if bde:
             filter_conditions &= Q(assigned_to=bde) | Q(created_by=bde)
         if search:
-            filter_conditions &= (Q(name__icontains=search) | Q(company_website__icontains=search))
+            filter_conditions &= (Q(name__icontains=search))
 
         if from_date and to_date:
             filter_conditions &= Q(created_on__range=[from_date, to_date])

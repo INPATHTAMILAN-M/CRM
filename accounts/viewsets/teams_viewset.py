@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 from lead.custompagination import Paginator
 
 class TeamsViewSet(viewsets.ModelViewSet):
-    queryset = Teams.objects.all()
+    queryset = Teams.objects.all().order_by('-id')
     permission_classes = [IsAuthenticated]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TeamsFilter

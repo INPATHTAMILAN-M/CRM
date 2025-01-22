@@ -8,7 +8,7 @@ from lead.serializers.tag_serializer import TagSerializer
 from rest_framework import status
 from rest_framework.response import Response
 class TagViewSet(viewsets.ModelViewSet):
-    queryset = Tag.objects.all()
+    queryset = Tag.objects.all().order_by('-id')
     serializer_class = TagSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TagFilter

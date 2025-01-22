@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 class StageViewSet(viewsets.ModelViewSet):
-    queryset = Stage.objects.all()
+    queryset = Stage.objects.all().order_by('-id')
     # permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = StageFilter

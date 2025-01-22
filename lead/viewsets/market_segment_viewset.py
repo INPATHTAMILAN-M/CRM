@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 class MarketSegmentViewSet(viewsets.ModelViewSet):
-    queryset = Market_Segment.objects.all()
+    queryset = Market_Segment.objects.all().order_by('-id')
     serializer_class = MarketSegmentSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = MarketSegmentFilter

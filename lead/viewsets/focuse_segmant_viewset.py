@@ -8,7 +8,7 @@ from ..filters.focus_segment_filters import FocusSegmentFilter
 from rest_framework import status
 from rest_framework.response import Response
 class FocusSegmentViewSet(viewsets.ModelViewSet):
-    queryset = Focus_Segment.objects.all()
+    queryset = Focus_Segment.objects.all().order_by('-id')
     filter_backends = (DjangoFilterBackend,)  # Specify the filter backend
     filterset_class = FocusSegmentFilter  # Use the filter class here
     pagination_class = Paginator

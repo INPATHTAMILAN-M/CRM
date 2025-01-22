@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 class DepartmentViewSet(viewsets.ModelViewSet):
-    queryset = Department.objects.all()
+    queryset = Department.objects.all().order_by('-id')
     serializer_class = DepartmentSerializer
     filter_backends = (DjangoFilterBackend,) 
     filterset_class = DepartmentFilter 

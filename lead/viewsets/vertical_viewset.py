@@ -8,7 +8,7 @@ from lead.filters.vertical_filter import VerticalFilter
 from ..serializers.vertical_serializer import VerticalSerializer
 
 class VerticalViewSet(viewsets.ModelViewSet):
-    queryset = Vertical.objects.all()
+    queryset = Vertical.objects.all().order_by('-id')
     serializer_class = VerticalSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = VerticalFilter

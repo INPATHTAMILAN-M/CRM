@@ -8,7 +8,7 @@ from lead.serializers.country_serializer import CountrySerializer
 
 
 class CountryViewSet(viewsets.ModelViewSet):
-    queryset = Country.objects.all()
+    queryset = Country.objects.all().order_by('-id')
     serializer_class = CountrySerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = CountryFilter

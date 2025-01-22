@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from django_filters import rest_framework as filters
 
 class SalutationViewSet(viewsets.ModelViewSet):
-    queryset = Salutation.objects.all()
+    queryset = Salutation.objects.all().order_by('-id')
     serializer_class = SalutationSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SalutationFilter

@@ -8,7 +8,7 @@ from lead.custompagination import Paginator
 from ..models import City
 
 class CityViewSet(viewsets.ModelViewSet):
-    queryset = City.objects.all()
+    queryset = City.objects.all().order_by('-id')
     # serializer_class = CitySerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = CityFilter
