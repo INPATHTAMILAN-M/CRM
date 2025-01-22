@@ -5,7 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 import openpyxl
-
+from django.core.exceptions import ObjectDoesNotExist
+from accounts.models import Lead_Source_From
 from lead.custompagination import Paginator
 from ..models import Contact
 from ..serializers.contact_serializer import *
@@ -46,7 +47,6 @@ class ImportContactsAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, *args, **kwargs):
-
         file = request.FILES.get('file')
 
         if not file:
@@ -57,7 +57,6 @@ class ImportContactsAPIView(APIView):
             sheet = workbook.active
 
             headers = [cell.value.strip() if cell.value else "" for cell in sheet[1]]
-
             headers = [header for header in headers if header]
 
             if len(headers) == 0:
@@ -76,36 +75,69 @@ class ImportContactsAPIView(APIView):
                 name = row[column_mapping.get('name')] if column_mapping.get('name') is not None else None
                 lead = row[column_mapping.get('lead')] if column_mapping.get('lead') is not None else None
                 company_name = row[column_mapping.get('company_name')] if column_mapping.get('company_name') is not None else None
-                contact_status = row[column_mapping.get('status')] if column_mapping.get('status') is not None else None
+                contact_status_name = row[column_mapping.get('status')] if column_mapping.get('status') is not None else None
                 designation = row[column_mapping.get('designation')] if column_mapping.get('designation') is not None else None
-                department = row[column_mapping.get('department')] if column_mapping.get('department') is not None else None
+                department_name = row[column_mapping.get('department')] if column_mapping.get('department') is not None else None
                 phone_number = row[column_mapping.get('phone_number')] if column_mapping.get('phone_number') is not None else None
                 email_id = row[column_mapping.get('email_id')] if column_mapping.get('email_id') is not None else None
                 remark = row[column_mapping.get('remark')] if column_mapping.get('remark') is not None else None
-                lead_source = row[column_mapping.get('lead_source')] if column_mapping.get('lead_source') is not None else None
-                lead_source_from  = row[column_mapping.get('lead_source_from')] if column_mapping.get('lead_source_from') is not None else None
+                lead_source_name = row[column_mapping.get('lead_source')] if column_mapping.get('lead_source') is not None else None
+                lead_source_from_name = row[column_mapping.get('lead_source_from')] if column_mapping.get('lead_source_from') is not None else None
                 is_active = row[column_mapping.get('is_active')] == 'TRUE' if column_mapping.get('is_active') is not None else False
                 is_archive = row[column_mapping.get('is_archive')] == 'TRUE' if column_mapping.get('is_archive') is not None else False
 
-                if not name :
+                if not name:
                     print("Skipping row due to missing required fields: ", row)
-                    continue  
+                    continue
+
+                # Querying database for the IDs based on name
+                contact_status = None
+                if contact_status_name:
+                    try:
+                        contact_status = Contact_Status.objects.get(status=contact_status_name, is_active=True)
+                    except ObjectDoesNotExist:
+                        print(f"Contact status '{contact_status_name}' not found.")
+                        continue
+
+                department = None
+                if department_name:
+                    try:
+                        department = Department.objects.get(department=department_name, is_active=True)
+                    except ObjectDoesNotExist:
+                        print(f"Department '{department_name}' not found.")
+                        continue
+
+                lead_source = None
+                if lead_source_name:
+                    try:
+                        lead_source = Lead_Source.objects.get(source=lead_source_name, is_active=True)
+                    except ObjectDoesNotExist:
+                        print(f"Lead source '{lead_source_name}' not found.")
+                        continue
+
+                lead_source_from = None
+                if lead_source_from_name:
+                    try:
+                        lead_source_from = Lead_Source_From.objects.get(source_from=lead_source_from_name, is_active=True)
+                    except ObjectDoesNotExist:
+                        print(f"Lead source from '{lead_source_from_name}' not found.")
+                        continue
 
                 contact_data = {
                     'lead': lead,
                     'name': name,
                     'company_name': company_name,
-                    'contact_status': contact_status,
+                    'contact_status': contact_status.id if contact_status else None,
                     'designation': designation,
-                    'department': department,
+                    'department': department.id if department else None,
                     'phone_number': phone_number,
                     'email_id': email_id,
                     'remark': remark,
-                    'lead_source': lead_source,
-                    'lead_source_from':lead_source_from,
+                    'lead_source': lead_source.id if lead_source else None,
+                    'lead_source_from': lead_source_from.id if lead_source_from else None,
                     'is_active': is_active,
                     'is_archive': is_archive,
-                    'created_by': request.user.id, 
+                    'created_by': request.user.id,
                 }
                 contacts_data.append(contact_data)
 
@@ -118,5 +150,6 @@ class ImportContactsAPIView(APIView):
                 return Response({"message": "Contacts imported successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
 
             return Response({"error": "Invalid data", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             return Response({"error": f"Failed to process the Excel file: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
