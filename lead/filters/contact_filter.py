@@ -23,8 +23,7 @@ class ContactFilter(django_filters.FilterSet):
     
     class Meta:
         model = Contact
-        fields = ['name', 'lead', 'is_active', 'status', 'is_archive', 'lead_is_null']
-
+        fields = ['name', 'lead', 'is_active', 'status', 'is_archive', 'lead_is_null', 'assigned_to', 'lead_source', 'from_date', 'to_date', 'lead_status', 'created_by', 'bdm', 'bde']
     def filter_lead_is_null(self, queryset, name, value):
         if value:
             return queryset.filter(lead__isnull=True)  
