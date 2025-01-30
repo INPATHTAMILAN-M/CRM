@@ -66,6 +66,7 @@ class Employee(models.Model):
 class Lead(models.Model):
     name = models.CharField(max_length=255,unique=True)
     focus_segment = models.ForeignKey(Focus_Segment, on_delete=models.CASCADE)
+    lead_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE, null=True, blank=True)
     lead_owner = models.ForeignKey(User, related_name='leads_owned', on_delete=models.CASCADE)
     created_by = models.ForeignKey(User, related_name='leads_created', on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)

@@ -169,6 +169,7 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
             'file',
             "lead_bucket",
             'file',
+            'opportunity_status',
             'remark',
             'is_active'
         ]

@@ -143,50 +143,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         if self.request.user != instance.created_by:
             Notification.objects.create(receiver=instance.created_by, message=f"Lead '{instance.name}' has been deactivated.")
 
-    # def list(self, request, *args, **kwargs):
-    #     # Get filtered queryset
-    #     queryset = self.filter_queryset(self.get_queryset())
 
-    #     # Aggregate min and max revenue
-    #     min_revenue = queryset.aggregate(min_revenue=Min('annual_revenue'))['min_revenue']
-    #     max_revenue = queryset.aggregate(max_revenue=Max('annual_revenue'))['max_revenue']
-
-    #     # Paginate the results
-    #     page = self.paginate_queryset(queryset)
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-
-    #      # Aggregate the count for each lead_status
-    #     lead_status_counts = queryset.values('lead_status__name').annotate(count=Count('lead_status')).order_by('lead_status__name')
-
-    #     # Paginate the results
-    #     page = self.paginate_queryset(queryset)
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         response_data = self.get_paginated_response(serializer.data).data
-    #     else:
-    #         # Return unpaginated response with revenue data
-    #         serializer = self.get_serializer(queryset, many=True)
-    #         response_data = serializer.data
-
-    #     # Append lead_status counts to the response data
-    #     counts = [
-    #         {
-    #             'lead_status_name': item['lead_status__name'],
-    #             'count_for_lead_status_name': item['count'],
-    #         }
-    #         for item in lead_status_counts
-    #     ]
-        
-    #     # Return unpaginated response with revenue data
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     response_data = serializer.data
-    #     response_data.append({
-    #         "min_revenue": min_revenue,
-    #         "max_revenue": max_revenue,
-    #     })
-    #     return Response(response_data)
     def list(self, request, *args, **kwargs):
         # Get filtered queryset
         queryset = self.filter_queryset(self.get_queryset())
