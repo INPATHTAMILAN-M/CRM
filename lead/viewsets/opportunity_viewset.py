@@ -33,8 +33,6 @@ class OpportunityViewset(viewsets.ModelViewSet):
             return OpportunityListSerializer
         if self.action in ['update', 'partial_update']:
             return OpportunityUpdateSerializer
-        if self.action == 'stage_update':
-            return StageUpdateSerializer
         return OpportunityDetailSerializer
     
 

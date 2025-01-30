@@ -59,7 +59,7 @@ class Contact_Status(models.Model):
 class Stage(models.Model):
     stage = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
-    probability = models.IntegerField(null=True, blank=True)
+    probability = models.IntegerField()
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
