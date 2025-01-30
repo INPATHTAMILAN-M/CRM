@@ -20,6 +20,13 @@ class Lead_Status(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Opportunity_Status(models.Model):
+    name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
 
 class Lead_Bucket(models.Model):
     name = models.CharField(max_length=255)
@@ -72,7 +79,6 @@ class Lead(models.Model):
     lead_source = models.ForeignKey(Lead_Source, on_delete=models.CASCADE, null=True, blank=True)
     lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.CASCADE, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
-    lead_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE, null=True, blank=True)
     status_date = models.DateField(null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
@@ -136,6 +142,7 @@ class Opportunity(models.Model):
     lead_bucket = models.ForeignKey(Lead_Bucket, null=True, blank=True, on_delete=models.SET_NULL)
     file = models.FileField(upload_to='opportunity_files', null=True, blank=True)
     created_by = models.ForeignKey(User, related_name='created_opportunities', on_delete=models.CASCADE)
+    opportunity_status = models.ForeignKey(Opportunity_Status, on_delete=models.CASCADE,null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -164,13 +171,13 @@ class Log(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    lead_log_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE, null=True, blank=True)
     
     LOG_TYPE_CHOICES = [
     ('Call', 'Call'),
     ('Meeting', 'Meeting'),
     ('Email', 'Email'),
     ]
+    
     log_type= models.CharField(max_length=20, choices=LOG_TYPE_CHOICES, null=True, blank=True)
 
 

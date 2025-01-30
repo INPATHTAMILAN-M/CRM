@@ -106,12 +106,11 @@ class LogRetrieveSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
     opportunity = OpportunitySerializer()
     task = serializers.SerializerMethodField()
-    lead_log_status =LeadStatusSerializer(read_only=True)
     class Meta:
         model = Log
         fields = [
             'id', 'contact', 'lead', 'opportunity', 'focus_segment', 'follow_up_date_time',
-            'log_stage', 'details', 'file', 'created_by', 'created_on', 'is_active', 'lead_log_status', 'task'
+            'log_stage', 'details', 'file', 'created_by', 'created_on', 'is_active', 'task'
         ]
     
     def get_task(self, obj):
@@ -135,7 +134,6 @@ class LogListSerializer(serializers.ModelSerializer):
     created_by = UserSerializer()
     focus_segment = FocusSegmentSerializer()
     log_stage = LogStageSerializer()
-    lead_log_status =LeadStatusSerializer(read_only=True)
     
     class Meta:
         model = Log
