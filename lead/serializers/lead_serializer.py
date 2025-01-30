@@ -2,8 +2,12 @@ from rest_framework import serializers
 from django.utils import timezone
 from lead.serializers.log_serializer import LogStageSerializer
 from ..models import Lead,Employee,Contact, Log,Opportunity
-from accounts.models import City, Focus_Segment,Market_Segment,Country, Stage,State,Tag,Vertical,Lead_Source, Lead_Source_From
-from ..models import Lead_Status, Department, Contact_Status 
+from accounts.models import (
+    City, Focus_Segment,Market_Segment,
+    Country, Stage,State,Tag,Vertical,
+    Lead_Source, Lead_Source_From
+)
+from ..models import Lead_Status, Department, Contact_Status, Log_Stage
 from django.contrib.auth.models import User
 
 
@@ -152,17 +156,6 @@ class OpportunitySerializer(serializers.ModelSerializer):
         return None
 
 
-# class OpportunitySerializer(serializers.ModelSerializer):
-#     # You can add related fields here as needed
-#     primary_contact = ContactSerializer(read_only=True)
-
-#     class Meta:
-#         model = Opportunity
-#         fields = [
-#             'id', 'name', 'owner', 'note', 'opportunity_value',
-#             'recurring_value_per_year', 'currency_type', 'closing_date', 'stage',
-#             'probability_in_percentage', 'file', 'primary_contact', 'created_by'
-#         ]
 class LeadLogSerializer(serializers.ModelSerializer):
     market_segment = MarketSegmentSerializer(read_only=True)
     focus_segment = FocusSegmentSerializer(read_only=True)
@@ -302,8 +295,10 @@ class PostLeadSerializer(serializers.ModelSerializer):
         contact_id = validated_data.pop('contact_id', None)
         tags_data = validated_data.pop('tags', [])
 
-        lead = Lead.objects.create(**validated_data)
-        
+        lead = Lead.objects.create(**validated_data) 
+        Log.objects.create(lead=lead, created_by=self.context['request'].user, 
+                           details=lead.remark,log_type="Call",log_stage=Log_Stage.objects.all().first(),
+                           focus_segment=lead.focus_segment)
         if contact_id:
             try:
                 contact = Contact.objects.get(id=contact_id.id)
@@ -321,16 +316,3 @@ class PostLeadSerializer(serializers.ModelSerializer):
 
         return lead
     
-    # def update(self, instance, validated_data):
-    #     # Check if 'lead_status' has changed
-    #     new_lead_status = validated_data.get('lead_status', instance.lead_status)
-        
-    #     # Perform the actual update of the instance
-    #     instance = super().update(instance, validated_data)
-        
-    #     # If the lead status has changed, update the status_date
-    #     if instance.lead_status:
-    #         instance.status_date = timezone.now().date()
-    #         instance.save()  # Save after updating the status_date
-        
-    #     return instance

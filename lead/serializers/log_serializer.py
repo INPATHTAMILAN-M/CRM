@@ -46,7 +46,6 @@ class TaskSerializer(serializers.ModelSerializer):
             'created_by', 'created_on', 'is_active', 'tasktype'
         ]
 
-
 class LogCreateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(write_only=True, required=False)
     task_type = serializers.CharField(write_only=True, required=False)

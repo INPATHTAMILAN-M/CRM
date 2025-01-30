@@ -1,8 +1,14 @@
 from rest_framework import serializers
-from lead.models import Contact, Department, Lead_Status, Opportunity, User, Lead, Opportunity_Stage, Note
-from accounts.models import Contact_Status, Lead_Source, Stage, Country, User
+from lead.models import (
+    Contact, Department, Lead_Status, 
+    Opportunity, User, Lead, Opportunity_Stage, 
+    Note, Log, Log_Stage
+)
+from accounts.models import (
+    Contact_Status, Lead_Source, 
+    Stage, Country, User
+)
 from django.db import transaction
-
 from lead.serializers.lead_serializer import LogSerializer
 
 class OwnerSerializer(serializers.ModelSerializer):
@@ -169,13 +175,16 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_by']
     
     def create(self, validated_data):
-        # Assuming 'stage' is part of the validated data and needs to be used to create the Opportunity_Stage
         stage = validated_data.get('stage')
         
         # Start a transaction block for atomic operations
         with transaction.atomic():
             # Create the Opportunity instance
             opportunity = Opportunity.objects.create(**validated_data)
+            # Log.objects.create(
+            #     opportunity=opportunity,log_stage=Log_Stage.objects.all().first(),
+            #     moved_by=self.context['request'].user  # The user creating the opportunity
+            # )
 
             # Create the Opportunity_Stage record linked to the new Opportunity
             opportunity_stage = Opportunity_Stage(
