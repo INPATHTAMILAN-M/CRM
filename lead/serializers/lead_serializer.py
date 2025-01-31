@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from lead.serializers.log_serializer import LogStageSerializer
-from ..models import Lead,Employee,Contact, Log,Opportunity
+from ..models import Lead,Employee,Contact, Log,Opportunity, Opportunity_Status
 from accounts.models import (
     City, Focus_Segment,Market_Segment,
     Country, Stage,State,Tag,Vertical,
@@ -135,6 +135,12 @@ class StageSerializer(serializers.ModelSerializer):
         model= Stage
         fields = ['id', 'stage']
 
+class OpportunityStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Opportunity_Status
+        fields = "__all__"
+
+
 class OpportunitySerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
     lead = LeadSerializer(read_only=True)
@@ -143,6 +149,7 @@ class OpportunitySerializer(serializers.ModelSerializer):
     created_by=OwnerSerializer(read_only=True)
     file_url = serializers.SerializerMethodField()
     primary_contact = ContactSerializer(read_only=True)
+    opportunity_status = OpportunityStatusSerializer(read_only=True)
     
     class Meta:
         model = Opportunity
@@ -214,6 +221,7 @@ class LeadSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer(read_only=True)  # Nested serializer for Department
     last_log_follow_up = serializers.SerializerMethodField()
     logs = LogSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Lead
         fields = '__all__'
@@ -296,9 +304,14 @@ class PostLeadSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop('tags', [])
 
         lead = Lead.objects.create(**validated_data) 
-        Log.objects.create(lead=lead, created_by=self.context['request'].user, 
-                           details=lead.remark,log_type="Call",log_stage=Log_Stage.objects.all().first(),
-                           focus_segment=lead.focus_segment)
+
+        Log.objects.create(
+            lead=lead, created_by=self.context['request'].user, 
+            contact = contact_id,
+            details=lead.remark,log_type="Call",log_stage=Log_Stage.objects.all().first(),
+            focus_segment=lead.focus_segment
+            )
+        
         if contact_id:
             try:
                 contact = Contact.objects.get(id=contact_id.id)

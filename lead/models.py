@@ -169,6 +169,7 @@ class Log(models.Model):
     log_stage = models.ForeignKey(Log_Stage, on_delete=models.CASCADE, null=True, blank=True)
     details = models.TextField(null=True, blank=True)
     file = models.FileField(upload_to='logs_files', null=True, blank=True)
+    opportunity_status = models.ForeignKey(Opportunity_Status, on_delete=models.CASCADE,null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)

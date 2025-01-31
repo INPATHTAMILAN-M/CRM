@@ -2,7 +2,7 @@ from rest_framework import serializers
 from lead.models import (
     Contact, Department, Lead_Status, 
     Opportunity, User, Lead, Opportunity_Stage, 
-    Note, Log, Log_Stage
+    Note, Log, Log_Stage, Opportunity_Status
 )
 from accounts.models import (
     Contact_Status, Lead_Source, 
@@ -69,6 +69,13 @@ class ContactSerializer(serializers.ModelSerializer):
         model = Contact
         fields = '__all__'
 
+
+class OpportunityStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Opportunity_Status
+        fields = "__all__"
+
+
 class OpportunityDetailSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
     lead = LeadSerializer(read_only=True)
@@ -78,6 +85,7 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     logs = LogSerializer(many=True, read_only=True)
     primary_contact = ContactSerializer(read_only=True)
+    opportunity_status = OpportunityStatusSerializer(read_only=True)
     
     class Meta:
         model = Opportunity
@@ -124,15 +132,18 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def update(self, instance, validated_data):
+        # Get old values and new values
         old_stage = instance.stage
         new_stage = validated_data.get('stage', old_stage)
         old_opportunity_status = instance.opportunity_status
-        new_opportunity_status = validated_data.get('opportunity_status', old_opportunity_status)
+        new_opportunity_status = validated_data.get('opportunity_status')
 
         with transaction.atomic():
+            # Update instance fields
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
-            
+
+            # If the stage has changed, update the probability and create a new Opportunity_Stage
             if old_stage != new_stage:
                 instance.probability_in_percentage = new_stage.probability
                 Opportunity_Stage.objects.create(
@@ -140,18 +151,21 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
                     stage=new_stage,
                     moved_by=self.context['request'].user
                 )
-            
-            instance.save()
 
             if old_opportunity_status != new_opportunity_status:
                 Log.objects.create(
+                    contact=instance.primary_contact,
+                    opportunity_status = instance.opportunity_status,
                     opportunity=instance,
-                    log_stage=Log_Stage.objects.all().first(),
-                    opportunity_status=instance.opportunity_status,
+                    log_stage=Log_Stage.objects.first(),
                     created_by=self.context['request'].user
                 )
 
-            return instance        
+            # Save the instance with the updated data
+            instance.save()
+            return instance
+
+
 class OpportunityCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
@@ -185,9 +199,10 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
             # Create the Opportunity instance
             opportunity = Opportunity.objects.create(**validated_data)
             Log.objects.create(
-                opportunity=opportunity,
-                log_stage = Log_Stage.objects.all().first(),
+                contact = opportunity.primary_contact,
+                opportunity = opportunity,
                 opportunity_status = opportunity.opportunity_status,
+                log_stage = Log_Stage.objects.all().first(),
                 created_by=self.context['request'].user  # The user creating the opportunity
             )
 
@@ -222,10 +237,13 @@ class PostNoteSerializer(serializers.ModelSerializer):
         model = Note
         fields='__all__'
 
+
 class StageGetSerializer(serializers.ModelSerializer):
     opportunity = OpportunityDetailSerializer(read_only=True)
     stage = StageNameSerializer(read_only=True)
     moved_by=OwnerSerializer(read_only=True)
+    
+    
     class Meta:
         model = Opportunity_Stage
         fields='__all__'

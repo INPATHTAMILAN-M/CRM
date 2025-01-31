@@ -20,7 +20,7 @@ from ..serializers.lead_serializer import (
 from django.db.models import Q
 
 class LeadViewSet(viewsets.ModelViewSet):
-    queryset = Lead.objects.all().order_by('-id')
+    queryset = Lead.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = LeadFilter
