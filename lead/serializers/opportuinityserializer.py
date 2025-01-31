@@ -53,7 +53,7 @@ class UserSerializer(serializers.ModelSerializer):
         
 class LeadSerializer(serializers.ModelSerializer):
     lead_status = LeadStatusSerializer(read_only=True)
-    assigned_to =UserSerializer()
+    assigned_to = UserSerializer()
     class Meta:
         model = Lead
         fields = ['id', 'name','assigned_to', 'lead_status']  
@@ -124,32 +124,34 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def update(self, instance, validated_data):
-        # Get the current stage and the new stage from the incoming data
         old_stage = instance.stage
         new_stage = validated_data.get('stage', old_stage)
+        old_opportunity_status = instance.opportunity_status
+        new_opportunity_status = validated_data.get('opportunity_status', old_opportunity_status)
 
-        # Start a transaction block for atomic operations
         with transaction.atomic():
-            # Update the Opportunity instance
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             
-            # If the stage has changed, update the stage and create an Opportunity_Stage record
             if old_stage != new_stage:
-                instance.stage = new_stage
-                instance.probability_in_percentage = new_stage.probability  # Assuming you want to update this field
-                instance.save()  # Save the Opportunity instance with the new stage
-
-                # Create the Opportunity_Stage record manually
-                opportunity_stage = Opportunity_Stage(
+                instance.probability_in_percentage = new_stage.probability
+                Opportunity_Stage.objects.create(
                     opportunity=instance,
                     stage=new_stage,
-                    moved_by=self.context['request'].user  # Get the user making the change
+                    moved_by=self.context['request'].user
                 )
-                opportunity_stage.save()  # Save the new Opportunity_Stage record
+            
             instance.save()
-            return instance
-        
+
+            if old_opportunity_status != new_opportunity_status:
+                Log.objects.create(
+                    opportunity=instance,
+                    log_stage=Log_Stage.objects.all().first(),
+                    opportunity_status=instance.opportunity_status,
+                    created_by=self.context['request'].user
+                )
+
+            return instance        
 class OpportunityCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
@@ -182,10 +184,12 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             # Create the Opportunity instance
             opportunity = Opportunity.objects.create(**validated_data)
-            # Log.objects.create(
-            #     opportunity=opportunity,log_stage=Log_Stage.objects.all().first(),
-            #     moved_by=self.context['request'].user  # The user creating the opportunity
-            # )
+            Log.objects.create(
+                opportunity=opportunity,
+                log_stage = Log_Stage.objects.all().first(),
+                opportunity_status = opportunity.opportunity_status,
+                created_by=self.context['request'].user  # The user creating the opportunity
+            )
 
             # Create the Opportunity_Stage record linked to the new Opportunity
             opportunity_stage = Opportunity_Stage(

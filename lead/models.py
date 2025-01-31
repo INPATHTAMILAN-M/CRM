@@ -166,7 +166,7 @@ class Log(models.Model):
     opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, null=True, blank=True)
     focus_segment = models.ForeignKey(Focus_Segment, null=True, blank=True, on_delete=models.CASCADE)
     follow_up_date_time = models.DateTimeField(null=True, blank=True)
-    log_stage = models.ForeignKey(Log_Stage, on_delete=models.CASCADE)
+    log_stage = models.ForeignKey(Log_Stage, on_delete=models.CASCADE, null=True, blank=True)
     details = models.TextField(null=True, blank=True)
     file = models.FileField(upload_to='logs_files', null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -174,11 +174,10 @@ class Log(models.Model):
     is_active = models.BooleanField(default=True)
     
     LOG_TYPE_CHOICES = [
-    ('Call', 'Call'),
-    ('Meeting', 'Meeting'),
-    ('Email', 'Email'),
+        ('Call', 'Call'),
+        ('Meeting', 'Meeting'),
+        ('Email', 'Email'),
     ]
-    
     log_type= models.CharField(max_length=20, choices=LOG_TYPE_CHOICES, null=True, blank=True)
 
 
@@ -193,7 +192,8 @@ class Task(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    task_creation_type = models.CharField(max_length=10, choices=[('Manual', 'Manual'), ('Automatic', 'Automatic')])
+    task_creation_type = models.CharField(max_length=10, choices=[('Manual', 'Manual'), 
+                                                                  ('Automatic', 'Automatic')])
     remark = models.TextField(null=True, blank=True)
     
     TASK_TYPE_CHOICES = [
