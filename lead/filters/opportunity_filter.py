@@ -1,8 +1,8 @@
 import django_filters
 from django.contrib.auth.models import User
 from django.db.models import Q
-from ..models import Opportunity, Lead, Contact, Country
-
+from ..models import Opportunity, Lead, Contact, Country, Lead_Source, Lead_Status
+from django.utils import timezone
 
 class OpportunityFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method='search_filter', label="Search")
@@ -18,9 +18,55 @@ class OpportunityFilter(django_filters.FilterSet):
     created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all())  # Filter by user who created
     created_on = django_filters.DateFromToRangeFilter()  # Date range filter
     is_active = django_filters.BooleanFilter()  # Boolean filter
-    
 
+
+    assigned_to = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__assigned_to')
+    lead_source = django_filters.ModelChoiceFilter(queryset=Lead_Source.objects.all(), field_name='lead__lead_source')
+    from_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='gte', label='From Date')
+    to_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='lte', label='To Date', required=False)
+    lead_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all(), field_name='lead__lead_status')
+    created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__created_by')    
+    bdm = django_filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
+    bde = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
+
+    month = django_filters.BooleanFilter(method='filter_this_month', label="This Month")
+    today = django_filters.BooleanFilter(method='filter_today', label="Today")
+
+    def filter_to_date(self, queryset, name, value):
+        if not value:
+            value = timezone.now().date()  
+        return queryset.filter(lead__created_on__lte=value)
     
+    def filter_bdm(self, queryset, name, value):
+        if value:  
+            return queryset.filter(
+                Q(lead__lead_owner__in=value) | Q(lead__created_by__in=value)
+            )
+        return queryset
+
+    def filter_bde(self, queryset, name, value):
+        if value:  
+            return queryset.filter(
+                Q(lead__assigned_to=value) | Q(lead__created_by=value)
+            )
+        return queryset    
+    
+    def filter_this_month(self, queryset, name, value):
+        if value:
+            return queryset.filter(
+                lead__created_on__month=timezone.now().month
+            )
+        return queryset
+    
+    def filter_today(self, queryset, name, value):
+        if value:
+            today = timezone.now().date()
+            return queryset.filter(
+                lead__created_on__year=today.year,
+                lead__created_on__month=today.month,
+                lead__created_on__day=today.day
+            )
+        return queryset    
     class Meta:
         model = Opportunity
         fields = [

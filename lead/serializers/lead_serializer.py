@@ -1,12 +1,13 @@
 from rest_framework import serializers
 from django.utils import timezone
 from lead.serializers.log_serializer import LogStageSerializer
-from ..models import Lead,Employee,Contact, Log,Opportunity, Opportunity_Status
+from ..models import Lead,Employee,Contact, Log,Opportunity, Opportunity_Status, Opportunity_Name
 from accounts.models import (
     City, Focus_Segment,Market_Segment,
     Country, Stage,State,Tag,Vertical,
     Lead_Source, Lead_Source_From
 )
+from django.db import transaction
 from ..models import Lead_Status, Department, Contact_Status, Log_Stage, Opportunity_Name
 from django.contrib.auth.models import User
 
@@ -288,46 +289,62 @@ class PostContactSerializer(serializers.ModelSerializer):
 
 
 class PostLeadSerializer(serializers.ModelSerializer):
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
-    contact_id = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all(), required=False, allow_null=True)
-    
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True, required=False)
+    contact_id = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all(), required=False)
+    opportunity_name = serializers.PrimaryKeyRelatedField(queryset=Opportunity_Name.objects.all(), required=False)
 
     class Meta:
         model = Lead
         fields = [
-            'id', 'name', 'focus_segment', 'lead_owner', 'country', 'state', 'city','address',
+            'id', 'name', 'focus_segment', 'lead_owner', 'country', 'state', 'city', 'address',
             'company_website', 'fax', 'annual_revenue', 'tags', 'market_segment', 'lead_status',
-            'is_active', 'lead_type', 'assigned_to', 'lead_source', 'lead_source_from', 'department','contact_id','remark','status_date'
+            'is_active', 'lead_type', 'assigned_to', 'lead_source', 'lead_source_from', 'department',
+            'contact_id', 'remark', 'status_date', 'opportunity_name'
         ]
         read_only_fields = ['created_by']
         
+    @transaction.atomic
     def create(self, validated_data):
-        contact_id = validated_data.pop('contact_id', None)
+        contact_id = validated_data.pop('contact_id', None)  # This is an ID (integer)
         tags_data = validated_data.pop('tags', [])
+        opportunity_name = validated_data.pop('opportunity_name', None)  # Also an ID
 
-        lead = Lead.objects.create(**validated_data) 
+        lead = Lead.objects.create(**validated_data)
 
+        # Log creation
         Log.objects.create(
-            lead=lead, created_by=self.context['request'].user, 
-            contact = contact_id,
-            details=lead.remark,log_type="Call",log_stage=Log_Stage.objects.all().first(),
+            lead=lead,
+            created_by=self.context['request'].user,
+            contact_id=contact_id.id,  
+            details=lead.remark,
+            log_type="Call",
+            log_stage=Log_Stage.objects.first(),
             focus_segment=lead.focus_segment
+        )
+
+        # Create Opportunity if opportunity_name_id exists
+        if opportunity_name:
+            Opportunity.objects.create(
+                lead=lead,
+                created_by=self.context['request'].user,
+                name=opportunity_name,  # Assign ID, not object
+                stage=Stage.objects.first(),
+                opportunity_value=0,
+                probability_in_percentage=0,
+                closing_date=timezone.now().date()
             )
-        
+
+        # Update Contact if contact_id exists
         if contact_id:
-            try:
-                contact = Contact.objects.get(id=contact_id.id)
-                contact.lead = lead
-                contact.is_primary = True
-                lead.lead_source = contact.lead_source
-                contact.save()
-            except Contact.DoesNotExist:
-                raise serializers.ValidationError("Contact with the provided ID does not exist.")
-        
+            Contact.objects.filter(id=contact_id.id).update(
+                lead=lead,
+                is_primary=True
+            )
+            lead.lead_source = Contact.objects.get(id=contact_id.id).lead_source  # Fetch actual contact
+            lead.save()
+
+        # Assign tags
         if tags_data:
             lead.tags.set(tags_data)
-            
-        lead.save()
 
         return lead
-    

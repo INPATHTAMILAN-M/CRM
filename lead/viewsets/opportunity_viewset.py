@@ -24,6 +24,7 @@ class OpportunityViewset(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all().order_by('-id')
     # permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
+    filterset_class = OpportunityFilter
     pagination_class = Paginator
 
     def get_serializer_class(self):
