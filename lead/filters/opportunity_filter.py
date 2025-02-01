@@ -19,6 +19,8 @@ class OpportunityFilter(django_filters.FilterSet):
     created_on = django_filters.DateFromToRangeFilter()  # Date range filter
     is_active = django_filters.BooleanFilter()  # Boolean filter
     
+
+    
     class Meta:
         model = Opportunity
         fields = [

@@ -10,7 +10,7 @@ from accounts.models import Lead_Source_From
 from lead.custompagination import Paginator
 from ..models import Contact
 from ..serializers.contact_serializer import *
-from ..paginations.contact_pagination import ContactPagination
+from ..paginations.pagination import ContactPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from ..filters.contact_filter import ContactFilter
 

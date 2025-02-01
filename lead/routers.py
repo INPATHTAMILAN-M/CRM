@@ -28,6 +28,8 @@ from lead.viewsets.task_assignment_viewset import TaskAssignmentViewSet
 from lead.viewsets.task_viewset import CalanderTaskViewSet, TaskViewSet
 from lead.viewsets.lead_bucket_viewset import LeadBucketViewSet
 from lead.viewsets.vertical_viewset import VerticalViewSet
+from lead.viewsets.opportunity_name_viewset import OpportunityNameViewSet
+
 
 
 # Create a router and register the LeadViewSet
@@ -64,8 +66,8 @@ router.register(r'City', CityViewSet)
 router.register(r'calander_task', CalanderTaskViewSet)
 router.register(r'bdm_team', TeamsViewSet)
 router.register(r'bdm_bde_team', TeamsFilterViewSet, basename='bdm_bde_team')
-
 router.register(r'dm_graph_counts', LeadCountViewSet, basename='dm_graph_counts')
+router.register(r'opportunity-name', OpportunityNameViewSet, basename='opportunity-name')
 
 
 # in accounts

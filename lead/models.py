@@ -127,11 +127,19 @@ class Lead_Assignment(models.Model):
 
     def __str__(self):
         return f'{self.lead.name} assigned to {self.assigned_to.username}'
+    
+
+class Opportunity_Name(models.Model):
+    name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
 
 class Opportunity(models.Model):
-    lead = models.ForeignKey(Lead, null=True, blank=True, on_delete=models.SET_NULL)
+    lead = models.ForeignKey(Lead, null=True, blank=True, on_delete=models.SET_NULL , related_name='opportunities_leads')
     primary_contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=255)
+    name = models.ForeignKey(Opportunity_Name, on_delete=models.CASCADE,null=True, blank=True)
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE,null=True, blank=True)
     owner = models.ForeignKey(User, related_name='opportunities_owned', on_delete=models.CASCADE,null=True, blank=True)
     note = models.TextField(null=True, blank=True)
@@ -149,8 +157,12 @@ class Opportunity(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.name
+        return str(self.name) if self.name else "Unnamed Opportunity"
+    
 
+
+
+    
 class Opportunity_Stage(models.Model):
     opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE)
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE)
