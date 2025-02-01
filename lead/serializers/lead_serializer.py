@@ -7,7 +7,7 @@ from accounts.models import (
     Country, Stage,State,Tag,Vertical,
     Lead_Source, Lead_Source_From
 )
-from ..models import Lead_Status, Department, Contact_Status, Log_Stage
+from ..models import Lead_Status, Department, Contact_Status, Log_Stage, Opportunity_Name
 from django.contrib.auth.models import User
 
 
@@ -140,6 +140,11 @@ class OpportunityStatusSerializer(serializers.ModelSerializer):
         model = Opportunity_Status
         fields = "__all__"
 
+class OpportunityNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Opportunity_Name
+        fields = "__all__"
+
 
 class OpportunitySerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
@@ -150,6 +155,7 @@ class OpportunitySerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     primary_contact = ContactSerializer(read_only=True)
     opportunity_status = OpportunityStatusSerializer(read_only=True)
+    name = OpportunityNameSerializer(read_only=True)
     
     class Meta:
         model = Opportunity
@@ -248,17 +254,12 @@ class LeadSerializer(serializers.ModelSerializer):
             'username': obj.created_by.username
         }
         
-    # def get_assigned_to(self, obj):
-    #     return {
-    #         'id': obj.assigned_to.id,
-    #         'username': obj.assigned_to.username
-    #     }
     def to_representation(self, instance):
         # Get the basic representation first
         representation = super().to_representation(instance)
 
         # Include opportunities ordered by 'created_on'
-        opportunities = instance.opportunity_set.all().order_by('-id')
+        opportunities = instance.opportunities_leads.all().order_by('-id')
         representation['opportunities'] = OpportunitySerializer(opportunities, many=True).data
 
         # Include contacts ordered by 'created_on'
@@ -281,7 +282,8 @@ class LeadSerializer(serializers.ModelSerializer):
 class PostContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
-        fields = ['name', 'status', 'designation', 'department', 'phone_number', 'email_id', 'lead_source', 'source_form','is_active', 'is_primary']
+        fields = ['name', 'status', 'designation', 'department', 'phone_number', 
+                  'email_id', 'lead_source', 'source_form','is_active', 'is_primary']
         read_only_fields = ['created_by']
 
 

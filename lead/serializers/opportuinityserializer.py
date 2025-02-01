@@ -2,7 +2,7 @@ from rest_framework import serializers
 from lead.models import (
     Contact, Department, Lead_Status, 
     Opportunity, User, Lead, Opportunity_Stage, 
-    Note, Log, Log_Stage, Opportunity_Status
+    Note, Log, Log_Stage, Opportunity_Status, Opportunity_Name
 )
 from accounts.models import (
     Contact_Status, Lead_Source, 
@@ -75,6 +75,11 @@ class OpportunityStatusSerializer(serializers.ModelSerializer):
         model = Opportunity_Status
         fields = "__all__"
 
+class OpportunityNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Opportunity_Name
+        fields = "__all__"
+
 
 class OpportunityDetailSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
@@ -86,7 +91,9 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
     logs = LogSerializer(many=True, read_only=True)
     primary_contact = ContactSerializer(read_only=True)
     opportunity_status = OpportunityStatusSerializer(read_only=True)
-    
+    name = OpportunityNameSerializer(read_only=True)
+
+
     class Meta:
         model = Opportunity
         fields = "__all__"

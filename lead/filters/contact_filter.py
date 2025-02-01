@@ -19,7 +19,7 @@ class ContactFilter(django_filters.FilterSet):
     from_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='gte', label='From Date')
     to_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='lte', label='To Date', required=False)
     lead_status = django_filters.BaseInFilter(field_name='lead__lead_status__id', label="Lead Status Filter")
-    created_by = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), field_name='lead__created_by', label="Created By Filter")
+    created_by = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), label="Created By Filter")
     bdm = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), method='filter_bdm', label="BDM Filter", required=False)
     bde = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter", required=False)    
     
