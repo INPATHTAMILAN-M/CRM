@@ -56,7 +56,7 @@ class LeadSerializer(serializers.ModelSerializer):
     assigned_to = UserSerializer()
     class Meta:
         model = Lead
-        fields = ['id', 'name','assigned_to', 'lead_status']  
+        fields = ['id', 'name','assigned_to', 'lead_status',"status_date"]  
 
 class ContactSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
@@ -120,6 +120,8 @@ class OpportunityListSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     primary_contact = ContactSerializer(read_only=True)
     created_by =UserSerializer()
+    opportunity_status = OpportunityStatusSerializer(read_only=True)
+    name = OpportunityNameSerializer(read_only=True)
     
     
     class Meta:
