@@ -290,8 +290,8 @@ class PostContactSerializer(serializers.ModelSerializer):
 
 class PostLeadSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True, required=False)
-    contact_id = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all())
-    opportunity_name = serializers.PrimaryKeyRelatedField(queryset=Opportunity_Name.objects.all())
+    contact_id = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all(),required=False)
+    opportunity_name = serializers.PrimaryKeyRelatedField(queryset=Opportunity_Name.objects.all(),required=False)
 
     class Meta:
         model = Lead
@@ -322,6 +322,14 @@ class PostLeadSerializer(serializers.ModelSerializer):
             focus_segment=lead.focus_segment
         )
 
+        if contact_id:
+            Contact.objects.filter(id=contact_id.id).update(
+                lead=lead,
+                is_primary=True
+            )
+            lead.lead_source = Contact.objects.get(id=contact_id.id).lead_source  # Fetch actual contact
+            lead.save()
+
         # Create Opportunity if opportunity_name_id exists
         if opportunity_name:
             Opportunity.objects.create(
@@ -331,17 +339,15 @@ class PostLeadSerializer(serializers.ModelSerializer):
                 stage=Stage.objects.first(),
                 opportunity_value=0,
                 probability_in_percentage=0,
+                remark = lead.remark ,
+                primary_contact = contact_id ,
+                opportunity_status = Opportunity_Status.objects.all().first(),
                 closing_date=timezone.now().date()
             )
 
+
         # Update Contact if contact_id exists
-        if contact_id:
-            Contact.objects.filter(id=contact_id.id).update(
-                lead=lead,
-                is_primary=True
-            )
-            lead.lead_source = Contact.objects.get(id=contact_id.id).lead_source  # Fetch actual contact
-            lead.save()
+        
 
         # Assign tags
         if tags_data:
