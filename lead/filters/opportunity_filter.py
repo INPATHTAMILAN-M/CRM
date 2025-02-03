@@ -78,7 +78,7 @@ class OpportunityFilter(django_filters.FilterSet):
     def filter_this_month(self, queryset, name, value):
         if value:
             return queryset.filter(
-                lead__created_on__month=timezone.now().month,is_active=True
+                Q(lead__created_on__month=timezone.now().month)|Q(status_date__month=timezone.now().month)
             )
         return queryset
     
@@ -86,10 +86,9 @@ class OpportunityFilter(django_filters.FilterSet):
         if value:
             today = timezone.now().date()
             return queryset.filter(
-                lead__created_on__year=today.year,
+                Q(lead__created_on__year=today.year,
                 lead__created_on__month=today.month,
-                lead__created_on__day=today.day,
-                is_active=True
+                lead__created_on__day=today.day)|Q(status_date=today)
             )
         return queryset    
 
