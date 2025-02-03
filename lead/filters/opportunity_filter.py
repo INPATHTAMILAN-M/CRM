@@ -1,14 +1,13 @@
 import django_filters
 from django.contrib.auth.models import User
 from django.db.models import Q
-from ..models import Opportunity, Lead, Contact, Country, Lead_Source, Lead_Status
+from ..models import Opportunity, Lead, Contact, Country, Lead_Source, Lead_Status, Opportunity_Status
 from django.utils import timezone
 
 class OpportunityFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method='search_filter', label="Search")
     lead = django_filters.ModelChoiceFilter(queryset=Lead.objects.all())  # Filter by lead
     primary_contact = django_filters.ModelChoiceFilter(queryset=Contact.objects.all(), null_label="No Contact")  # Filter by primary contact
-    name = django_filters.CharFilter(lookup_expr='icontains')  # Case-insensitive partial match
     owner = django_filters.ModelChoiceFilter(queryset=User.objects.all())  # Filter by specific user
     opportunity_value = django_filters.RangeFilter()  # Allows filtering by range
     recurring_value_per_year = django_filters.RangeFilter()  # Allows filtering by range
@@ -25,12 +24,37 @@ class OpportunityFilter(django_filters.FilterSet):
     from_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='gte', label='From Date')
     to_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='lte', label='To Date', required=False)
     lead_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all(), field_name='lead__lead_status')
+    opp_status = django_filters.CharFilter(field_name='opportunity_status__name', lookup_expr='exact')
+    opportunity_status = django_filters.ModelChoiceFilter(queryset=Opportunity_Status.objects.all())
     created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__created_by')    
     bdm = django_filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
     bde = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
 
     month = django_filters.BooleanFilter(method='filter_this_month', label="This Month")
     today = django_filters.BooleanFilter(method='filter_today', label="Today")
+
+
+    class Meta:
+        model = Opportunity
+        fields = [
+            'search',
+            'lead',
+            'primary_contact',
+            'name',
+            'owner',
+            'opportunity_value',
+            'recurring_value_per_year',
+            'currency_type',
+            'closing_date',
+            'probability_in_percentage',
+            'created_by',
+            'created_on',
+            'is_active',
+            'assigned_to',
+            'assigned_to',
+            'opp_status'
+        ]
+
 
     def filter_to_date(self, queryset, name, value):
         if not value:
@@ -54,7 +78,7 @@ class OpportunityFilter(django_filters.FilterSet):
     def filter_this_month(self, queryset, name, value):
         if value:
             return queryset.filter(
-                lead__created_on__month=timezone.now().month
+                lead__created_on__month=timezone.now().month,is_active=True
             )
         return queryset
     
@@ -64,34 +88,16 @@ class OpportunityFilter(django_filters.FilterSet):
             return queryset.filter(
                 lead__created_on__year=today.year,
                 lead__created_on__month=today.month,
-                lead__created_on__day=today.day
+                lead__created_on__day=today.day,
+                is_active=True
             )
         return queryset    
-    class Meta:
-        model = Opportunity
-        fields = [
-            'search',
-            'lead',
-            'primary_contact',
-            'name',
-            'owner',
-            'opportunity_value',
-            'recurring_value_per_year',
-            'currency_type',
-            'closing_date',
-            'probability_in_percentage',
-            'created_by',
-            'created_on',
-            'is_active',
-            'assigned_to',
-            'assigned_to'
-        ]
 
     def search_filter(self, queryset, name, value):
+        """Search by lead name or opportunity name."""
         return queryset.filter(
-            Q(name__name__icontains=value) |
-            Q(created_by__first_name__icontains=value)|
-            Q(created_by__last_name__icontains=value)|
-            Q(owner__first_name__icontains=value) |
-            Q(owner__last_name__icontains=value)
+            Q(name__name__icontains=value) |  
+            Q(lead__name__icontains=value)  
         )
+
+    

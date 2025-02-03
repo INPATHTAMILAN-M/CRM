@@ -15,6 +15,8 @@ from ..serializers.opportuinity_serializer import (
     OpportunityUpdateSerializer,
     StageUpdateSerializer,
 )
+from accounts.models import Teams
+from ..models import Opportunity_Status, Opportunity
 from rest_framework import serializers
 
 from ..filters.opportunity_filter import OpportunityFilter
@@ -22,10 +24,39 @@ from ..filters.opportunity_filter import OpportunityFilter
 
 class OpportunityViewset(viewsets.ModelViewSet):
     queryset = Opportunity.objects.all().order_by('-id')
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = OpportunityFilter
     pagination_class = Paginator
+
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        if user.groups.filter(name='Admin').exists():
+            opportunity = queryset
+
+        elif user.groups.filter(name='BDM').exists():
+            bde_users = Teams.objects.filter(bdm_user=user).values_list('bde_user', flat=True)
+            opportunity = queryset.filter(
+                Q(lead__lead_owner=user) | Q(lead__created_by=user) | Q(lead__assigned_to__in=bde_users),
+                lead__is_active=True
+            )
+
+        elif user.groups.filter(name__in=['TM', 'BDE']).exists():
+            opportunity = queryset.filter(
+                Q(lead__assigned_to=user) | Q(lead__created_by=user),
+                lead__is_active=True
+            )
+
+        elif user.groups.filter(name='DM').exists():
+            opportunity = queryset.filter(lead__created_by=user)
+
+        else:
+            opportunity = queryset.none()
+
+        return opportunity
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -36,7 +67,7 @@ class OpportunityViewset(viewsets.ModelViewSet):
             return OpportunityUpdateSerializer
         return OpportunityDetailSerializer
     
-
+        
     def perform_create(self, serializer):
         self.send_lead_owner_email(serializer.instance)
         serializer.save(created_by=self.request.user)
