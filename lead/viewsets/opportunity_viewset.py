@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from ..models import Opportunity, Stage
 from ..custompagination import Paginator
-from ..serializers.opportuinityserializer import (
+from ..serializers.opportuinity_serializer import (
     OpportunityDetailSerializer,
     OpportunityCreateSerializer,
     OpportunityListSerializer,

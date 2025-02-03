@@ -83,15 +83,15 @@ class OpportunityFilter(django_filters.FilterSet):
             'created_by',
             'created_on',
             'is_active',
+            'assigned_to',
+            'assigned_to'
         ]
 
     def search_filter(self, queryset, name, value):
         return queryset.filter(
-            Q(name__icontains=value) |
-            Q(lead__first_name__icontains=value) |
-            Q(lead__last_name__icontains=value) |
-            Q(primary_contact__first_name__icontains=value) |
-            Q(primary_contact__last_name__icontains=value) |
+            Q(name__name__icontains=value) |
+            Q(created_by__first_name__icontains=value)|
+            Q(created_by__last_name__icontains=value)|
             Q(owner__first_name__icontains=value) |
             Q(owner__last_name__icontains=value)
         )

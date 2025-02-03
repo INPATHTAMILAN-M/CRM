@@ -290,8 +290,8 @@ class PostContactSerializer(serializers.ModelSerializer):
 
 class PostLeadSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True, required=False)
-    contact_id = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all(), required=False)
-    opportunity_name = serializers.PrimaryKeyRelatedField(queryset=Opportunity_Name.objects.all(), required=False)
+    contact_id = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all())
+    opportunity_name = serializers.PrimaryKeyRelatedField(queryset=Opportunity_Name.objects.all())
 
     class Meta:
         model = Lead

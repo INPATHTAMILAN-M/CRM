@@ -152,6 +152,7 @@ class Opportunity(models.Model):
     file = models.FileField(upload_to='opportunity_files', null=True, blank=True)
     created_by = models.ForeignKey(User, related_name='created_opportunities', on_delete=models.CASCADE)
     opportunity_status = models.ForeignKey(Opportunity_Status, on_delete=models.CASCADE,null=True, blank=True)
+    status_date = models.DateField(auto_now_add=True)
     remark = models.TextField(null=True, blank=True)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
