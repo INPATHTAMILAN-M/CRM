@@ -65,25 +65,25 @@ class Employee(models.Model):
 
 class Lead(models.Model):
     name = models.CharField(max_length=255,unique=True)
-    focus_segment = models.ForeignKey(Focus_Segment, on_delete=models.CASCADE)
+    focus_segment = models.ForeignKey(Focus_Segment, on_delete=models.CASCADE,null=True, blank=True)
     lead_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE, null=True, blank=True)
     lead_owner = models.ForeignKey(User, related_name='leads_owned', on_delete=models.CASCADE)
     created_by = models.ForeignKey(User, related_name='leads_created', on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    state = models.ForeignKey(State, null=True, blank=True, on_delete=models.CASCADE)
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
     company_website = models.CharField(max_length=255, null=True, blank=True)
     fax = models.CharField(max_length=255, null=True, blank=True)
     annual_revenue = models.FloatField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
-    market_segment = models.ForeignKey(Market_Segment, on_delete=models.CASCADE)
+    market_segment = models.ForeignKey(Market_Segment, on_delete=models.CASCADE, null=True, blank=True)
     lead_source = models.ForeignKey(Lead_Source, on_delete=models.CASCADE, null=True, blank=True)
     lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.CASCADE, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     status_date = models.DateField(null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
-    address = models.TextField(null=True, blank=True)
-    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True)
+    address = models.TextField()
+    city = models.ForeignKey(City,on_delete=models.CASCADE)
     
     LEAD_TYPE_CHOICES = [
         ('Digital Lead', 'Digital Lead'),
@@ -116,7 +116,7 @@ class Contact(models.Model):
     is_archive = models.BooleanField(default=False)
     
     def __str__(self):
-        return self.name
+        return self.name if self.name else "Unnamed Contact"
 
 class Lead_Assignment(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
@@ -139,7 +139,7 @@ class Opportunity_Name(models.Model):
 class Opportunity(models.Model):
     lead = models.ForeignKey(Lead, null=True, blank=True, on_delete=models.SET_NULL , related_name='opportunities_leads')
     primary_contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.ForeignKey(Opportunity_Name, on_delete=models.CASCADE,null=True, blank=True)
+    name = models.ForeignKey(Opportunity_Name, on_delete=models.CASCADE)
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE,null=True, blank=True)
     owner = models.ForeignKey(User, related_name='opportunities_owned', on_delete=models.CASCADE,null=True, blank=True)
     note = models.TextField(null=True, blank=True)
