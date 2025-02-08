@@ -331,8 +331,9 @@ class PostLeadSerializer(serializers.ModelSerializer):
             lead.save()
 
         # Create Opportunity if opportunity_name_id exists
+        print("opportunity_name: " , opportunity_name)
         if opportunity_name:
-            Opportunity.objects.create(
+            opp = Opportunity.objects.create(
                 lead=lead,
                 created_by=self.context['request'].user,
                 name=opportunity_name,  # Assign ID, not object
@@ -341,15 +342,13 @@ class PostLeadSerializer(serializers.ModelSerializer):
                 probability_in_percentage=0,
                 remark = lead.remark ,
                 primary_contact = contact_id ,
-                opportunity_status = Opportunity_Status.objects.all().first(),
+                opportunity_status = Opportunity_Status.objects.all().order_by('id').first(),
                 closing_date=timezone.now().date()
             )
+            print(opp)
 
+        print(Opportunity_Status.objects.all().order_by('id').first())
 
-        # Update Contact if contact_id exists
-        
-
-        # Assign tags
         if tags_data:
             lead.tags.set(tags_data)
 

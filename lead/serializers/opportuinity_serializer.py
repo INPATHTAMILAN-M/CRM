@@ -8,7 +8,7 @@ from accounts.models import (
     Contact_Status, Lead_Source, 
     Stage, Country, User
 )
-from datetime import datetime
+import datetime
 from django.db import transaction
 from lead.serializers.lead_serializer import LogSerializer
 
@@ -154,7 +154,6 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
         new_opportunity_status = validated_data.get('opportunity_status')
 
         with transaction.atomic():
-            # Update instance fields
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
 
@@ -168,7 +167,7 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
                 )
 
             if old_opportunity_status != new_opportunity_status:
-                instance.status_date = datetime.now()
+                instance.status_date = datetime.date.today()
                 Log.objects.create(
                     contact=instance.primary_contact,
                     opportunity_status = instance.opportunity_status,
