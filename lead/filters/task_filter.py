@@ -5,15 +5,13 @@ import django_filters
 from django.utils import timezone
 
 class TaskFilter(filters.FilterSet):
+
     lead = filters.NumberFilter(field_name='contact__lead__id')   
     contact = filters.CharFilter(field_name='contact__name', lookup_expr='icontains', label='Contact Name') 
-    
-    
-     # Add 'from_date' filter for 'created_on' field
     from_date = filters.DateFilter(field_name='created_on', lookup_expr='gte', label='From Date')
-    
-    # Add 'to_date' filter for 'created_on' field with custom logic
     to_date = filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
+    assigned_to_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_to', method='filter_assigned_to_me')
+    assigned_by_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_by', method='filter_assigned_by_me')
 
     def filter_to_date(self, queryset, name, value):
         # If 'to_date' is not provided, default to today
@@ -22,6 +20,22 @@ class TaskFilter(filters.FilterSet):
         return queryset.filter(created_on__lte=value)
     
     
+    def filter_assigned_to_me(self, queryset, name, value):
+        # Get logged-in user
+        user = self.request.user
+        if value:  # If value is True, filter tasks assigned to the user
+            return queryset.filter(task_task_assignments__assigned_to=user)
+        return queryset  # Return all if False or None
+
+    # Custom method for filtering tasks assigned by the logged-in user
+    def filter_assigned_by_me(self, queryset, name, value):
+        # Get logged-in user
+        user = self.request.user
+        if value:  # If value is True, filter tasks assigned by the user
+            return queryset.filter(task_task_assignments__assigned_by=user)
+        return queryset  # Return all if False or None
+
+
     def filter_search(self, queryset, name, value):
         return queryset.filter(task_detail__icontains=value)
 

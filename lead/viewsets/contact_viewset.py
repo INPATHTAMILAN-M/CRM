@@ -7,7 +7,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 import openpyxl
 from django.core.exceptions import ObjectDoesNotExist
 from accounts.models import Lead_Source_From
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from ..models import Contact
 from ..serializers.contact_serializer import *
 from ..paginations.pagination import ContactPagination

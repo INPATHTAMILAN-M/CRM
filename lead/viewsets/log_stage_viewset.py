@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from lead.filters.log_stage_filter import LogStageFilter
 
-from ..custompagination import Paginator
+from ..custom_pagination import Paginator
 from ..models import Log_Stage
 from ..serializers.log_stageserializer import GetLogStageSerializer
 from rest_framework import status

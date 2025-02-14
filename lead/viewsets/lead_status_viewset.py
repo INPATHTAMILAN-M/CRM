@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from ..models import Lead_Status
 from ..serializers.lead_status_serializer import LeadStatusSerializer
 from ..filters.lead_status_filter import LeadStatusFilter

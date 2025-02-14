@@ -3,7 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
 from accounts.models import Vertical
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from lead.filters.vertical_filter import VerticalFilter
 from ..serializers.vertical_serializer import VerticalSerializer
 

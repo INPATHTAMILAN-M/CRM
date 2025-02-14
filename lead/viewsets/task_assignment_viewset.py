@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
 
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 
 from..filters.task_assignment_filter import TaskAssignmentFilter
 from ..models import Task_Assignment

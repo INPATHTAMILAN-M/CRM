@@ -3,7 +3,7 @@ from django_filters import rest_framework as django_filters
 from rest_framework import viewsets
 from rest_framework.response import Response
 from accounts.models import Contact_Status
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from lead.filters.contact_status_filter import ContactStatusFilter
 from lead.serializers.contact_status_serializer import ContactStatusSerializer
 from rest_framework import status

@@ -2,7 +2,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from lead.models import Opportunity_Name
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from ..serializers.opportunity_name_serializer import (
     OpportunityNameSerializer,
     OpportunityNameCreateSerializer,

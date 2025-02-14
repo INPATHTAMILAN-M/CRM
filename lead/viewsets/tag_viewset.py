@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from django_filters import rest_framework as filters
 
 from accounts.models import Tag
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from lead.filters.tag_filter import TagFilter
 from lead.serializers.tag_serializer import TagSerializer
 from rest_framework import status

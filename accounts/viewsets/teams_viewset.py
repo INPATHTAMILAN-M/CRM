@@ -10,7 +10,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 
 class TeamsViewSet(viewsets.ModelViewSet):
     queryset = Teams.objects.all().order_by('-id')

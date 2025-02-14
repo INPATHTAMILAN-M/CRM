@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from ..models import Focus_Segment
 from ..serializers.focus_segmant_serializers import GetFocusSegmentSerializer, PostFocusSegmentSerializer, PatchFocusSegmentSerializer, ListFocusSegmentSerializer
 from ..filters.focus_segment_filters import FocusSegmentFilter

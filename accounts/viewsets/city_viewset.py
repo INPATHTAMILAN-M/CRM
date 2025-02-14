@@ -3,7 +3,7 @@ from django_filters import rest_framework as filters
 
 from accounts.filters.city_filter import CityFilter
 from accounts.serializers.city_serializer import  CreateCitySerializer, GetCitySerializer
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 
 from ..models import City
 

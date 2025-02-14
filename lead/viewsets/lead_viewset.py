@@ -10,7 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Count
 
 from accounts.models import Teams
-from ..custompagination import Paginator
+from ..custom_pagination import Paginator
 from ..models import Lead, Contact, Lead_Assignment, Notification
 from ..filters.lead_filter import LeadFilter
 from ..serializers.lead_serializer import (

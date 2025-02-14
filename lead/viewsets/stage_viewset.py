@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from lead.filters.stage_filter import StageFilter
 
-from ..custompagination import Paginator
+from ..custom_pagination import Paginator
 from ..models import Stage
 from ..serializers.stage_serializers import *
 from rest_framework import status

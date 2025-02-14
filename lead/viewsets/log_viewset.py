@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from ..custompagination import Paginator
+from ..custom_pagination import Paginator
 from ..models import Log
 from ..serializers.log_serializer import *
 from ..filters import log_filter

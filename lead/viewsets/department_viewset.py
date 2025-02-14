@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from ..models import Department
 from ..serializers.department_serializer import DepartmentSerializer
 from ..filters.department_filter import DepartmentFilter

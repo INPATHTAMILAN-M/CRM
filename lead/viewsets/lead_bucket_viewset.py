@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from lead.models import Lead_Bucket
 from ..serializers.lead_bucket_serializers import *
-from ..custompagination import Paginator
+from ..custom_pagination import Paginator
 
 class LeadBucketViewSet(viewsets.ModelViewSet):
     queryset = Lead_Bucket.objects.all()

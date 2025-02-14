@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from django_filters import rest_framework as filters
 
 from accounts.models import Country
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from lead.filters.country_filter import CountryFilter
 from lead.serializers.country_serializer import CountrySerializer
 

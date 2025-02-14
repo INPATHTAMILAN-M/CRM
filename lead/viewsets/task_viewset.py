@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from ..models import Task, Task_Assignment
 from ..serializers.task_serializers import *
-from ..custompagination import Paginator
+from ..custom_pagination import Paginator
 from ..serializers.log_serializer import *
 from ..filters.task_filter import TaskFilter
 from django.db.models import Q

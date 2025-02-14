@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
 from accounts.filters.salutation_filter import SalutationFilter
-from lead.custompagination import Paginator
+from lead.custom_pagination import Paginator
 from ..models import Salutation
 from ..serializers.salutation_serializer import SalutationSerializer
 from rest_framework import status
