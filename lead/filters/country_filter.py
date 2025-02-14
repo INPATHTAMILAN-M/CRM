@@ -6,9 +6,11 @@ class CountryFilter(filters.FilterSet):
     ordering = OrderingFilter(
         fields=(
             ('id', 'id'),  
+            ('country_name', 'country_name'),
         ),
         field_labels={
             'id': 'ID',
+            'country_name': 'Country Name',
         }
     )
     country_name = filters.CharFilter(lookup_expr='icontains')
