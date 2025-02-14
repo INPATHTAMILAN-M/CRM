@@ -1,8 +1,16 @@
 from django_filters import rest_framework as filters
-
+from django_filters.filters import OrderingFilter
 from accounts.models import Country
 
 class CountryFilter(filters.FilterSet):
+    ordering = OrderingFilter(
+        fields=(
+            ('id', 'id'),  
+        ),
+        field_labels={
+            'id': 'ID',
+        }
+    )
     country_name = filters.CharFilter(lookup_expr='icontains')
     currency_active = filters.BooleanFilter()
 
