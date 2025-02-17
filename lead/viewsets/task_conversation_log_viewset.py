@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from ..models import TaskConversationLog
 from django_filters.rest_framework import DjangoFilterBackend
 from ..filters.task_convo_filter import TaskConversationLogFilter
+from rest_framework.permissions import IsAuthenticated
 from ..serializers.task_conversation_log_serializer import (
     TaskConversationLogCreateSerializer,
     TaskConversationLogUpdateSerializer,
@@ -13,6 +14,7 @@ from ..serializers.task_conversation_log_serializer import (
 class TaskConversationLogViewSet(viewsets.ModelViewSet):
     queryset = TaskConversationLog.objects.all()
     serializer_class = TaskConversationLogListSerializer
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskConversationLogFilter
     http_method_names = ['get', 'post', 'patch']
