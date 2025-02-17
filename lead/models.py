@@ -162,8 +162,6 @@ class Opportunity(models.Model):
     
 
 
-
-    
 class Opportunity_Stage(models.Model):
     opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE)
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE)
@@ -219,6 +217,13 @@ class Task(models.Model):
 
     def __str__(self):
         return f'Task for {self.contact.name}'
+
+
+class TaskConversationLog(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    message = models.TextField()
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_on = models.DateTimeField(auto_now_add=True)
 
 class Task_Assignment(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='task_task_assignments')

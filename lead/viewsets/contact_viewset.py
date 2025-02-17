@@ -181,18 +181,19 @@ class ImportContactsAPIView(APIView):
 
 
 
-from django.db import transaction
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.db import transaction
+from datetime import datetime, timedelta
 import pandas as pd
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 class ImportLeadsAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticated]
-
-    
     def post(self, request, *args, **kwargs):
         file = request.FILES.get('file')
         if not file:
@@ -225,40 +226,22 @@ class ImportLeadsAPIView(APIView):
                         city=validated_data['city'] if validated_data['city'] else None,
                         assigned_to=None,
                     )
-                    import json
-
-                    data = {
-                        "name": validated_data['name'],
-                        "created_by": str(request.user),  # Converting to string to avoid issues with JSON serialization
-                        "phone_number": validated_data['phone_number'] if validated_data['phone_number'] else None,
-                        "remark": validated_data['remark'] if validated_data['remark'] else None,
-                        "status": validated_data['status'] if validated_data['status'] else None,
-                    }
-
-                    # Print as formatted JSON
-                    from pprint import pprint
-                    pprint(data)
-
 
                     Contact.objects.create(
                         name=validated_data['name'],
                         created_by=request.user,
-                        phone_number = validated_data['phone_number'] if validated_data['phone_number'] else None,
+                        phone_number=validated_data['phone_number'] if validated_data['phone_number'] else None,
                         remark=validated_data['remark'] if validated_data['remark'] else None,
                         status=validated_data['status'] if validated_data['status'] else None,
                     )
-
-                    from datetime import datetime, timedelta
 
                     Opportunity.objects.create(
                         lead=lead,
                         name=validated_data['opportunity_name'] if validated_data['opportunity_name'] else None,
                         created_by=request.user,
-                        opportunity_value = 0,
+                        opportunity_value=0,
                         closing_date=datetime.today() + timedelta(days=30),
-                        probability_in_percentage = 0,
-                        
-
+                        probability_in_percentage=0,
                     )
 
                 else:
@@ -274,4 +257,3 @@ class ImportLeadsAPIView(APIView):
                 return Response({'status': 'error', 'errors': errors}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         return Response({'status': 'success', 'message': 'File processed successfully'})
-

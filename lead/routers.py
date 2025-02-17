@@ -29,6 +29,7 @@ from lead.viewsets.task_viewset import CalanderTaskViewSet, TaskViewSet
 from lead.viewsets.lead_bucket_viewset import LeadBucketViewSet
 from lead.viewsets.vertical_viewset import VerticalViewSet
 from lead.viewsets.opportunity_name_viewset import OpportunityNameViewSet
+from lead.viewsets.task_conversation_log_viewset import TaskConversationLogViewSet
 
 
 
@@ -68,6 +69,7 @@ router.register(r'bdm_team', TeamsViewSet)
 router.register(r'bdm_bde_team', TeamsFilterViewSet, basename='bdm_bde_team')
 router.register(r'dm_graph_counts', LeadCountViewSet, basename='dm_graph_counts')
 router.register(r'opportunity-name', OpportunityNameViewSet, basename='opportunity-name')
+router.register(r'task-conversation', TaskConversationLogViewSet, basename='task-conversation')
 
 
 # in accounts
