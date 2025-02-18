@@ -220,8 +220,9 @@ class Task(models.Model):
 
 
 class TaskConversationLog(models.Model):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE,related_name='task_conversation_logs')
     message = models.TextField()
+    viewed = models.BooleanField(default=False)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
 
