@@ -60,7 +60,7 @@ class TaskListSerializer(serializers.ModelSerializer):
         return TaskAssignmentListSerializer(task_assignments, many=True).data
      
     def get_reply_counts(self, obj):
-        return TaskConversationLog.objects.filter(task=obj).count()
+        return TaskConversationLog.objects.filter(task=obj,viewed=False).count()
     
     def get_has_new_message(self, obj):
         return TaskConversationLog.objects.filter(task=obj,viewed=False).exists()
