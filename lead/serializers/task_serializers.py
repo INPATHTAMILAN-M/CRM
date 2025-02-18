@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 from accounts.models import Log_Stage
 
-from ..models import Lead_Status, Task, Contact, Log, Task_Assignment, Lead
+from ..models import Lead_Status, Task, Contact, Log, Task_Assignment, Lead, TaskConversationLog
 
 class LeadContactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,6 +47,7 @@ class TaskListSerializer(serializers.ModelSerializer):
     log = LogSerializer()
     created_by = UserSerializer()
     assignment_details = serializers.SerializerMethodField()
+    is_reply = serializers.SerializerMethodField()    
     
     class Meta:
         model = Task
@@ -56,6 +57,11 @@ class TaskListSerializer(serializers.ModelSerializer):
     def get_assignment_details(self, obj):
         task_assignments = obj.task_task_assignments.all()
         return TaskAssignmentListSerializer(task_assignments, many=True).data
+    
+    def get_is_reply(self, obj):
+        return TaskConversationLog.objects.filter(task=obj).exists()
+
+        
     
     
 
