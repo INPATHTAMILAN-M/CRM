@@ -47,12 +47,13 @@ class TaskListSerializer(serializers.ModelSerializer):
     log = LogSerializer()
     created_by = UserSerializer()
     reply_counts = serializers.SerializerMethodField()
+    has_new_message = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
         fields = ['id', 'remark', 'contact', 'log', 'task_date_time', 'task_detail', 
                   'created_by', 'created_on', 'is_active', 'task_creation_type',
-                  'reply_counts']
+                  'reply_counts', 'has_new_message']
 
     def get_assignment_details(self, obj):
         task_assignments = obj.task_task_assignments.all()
@@ -60,6 +61,9 @@ class TaskListSerializer(serializers.ModelSerializer):
      
     def get_reply_counts(self, obj):
         return TaskConversationLog.objects.filter(task=obj).count()
+    
+    def get_has_new_message(self, obj):
+        return TaskConversationLog.objects.filter(task=obj,viewed=False).exists()
 
         
     

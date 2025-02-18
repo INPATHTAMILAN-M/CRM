@@ -6,7 +6,6 @@ class TaskConversationLogFilter(filters.FilterSet):
     created_by = filters.BaseInFilter(field_name='created_by__id')
     created_on = filters.DateFromToRangeFilter()
     
-
     class Meta:
         model = TaskConversationLog
         fields = ['task', 'created_by', 'created_on']
