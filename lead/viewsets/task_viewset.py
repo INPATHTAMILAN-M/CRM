@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Max, Q
 from ..models import Task, Task_Assignment
 from ..serializers.task_serializers import *
 from ..custom_pagination import Paginator
@@ -22,9 +23,16 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.groups.filter(name='Admin').exists():
-            return Task.objects.all().order_by('-id').distinct()
-        task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
-        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user)).order_by('-id').distinct()    
+            queryset = Task.objects.all()
+        else:
+            task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
+            queryset = Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user))
+        queryset = queryset.annotate(last_reply=Max('task_conversation_logs__created_on'))
+        has_reply = self.request.query_params.get('has_reply')
+        if has_reply:
+            return queryset.order_by('-created_on').distinct()
+        else:
+            return queryset.order_by('-id').distinct()
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -62,6 +70,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         # Assuming you have a Log model that accepts this information
         log = Log.objects.create(**log_data)
         return log
+    
 
     def create(self, request, *args, **kwargs):
         # Validate data before creating
