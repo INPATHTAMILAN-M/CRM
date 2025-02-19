@@ -39,7 +39,8 @@ class TaskAssignmentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task_Assignment
-        fields = ['assigned_to', 'assigned_by', 'assigned_on', 'assignment_note', 'is_active']
+        fields = ['assigned_to', 'assigned_by', 'assigned_on', 
+                  'assignment_note', 'is_active']
 
         
 class TaskListSerializer(serializers.ModelSerializer):
@@ -60,10 +61,10 @@ class TaskListSerializer(serializers.ModelSerializer):
         return TaskAssignmentListSerializer(task_assignments, many=True).data
      
     def get_reply_counts(self, obj):
-        return TaskConversationLog.objects.filter(task=obj,viewed=False).count()
+        return TaskConversationLog.objects.filter(task=obj).exclude(seen_by=self.context['request'].user).count()    
     
     def get_has_new_message(self, obj):
-        return TaskConversationLog.objects.filter(task=obj,viewed=False).exists()
+        return TaskConversationLog.objects.filter(task=obj).exclude(seen_by=self.context['request'].user).exists()
 
         
     

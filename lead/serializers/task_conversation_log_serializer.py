@@ -17,7 +17,9 @@ class TaskConversationLogCreateSerializer(serializers.ModelSerializer):
             Q(assigned_to=self.context['request'].user) | Q(assigned_by=self.context['request'].user)
         ).exists():
             validated_data['created_by'] = self.context['request'].user
-            return TaskConversationLog.objects.create(**validated_data)
+            instance = TaskConversationLog.objects.create(**validated_data)
+            instance.seen_by.set([self.context['request'].user])
+            return instance
 
         raise serializers.ValidationError("You are not authorized to create a conversation log for this task.")
 
@@ -47,6 +49,16 @@ class TaskConversationLogRetrieveSerializer(serializers.ModelSerializer):
 
 
 class TaskConversationLogListSerializer(serializers.ModelSerializer):
+    is_viewed = serializers.SerializerMethodField()
+
     class Meta:
         model = TaskConversationLog
-        fields = '__all__'
+        fields = ['id', 'task', 'message', 'created_by', 'created_on', 'seen_by', 'is_viewed']
+
+
+    def get_is_viewed(self, obj):
+        """Return True if the logged-in user has viewed this log"""
+        request = self.context.get('request')
+        if request:
+            return obj.is_viewed(request.user)
+        return False

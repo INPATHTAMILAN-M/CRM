@@ -32,7 +32,7 @@ class TaskFilter(filters.FilterSet):
         # Get logged-in user
         user = self.request.user
         if value:  # If value is True, filter tasks assigned to the user
-            return queryset.filter(task_task_assignments__assigned_to=user)
+            return queryset.filter(task_task_assignments__assigned_to=user).distinct()
         return queryset  # Return all if False or None
 
     # Custom method for filtering tasks assigned by the logged-in user
@@ -40,7 +40,7 @@ class TaskFilter(filters.FilterSet):
         # Get logged-in user
         user = self.request.user
         if value:  # If value is True, filter tasks assigned by the user
-            return queryset.filter(task_task_assignments__assigned_by=user)
+            return queryset.filter(task_task_assignments__assigned_by=user).distinct()
         return queryset  # Return all if False or None
 
 

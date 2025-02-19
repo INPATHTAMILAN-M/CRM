@@ -21,7 +21,15 @@ class TaskConversationLogViewSet(viewsets.ModelViewSet):
     filterset_class = TaskConversationLogFilter
     http_method_names = ['get', 'post', 'patch']
 
-    
+    def get_queryset(self):
+        """Optimize queryset and filter by assigned_to or assigned_by"""
+        user = self.request.user
+        
+        return TaskConversationLog.objects.filter(
+            Q(task__task_task_assignments__assigned_to=user) |
+            Q(task__task_task_assignments__assigned_by=user)
+        ).distinct()
+
     def get_serializer_class(self):
         if self.action == 'create':
             return TaskConversationLogCreateSerializer
@@ -32,15 +40,13 @@ class TaskConversationLogViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
     
     def list(self, request, *args, **kwargs):
-        # Get the filtered queryset
-        queryset = self.filter_queryset(self.get_queryset())
+        """Override list to mark logs as viewed for the current user"""
+        queryset = self.get_queryset()
 
-        # Update 'viewed=True' only for tasks assigned to or by the current user
-        queryset.filter(
-            Q(task__task_task_assignments__assigned_to=self.request.user) |
-            Q(task__task_task_assignments__assigned_by=self.request.user)
-        ).update(viewed=True)
+        # Mark as viewed for the current user
+        for log in queryset:
+            log.mark_as_viewed(request.user)
 
-        # Continue with the normal list behavior
+        # Serialize and return the response
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

@@ -220,11 +220,23 @@ class Task(models.Model):
 
 
 class TaskConversationLog(models.Model):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE,related_name='task_conversation_logs')
+    task = models.ForeignKey(
+        'Task', on_delete=models.CASCADE, related_name='task_conversation_logs'
+    )
     message = models.TextField()
-    viewed = models.BooleanField(default=False)
+    seen_by = models.ManyToManyField(User, related_name='seen_task_conversation_logs', blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
+
+    def is_viewed(self, user):
+        """Check if a user has viewed this conversation log"""
+        return self.seen_by.filter(id=user.id).exists()
+
+    def mark_as_viewed(self, user):
+        """Mark this conversation log as viewed by a user"""
+        if not self.is_viewed(user):
+            self.seen_by.add(user)
+
 
 class Task_Assignment(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='task_task_assignments')
