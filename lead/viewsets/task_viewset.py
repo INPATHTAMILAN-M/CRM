@@ -22,9 +22,9 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.groups.filter(name='Admin').exists():
-            return Task.objects.all().order_by('-task_conversation_logs__created_on')
+            return Task.objects.all().order_by('-task_conversation_logs__created_on').distinct()
         task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
-        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user)).order_by('-task_conversation_logs__created_on')    
+        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user)).order_by('-task_conversation_logs__created_on').distinct()    
     
     def get_serializer_class(self):
         if self.action == 'create':
