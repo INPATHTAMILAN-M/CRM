@@ -42,11 +42,12 @@ class TaskConversationLogViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         """Override list to mark logs as viewed for the current user"""
         queryset = self.get_queryset()
+        filtered_queryset = self.filter_queryset(queryset)
 
         # Mark as viewed for the current user
-        for log in queryset:
+        for log in filtered_queryset:
             log.mark_as_viewed(request.user)
 
         # Serialize and return the response
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(filtered_queryset, many=True)
         return Response(serializer.data)
