@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all().order_by('-task_conversation_logs__created_on')
+    queryset = Task.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskFilter
@@ -22,9 +22,9 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.groups.filter(name='Admin').exists():
-            return Task.objects.all().distinct()
+            return Task.objects.all().order_by('-id').distinct()
         task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
-        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user)).distinct()    
+        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user)).order_by('-id').distinct()    
     
     def get_serializer_class(self):
         if self.action == 'create':

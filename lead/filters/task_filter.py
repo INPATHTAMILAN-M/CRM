@@ -19,7 +19,7 @@ class TaskFilter(filters.FilterSet):
             # Find tasks with conversation logs (replies) by filtering through task_conversation_logs
             tasks_with_replies = TaskConversationLog.objects.filter(task__in=queryset).values_list('task', flat=True)
             return queryset.filter(id__in=tasks_with_replies).distinct()
-        return queryset   
+        return queryset.order_by('-task_conversation_logs__created_on')   
 
     def filter_to_date(self, queryset, name, value):
         # If 'to_date' is not provided, default to today
