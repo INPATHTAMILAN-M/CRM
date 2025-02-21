@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.routers import DefaultRouter
 from django.contrib.auth.models import User
-
+from django.db.models import Q
 from accounts.models import Log_Stage
 
 from ..models import Lead_Status, Task, Contact, Log, Task_Assignment, Lead, TaskConversationLog
@@ -49,12 +49,13 @@ class TaskListSerializer(serializers.ModelSerializer):
     created_by = UserSerializer()
     reply_counts = serializers.SerializerMethodField()
     has_new_message = serializers.SerializerMethodField()
+    can_reply = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
         fields = ['id', 'remark', 'contact', 'log', 'task_date_time', 'task_detail', 
                   'created_by', 'created_on', 'is_active', 'task_creation_type',
-                  'reply_counts', 'has_new_message','task_type']
+                  'reply_counts', 'has_new_message','can_reply']
 
     def get_assignment_details(self, obj):
         task_assignments = obj.task_task_assignments.all()
@@ -65,7 +66,9 @@ class TaskListSerializer(serializers.ModelSerializer):
     
     def get_has_new_message(self, obj):
         return TaskConversationLog.objects.filter(task=obj).exclude(seen_by=self.context['request'].user).exists()
-
+    
+    def get_can_reply(self, obj):
+        return Task_Assignment.objects.filter(Q(assigned_to=self.context['request'].user) | Q(assigned_by=self.context['request'].user), task=obj).exists()
         
     
     
