@@ -292,6 +292,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True, required=False)
     contact_id = serializers.PrimaryKeyRelatedField(queryset=Contact.objects.all(),required=False)
     opportunity_name = serializers.PrimaryKeyRelatedField(queryset=Opportunity_Name.objects.all(),required=False)
+    opportunity_keyword = serializers.CharField(required=False, allow_blank=True)  # Add this line for the text field
 
     class Meta:
         model = Lead
@@ -299,7 +300,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
             'id', 'name', 'focus_segment', 'lead_owner', 'country', 'state', 'city', 'address',
             'company_website', 'fax', 'annual_revenue', 'tags', 'market_segment', 'lead_status',
             'is_active', 'lead_type', 'assigned_to', 'lead_source', 'lead_source_from', 'department',
-            'contact_id', 'remark', 'status_date', 'opportunity_name'
+            'contact_id', 'remark', 'status_date', 'opportunity_name','opportunity_keyword'
         ]
         read_only_fields = ['created_by']
         
@@ -308,6 +309,8 @@ class PostLeadSerializer(serializers.ModelSerializer):
         contact_id = validated_data.pop('contact_id', None)  # This is an ID (integer)
         tags_data = validated_data.pop('tags', [])
         opportunity_name = validated_data.pop('opportunity_name', None)  # Also an ID
+        opportunity_keyword = validated_data.pop('opportunity_keyword', None)  # Also an ID
+
 
         lead = Lead.objects.create(**validated_data)
 
@@ -336,18 +339,18 @@ class PostLeadSerializer(serializers.ModelSerializer):
             opp = Opportunity.objects.create(
                 lead=lead,
                 created_by=self.context['request'].user,
-                name=opportunity_name,  # Assign ID, not object
+                name=opportunity_name, 
                 stage=Stage.objects.first(),
                 opportunity_value=0,
                 probability_in_percentage=0,
                 remark = lead.remark ,
                 primary_contact = contact_id ,
-                opportunity_status = Opportunity_Status.objects.all().order_by('id').first(),
-                closing_date=timezone.now().date()
+                opportunity_status = Lead_Status.objects.all().order_by('id').first(),
+                closing_date=timezone.now().date(),
+                opportunity_keyword = opportunity_keyword
             )
             print(opp)
 
-        print(Opportunity_Status.objects.all().order_by('id').first())
 
         if tags_data:
             lead.tags.set(tags_data)

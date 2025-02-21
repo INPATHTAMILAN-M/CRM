@@ -96,7 +96,7 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     logs = LogSerializer(many=True, read_only=True)
     primary_contact = ContactSerializer(read_only=True)
-    opportunity_status = OpportunityStatusSerializer(read_only=True)
+    opportunity_status = LeadStatusSerializer(read_only=True)
     name = OpportunityNameSerializer(read_only=True)
 
 
@@ -126,7 +126,7 @@ class OpportunityListSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     primary_contact = ContactSerializer(read_only=True)
     created_by =UserSerializer()
-    opportunity_status = OpportunityStatusSerializer(read_only=True)
+    opportunity_status = LeadStatusSerializer(read_only=True)
     name = OpportunityNameSerializer(read_only=True)
     
     
@@ -202,7 +202,8 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
             'file',
             'opportunity_status',
             'remark',
-            'is_active'
+            'is_active',
+            'opportunity_keyword'
         ]
         read_only_fields = ['created_by']
     
