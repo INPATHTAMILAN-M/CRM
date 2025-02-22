@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
 from accounts.models import (
     City,
     Focus_Segment,
@@ -152,7 +153,7 @@ class Opportunity(models.Model):
     file = models.FileField(upload_to='opportunity_files', null=True, blank=True)
     created_by = models.ForeignKey(User, related_name='created_opportunities', on_delete=models.CASCADE)
     opportunity_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE,null=True, blank=True)
-    status_date = models.DateField(auto_now_add=True)
+    status_date = models.DateField(default=datetime.today)
     remark = models.TextField(null=True, blank=True)
     opportunity_keyword = models.TextField(null=True, blank=True)
     created_on = models.DateField(auto_now_add=True)

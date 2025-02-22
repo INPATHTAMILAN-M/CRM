@@ -213,7 +213,6 @@ class ImportLeadsAPIView(APIView):
         with transaction.atomic():
             for index, row in df.iterrows():
                 from pprint import pprint
-                pprint(row.to_dict())
                 serializer = LeadImportSerializer(data=row.to_dict())
 
                 if serializer.is_valid():
@@ -260,8 +259,8 @@ class ImportLeadsAPIView(APIView):
                         closing_date=datetime.today() + timedelta(days=30),
                         probability_in_percentage=0,
                         opportunity_status = validated_data.get('opportunity_status'),
-                        status_date = validated_data.get('status_date'),
-                    )
+                        status_date = validated_data.get('status_date') or datetime.today(),               
+                        )
 
                 else:
                     # Collect row-specific errors
