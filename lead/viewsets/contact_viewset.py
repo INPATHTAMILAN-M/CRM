@@ -191,17 +191,19 @@ from datetime import datetime, timedelta
 import pandas as pd
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
+
 class ImportLeadsAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
         file = request.FILES.get('file')
         if not file:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Read the Excel file
         try:
-            df = pd.read_excel(file, keep_default_na=False)
+            df = pd.read_excel(file, keep_default_na=False, sheet_name='Ramu 18.02.25')
         except Exception as e:
             return Response({'error': f'Error reading Excel file: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -210,34 +212,47 @@ class ImportLeadsAPIView(APIView):
         # Start atomic transaction
         with transaction.atomic():
             for index, row in df.iterrows():
+                from pprint import pprint
+                pprint(row.to_dict())
                 serializer = LeadImportSerializer(data=row.to_dict())
 
                 if serializer.is_valid():
                     validated_data = serializer.validated_data
 
-                    # Create Lead, Contact, and Opportunity within the transaction
-                    lead = Lead.objects.create(
+                    # Use request.user if lead_owner is not in validated_data
+                    lead_owner = validated_data.get('lead_owner', request.user)
+
+                    # Check if Lead exists, else create
+                    lead, created_lead = Lead.objects.get_or_create(
                         name=validated_data['company_name'],
-                        lead_owner=request.user,
-                        created_by=request.user,
-                        address=validated_data['address'] if validated_data['address'] else None,
-                        country=validated_data['country'] if validated_data['country'] else None,
-                        state=validated_data['state'] if validated_data['state'] else None,
-                        city=validated_data['city'] if validated_data['city'] else None,
-                        assigned_to=None,
+                        defaults={
+                            'lead_owner': lead_owner,
+                            'created_by': lead_owner,
+                            'address': validated_data.get('address'),
+                            'country': validated_data.get('country'),
+                            'state': validated_data.get('state'),
+                            'city': validated_data.get('city'),
+                            'assigned_to': None,
+                        }
                     )
 
-                    Contact.objects.create(
-                        name=validated_data['name'],
-                        created_by=request.user,
-                        phone_number=validated_data['phone_number'] if validated_data['phone_number'] else None,
-                        remark=validated_data['remark'] if validated_data['remark'] else None,
-                        status=validated_data['status'] if validated_data['status'] else None,
+                    # Create or get Contact
+                    contact, created_contact = Contact.objects.get_or_create(
+                        phone_number=validated_data.get('phone_number'),
+                        defaults={
+                            'name': validated_data['name'],
+                            'created_by': request.user,
+                            'remark': validated_data.get('remark'),
+                            'status': validated_data.get('status'),
+                        }
                     )
+
+                    print("Existing Contact:", contact if not created_contact else None)
+                    print("Newly Created Contact:", contact if created_contact else None)
 
                     Opportunity.objects.create(
                         lead=lead,
-                        name=validated_data['opportunity_name'] if validated_data['opportunity_name'] else None,
+                        name=validated_data.get('opportunity_name'),
                         created_by=request.user,
                         opportunity_value=0,
                         closing_date=datetime.today() + timedelta(days=30),
@@ -247,7 +262,7 @@ class ImportLeadsAPIView(APIView):
                 else:
                     # Collect row-specific errors
                     errors.append({
-                        'row': index + 2,  # Adjusted for Excel row numbering
+                        'row': index + 2,  # Excel row starts from 2 (including header)
                         'errors': serializer.errors
                     })
 
@@ -256,4 +271,5 @@ class ImportLeadsAPIView(APIView):
                 transaction.set_rollback(True)
                 return Response({'status': 'error', 'errors': errors}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        return Response({'status': 'success', 'message': 'File processed successfully'})
+        return Response({'status': 'success', 'message': 'File processed successfully'}, status=status.HTTP_200_OK)
+
