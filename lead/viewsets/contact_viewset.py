@@ -227,7 +227,7 @@ class ImportLeadsAPIView(APIView):
                         name=validated_data['company_name'],
                         defaults={
                             'lead_owner': lead_owner,
-                            'created_by': lead_owner,
+                            'created_by': User.objects.get(id=11),
                             'address': validated_data.get('address'),
                             'country': validated_data.get('country'),
                             'state': validated_data.get('state'),
@@ -240,12 +240,14 @@ class ImportLeadsAPIView(APIView):
                     contact, created_contact = Contact.objects.get_or_create(
                         phone_number=validated_data.get('phone_number'),
                         defaults={
+                            'lead': lead,
                             'name': validated_data['name'],
-                            'created_by': request.user,
+                            'created_by': User.objects.get(id=11),
                             'remark': validated_data.get('remark'),
                             'status': validated_data.get('status'),
                         }
                     )
+
 
                     print("Existing Contact:", contact if not created_contact else None)
                     print("Newly Created Contact:", contact if created_contact else None)
@@ -253,10 +255,12 @@ class ImportLeadsAPIView(APIView):
                     Opportunity.objects.create(
                         lead=lead,
                         name=validated_data.get('opportunity_name'),
-                        created_by=request.user,
+                        created_by=User.objects.get(id=11),
                         opportunity_value=0,
                         closing_date=datetime.today() + timedelta(days=30),
                         probability_in_percentage=0,
+                        opportunity_status = validated_data.get('opportunity_status'),
+                        status_date = validated_data.get('status_date'),
                     )
 
                 else:
