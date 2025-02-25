@@ -239,11 +239,13 @@ class ImportLeadsAPIView(APIView):
                     contact, created_contact = Contact.objects.get_or_create(
                         phone_number=validated_data.get('phone_number'),
                         defaults={
-                            'lead': lead,
+                            'lead': lead if lead else created_lead,
                             'name': validated_data['name'],
                             'created_by': User.objects.get(id=11),
                             'remark': validated_data.get('remark'),
                             'status': validated_data.get('status'),
+                            'is_primary' : True
+
                         }
                     )
 
@@ -252,12 +254,13 @@ class ImportLeadsAPIView(APIView):
                     print("Newly Created Contact:", contact if created_contact else None)
 
                     Opportunity.objects.create(
-                        lead=lead,
+                        lead=lead if lead else created_lead,
                         name=validated_data.get('opportunity_name'),
                         created_by=User.objects.get(id=11),
                         opportunity_value=0,
                         closing_date=datetime.today() + timedelta(days=30),
                         probability_in_percentage=0,
+                        primary_contact = contact,
                         opportunity_status = validated_data.get('opportunity_status'),
                         status_date = validated_data.get('status_date') or datetime.today(),               
                         )
