@@ -144,7 +144,7 @@ class Opportunity(models.Model):
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE,null=True, blank=True)
     owner = models.ForeignKey(User, related_name='opportunities_owned', on_delete=models.CASCADE,null=True, blank=True)
     note = models.TextField(null=True, blank=True)
-    opportunity_value = models.FloatField()
+    opportunity_value = models.FloatField(null=True, blank=True)
     recurring_value_per_year = models.FloatField(null=True, blank=True)
     currency_type = models.ForeignKey(Country, on_delete=models.CASCADE,null=True, blank=True)
     closing_date = models.DateField()
