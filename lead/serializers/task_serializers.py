@@ -50,12 +50,13 @@ class TaskListSerializer(serializers.ModelSerializer):
     reply_counts = serializers.SerializerMethodField()
     has_new_message = serializers.SerializerMethodField()
     can_reply = serializers.SerializerMethodField()
+    assignment_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
         fields = ['id', 'remark', 'contact', 'log', 'task_date_time', 'task_detail', 
-                  'created_by', 'created_on', 'is_active', 'task_creation_type',
-                  'reply_counts', 'has_new_message','can_reply']
+                  'created_by', 'created_on', 'is_active', 'task_creation_type','task_type',
+                  'reply_counts', 'has_new_message','can_reply','assignment_details']
 
     def get_assignment_details(self, obj):
         task_assignments = obj.task_task_assignments.all()

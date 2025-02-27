@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 # Define a filter for the users based on their group names
 class UserFilter(filters.FilterSet):
-    group = filters.CharFilter(field_name='groups__name', lookup_expr='in')
+    group = filters.BaseInFilter(field_name='groups__name', lookup_expr='in')
 
     class Meta:
         model = User
