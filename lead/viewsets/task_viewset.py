@@ -18,7 +18,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskFilter
     pagination_class = Paginator
-    alowed_methods = ['GET', 'POST', 'PATCH']
+    alowed_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     
     def get_queryset(self):
         user = self.request.user
@@ -84,6 +84,22 @@ class TaskViewSet(viewsets.ModelViewSet):
         else:
             return Response({"detail": "Task date and time missing, a log was created instead."}, status=status.HTTP_200_OK)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        is_active = request.data.get('is_active')
+        instance.is_active = is_active
+        instance.save()
+
+        if is_active == 'True':
+            return Response(
+                {"detail": "Activated Successfully."},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"detail": "Deactivated Successfully."},
+                status=status.HTTP_200_OK
+            )
     
 class CalanderTaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
