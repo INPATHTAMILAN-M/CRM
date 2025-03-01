@@ -13,16 +13,16 @@ from rest_framework.response import Response
 from rest_framework import status
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
+    # queryset = Task.objects.filter(is_active=True)
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskFilter
     pagination_class = Paginator
-    alowed_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    allowed_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     
     def get_queryset(self):
         user = self.request.user
-        queryset = Task.objects.all() if user.groups.filter(name='Admin').exists() else Task.objects.filter(
+        queryset = Task.objects.filter(is_active=True) if user.groups.filter(name='Admin').exists() else Task.objects.filter(
             Q(id__in=Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)) | Q(created_by=user)
         )
 
@@ -39,7 +39,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         if self.action in ['update', 'partial_update']:
             return TaskUpdateSerializer
         return TaskDetailSerializer
-    
     
     def perform_create(self, serializer):
         # Check if 'task_date_time' is provided in the validated data
@@ -86,7 +85,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        is_active = request.data.get('is_active')
+        is_active = request.data.get('is_active',False)
         instance.is_active = is_active
         instance.save()
 
@@ -102,16 +101,16 @@ class TaskViewSet(viewsets.ModelViewSet):
             )
     
 class CalanderTaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
+    queryset = Task.objects.filter(is_active=True)
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskFilter
-    alowed_methods = ['GET']
+    allowed_methods  = ['GET']
     
     def get_queryset(self):
         user = self.request.user
         if user.groups.filter(name='Admin').exists():
-            return Task.objects.all()
+            return Task.objects.filter(is_active=True)
         task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
         return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user))
     

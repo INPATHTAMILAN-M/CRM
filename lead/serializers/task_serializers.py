@@ -23,9 +23,14 @@ class LogSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
+    groups = serializers.SerializerMethodField()
+
+    def get_groups(self, obj):
+        # Get the group names from the groups associated with the user
+        return [group.name for group in obj.groups.all()]
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active']
+        fields = ['id', 'username', 'first_name', 'last_name','groups', 'email', 'is_active']
 
 class TaskAssignmentSerializer(serializers.ModelSerializer):
     
