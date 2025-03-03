@@ -175,7 +175,15 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
                     log_stage=Log_Stage.objects.first(),
                     created_by=self.context['request'].user
                 )
+                lead_opportunities = instance.lead.opportunities_leads.order_by('id')
 
+                # Get the first opportunity in terms of ID (latest one)
+                first_opportunity = lead_opportunities.first()
+
+                if first_opportunity == instance:  # If the updating opportunity is the latest one
+                    # Update lead status to match opportunity status
+                    instance.lead.lead_status = new_opportunity_status
+                    instance.lead.save()
             # Save the instance with the updated data
             instance.save()
             return instance

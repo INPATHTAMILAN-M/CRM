@@ -4,7 +4,7 @@ from accounts.viewsets.city_viewset import CityViewSet
 from accounts.viewsets.salutation_viewset import SalutationViewSet
 from accounts.viewsets.teams_viewset import TeamsFilterViewSet, TeamsViewSet
 from accounts.viewsets.users_viewset import AllUsersViewSet, GetBdeUserViewSet, GetDmUserViewSet, GetLeadOwnerViewSet, GetOwnerUserViewSet, GetTaskAssignedToUserViewSet, UsersForLeadViewSet
-from lead.viewsets.assignment_notification_viewset import AssignedNotificationViewSet
+# from lead.viewsets.assignment_notification_viewset import AssignedNotificationViewSet
 from lead.viewsets.contact_status_viewset import ContactStatusViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
 from lead.viewsets.country_viewset import CountryViewSet
@@ -72,7 +72,7 @@ router.register(r'bdm_bde_team', TeamsFilterViewSet, basename='bdm_bde_team')
 router.register(r'dm_graph_counts', LeadCountViewSet, basename='dm_graph_counts')
 router.register(r'opportunity-name', OpportunityNameViewSet, basename='opportunity-name')
 router.register(r'task-conversation', TaskConversationLogViewSet, basename='task-conversation')
-router.register(r'assignment_notification', AssignedNotificationViewSet, basename='assignment_notification')
+# router.register(r'assignment_notification', AssignedNotificationViewSet, basename='assignment_notification')
 
 # in accounts
 router.register(r'salutations', SalutationViewSet)

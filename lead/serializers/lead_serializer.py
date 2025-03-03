@@ -313,7 +313,8 @@ class PostLeadSerializer(serializers.ModelSerializer):
 
 
         lead = Lead.objects.create(**validated_data)
-
+        lead.lead_status = Lead_Status.objects.all().order_by('id').first()
+        lead.save()
         # Log creation
         Log.objects.create(
             lead=lead,
@@ -331,6 +332,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
                 is_primary=True
             )
             lead.lead_source = Contact.objects.get(id=contact_id.id).lead_source  # Fetch actual contact
+            lead.lead_status = Lead_Status.objects.all().order_by('id').first()
             lead.save()
 
         # Create Opportunity if opportunity_name_id exists
