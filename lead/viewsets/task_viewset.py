@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 class TaskViewSet(viewsets.ModelViewSet):
-    # queryset = Task.objects.filter(is_active=True)
+    queryset = Task.objects.filter(is_active=True)
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskFilter

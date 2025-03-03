@@ -25,7 +25,7 @@ class OpportunityFilter(django_filters.FilterSet):
     to_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='lte', label='To Date', required=False)
     lead_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all(), field_name='lead__lead_status')
     opp_status = django_filters.CharFilter(field_name='opportunity_status__name', lookup_expr='exact')
-    opportunity_status = django_filters.ModelChoiceFilter(queryset=Opportunity_Status.objects.all())
+    opportunity_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
     created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__created_by')    
     bdm = django_filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
     bde = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")

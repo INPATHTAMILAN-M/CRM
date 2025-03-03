@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from accounts.models import Teams
-from ..models import Opportunity_Status, Opportunity
+from ..models import Opportunity_Status, Opportunity, Lead_Status
 from lead.filters.lead_status_count_filter import OpportunityStatusFilter  # Import the filter
 
 class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
@@ -57,7 +57,7 @@ class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
         # Prepare result dictionary
-        opportunity_statuses = Opportunity_Status.objects.values_list('name', flat=True)
+        opportunity_statuses = Lead_Status.objects.values_list('name', flat=True)
         result = {status: {"today": 0, "this_month": 0} for status in opportunity_statuses}
 
         for entry in opportunity_status_counts:
