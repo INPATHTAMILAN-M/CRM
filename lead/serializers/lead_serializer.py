@@ -215,7 +215,7 @@ class LeadSerializer(serializers.ModelSerializer):
     state = StateSerializer(read_only=True)
     city = CitySerializer(read_only=True)
     tags = TagSerializer(many=True)
-    lead_owner = serializers.SerializerMethodField()
+    lead_owner = UserSerializer()
     created_by = serializers.SerializerMethodField()
     primary_contact = ContactSerializer(read_only=True)
     opportunities = OpportunitySerializer(many=True, read_only=True)
