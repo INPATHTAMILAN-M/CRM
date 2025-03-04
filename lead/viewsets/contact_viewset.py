@@ -36,6 +36,13 @@ class ContactViewSet(viewsets.ModelViewSet):
             return ContactUpdateSerializer
         return ContactDetailSerializer
     
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     if user:
+    #         return Contact.objects.filter(created_by=user)
+    #     else:
+    #         return Contact.objects.none()
+        
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
