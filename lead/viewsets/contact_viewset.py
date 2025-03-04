@@ -253,18 +253,19 @@ class ImportLeadsAPIView(APIView):
                     print("Existing Contact:", contact if not created_contact else None)
                     print("Newly Created Contact:", contact if created_contact else None)
 
-                    Opportunity.objects.create(
+                    Opportunity.objects.update_or_create(
                         lead=lead if lead else created_lead,
                         name=validated_data.get('opportunity_name'),
-                        created_by=User.objects.get(id=11),
-                        opportunity_value=0,
-                        closing_date=datetime.today() + timedelta(days=30),
-                        probability_in_percentage=0,
-                        primary_contact = contact,
-                        opportunity_status = validated_data.get('opportunity_status'),
-                        status_date = validated_data.get('status_date') or datetime.today(),               
-                        )
-
+                        defaults={
+                            'created_by': User.objects.get(id=11),
+                            'opportunity_value': 0,
+                            'closing_date': datetime.today() + timedelta(days=30),
+                            'probability_in_percentage': 0,
+                            'primary_contact': contact if contact else created_contact,
+                            'opportunity_status': validated_data.get('opportunity_status'),
+                            'status_date': validated_data.get('status_date') or datetime.today(),
+                        }
+                    )
                 else:
                     # Collect row-specific errors
                     errors.append({
