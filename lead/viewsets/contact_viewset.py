@@ -195,6 +195,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import transaction
 from datetime import datetime, timedelta
+from ..models import Opportunity, Opportunity_Name, Lead, Contact, User
+from lead.serializers.lead_import_serializer import LeadImportSerializer
 import pandas as pd
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
@@ -208,27 +210,25 @@ class ImportLeadsAPIView(APIView):
         if not file:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Read the Excel file
         try:
+            # Read Excel file
             df = pd.read_excel(file, keep_default_na=False, sheet_name='Ramu 18.02.25')
         except Exception as e:
             return Response({'error': f'Error reading Excel file: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
         errors = []
 
-        # Start atomic transaction
         with transaction.atomic():
             for index, row in df.iterrows():
-                from pprint import pprint
                 serializer = LeadImportSerializer(data=row.to_dict())
 
                 if serializer.is_valid():
                     validated_data = serializer.validated_data
 
-                    # Use request.user if lead_owner is not in validated_data
+                    # Determine lead owner
                     lead_owner = validated_data.get('lead_owner', request.user)
 
-                    # Check if Lead exists, else create
+                    # Get or create Lead
                     lead, created_lead = Lead.objects.get_or_create(
                         name=validated_data['company_name'],
                         defaults={
@@ -241,46 +241,51 @@ class ImportLeadsAPIView(APIView):
                             'assigned_to': None,
                         }
                     )
-
-                    # Create or get Contact
+                    # Get or create Contact
                     contact, created_contact = Contact.objects.get_or_create(
                         phone_number=validated_data.get('phone_number'),
                         defaults={
-                            'lead': lead if lead else created_lead,
+                            'lead': lead,
                             'name': validated_data['name'],
                             'created_by': User.objects.get(id=11),
                             'remark': validated_data.get('remark'),
                             'status': validated_data.get('status'),
-                            'is_primary' : True
-
+                            'is_primary': True
                         }
                     )
 
+                    print(f"Contact {'created' if created_contact else 'exists'}: {contact}")
 
-                    print("Existing Contact:", contact if not created_contact else None)
-                    print("Newly Created Contact:", contact if created_contact else None)
+                    # Fetch Opportunity Name (string)
+                    opportunity_obj = Opportunity_Name.objects.filter(name=validated_data.get('opportunity_name')).first()
+                    opportunity = opportunity_obj if opportunity_obj else None
 
-                    Opportunity.objects.update_or_create(
-                        lead=lead if lead else created_lead,
-                        name=validated_data.get('opportunity_name'),
+                    if not opportunity:
+                        print(f"Opportunity Name Not Found: {validated_data.get('opportunity_name')}")
+                        continue  # Skip opportunity creation if name is invalid
+
+                    # Update or create Opportunity
+                    opportunity, created_opportunity = Opportunity.objects.update_or_create(
+                        lead=lead,
+                        name=opportunity,
                         defaults={
                             'created_by': User.objects.get(id=11),
                             'opportunity_value': 0,
                             'closing_date': datetime.today() + timedelta(days=30),
                             'probability_in_percentage': 0,
-                            'primary_contact': contact if contact else created_contact,
+                            'primary_contact': contact,
                             'opportunity_status': validated_data.get('opportunity_status'),
                             'status_date': validated_data.get('status_date') or datetime.today(),
                         }
                     )
+                    print(f"Opportunity {'created' if created_opportunity else 'updated'}: {opportunity}")
+
                 else:
-                    # Collect row-specific errors
                     errors.append({
                         'row': index + 2,  # Excel row starts from 2 (including header)
                         'errors': serializer.errors
                     })
 
-            # If there are errors, rollback transaction
             if errors:
                 transaction.set_rollback(True)
                 return Response({'status': 'error', 'errors': errors}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
