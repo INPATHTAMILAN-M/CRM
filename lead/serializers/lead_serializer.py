@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from lead.serializers.log_serializer import LogStageSerializer
-from ..models import Lead,Employee,Contact, Log,Opportunity, Opportunity_Status, Opportunity_Name
+from ..models import Lead,Employee,Contact, Lead_Assignment, Log,Opportunity, Opportunity_Status, Opportunity_Name, Task_Assignment
 from accounts.models import (
     City, Focus_Segment,Market_Segment,
     Country, Stage,State,Tag,Vertical,
@@ -10,7 +10,6 @@ from accounts.models import (
 from django.db import transaction
 from ..models import Lead_Status, Department, Contact_Status, Log_Stage, Opportunity_Name
 from django.contrib.auth.models import User
-
 
 class VerticalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -358,3 +357,19 @@ class PostLeadSerializer(serializers.ModelSerializer):
             lead.tags.set(tags_data)
 
         return lead
+    def update(self, instance, validated_data):
+        assigned_to = validated_data.get('assigned_to', None)
+        
+        if assigned_to and assigned_to != instance.assigned_to:
+            Lead_Assignment.objects.create(
+                lead=instance, 
+                assigned_to=assigned_to,
+                assigned_by=instance.created_by,
+            )
+        if assigned_to is None:
+            Lead_Assignment.objects.create(
+                lead=instance,  
+                assigned_to=assigned_to,
+                assigned_by=instance.created_by,
+            )
+        return super().update(instance, validated_data)

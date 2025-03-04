@@ -122,16 +122,17 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-        Task_Assignment.objects.filter(task=instance).delete()
+        # Task_Assignment.objects.filter(task=instance).delete()
         # Clear existing task assignments before adding new ones
         if task_assignment_data:
             # Create new task assignments from the provided data
             for assignment in task_assignment_data:
-                Task_Assignment.objects.create(
-                    task=instance,
-                    assigned_to=assignment['assigned_to'],
-                    assigned_by=self.context['request'].user  # Set the current user as assigned_by
-                )
+                if not Task_Assignment.objects.filter(task=instance, assigned_to=assignment['assigned_to']).exists():
+                    Task_Assignment.objects.create(
+                        task=instance,
+                        assigned_to=assignment['assigned_to'],
+                        assigned_by=self.context['request'].user  # Set the current user as assigned_by
+                    )
 
         return instance
 
