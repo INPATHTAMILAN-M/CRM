@@ -168,10 +168,7 @@ class AssignedNotificationAPIView(APIView):
                 task_assignments = task_assignments.filter(task__contact__name__icontains=search_query)
 
             task_ids = task_assignments.values_list('task_id', flat=True)
-            tasks = Task.objects.filter(
-                Q(id__in=task_ids) &
-                (Q(task_date_time__date=one_day_ago) | Q(task_date_time__date=timezone.now().date()))
-            )
+            tasks = Task.objects.filter(id__in=task_ids, task_date_time__lte=one_day_ago)
             task_serializer = TaskListSerializer(tasks, many=True)
 
             # Add 'type' information to each task and append it to the combined_data list
@@ -200,10 +197,7 @@ class AssignedNotificationAPIView(APIView):
                 task_assignments = task_assignments.filter(task__contact__name__icontains=search_query)
 
             task_ids = task_assignments.values_list('task_id', flat=True)
-            tasks = Task.objects.filter(
-                Q(id__in=task_ids) &
-                (Q(task_date_time__date=one_day_ago) | Q(task_date_time__date=timezone.now().date()))
-            )
+            tasks = Task.objects.filter(id__in=task_ids, task_date_time__lte=one_day_ago)
             task_serializer = TaskListSerializer(tasks, many=True)
 
             for task in task_serializer.data:
