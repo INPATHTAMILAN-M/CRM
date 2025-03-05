@@ -96,8 +96,8 @@ class ImportContactsAPIView(APIView):
                 is_active = row[column_mapping.get('is_active')] == 'TRUE' if column_mapping.get('is_active') is not None else False
                 is_archive = row[column_mapping.get('is_archive')] == 'TRUE' if column_mapping.get('is_archive') is not None else False
                 
-                if not name:
-                    errored_contacts.append({'company_name': company_name, 'error': 'Missing name'})
+                if not company_name:
+                    errored_contacts.append({'lead': lead, 'error': 'Missing company_name'})
                     continue
 
                 # Querying database for the IDs based on name
