@@ -64,7 +64,7 @@ class OpportunityFilter(django_filters.FilterSet):
     def filter_bdm(self, queryset, name, value):
         if value:  
             return queryset.filter(
-                Q(lead__lead_owner__in=value) | Q(lead__created_by__in=value)
+                Q(lead__assigned_to__in=value) | Q(lead__created_by__in=value)
             )
         return queryset
 

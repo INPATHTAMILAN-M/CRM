@@ -106,6 +106,7 @@ class Contact(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     phone_number = models.CharField(max_length=25, null=True, blank=True,unique=True)
     email_id = models.EmailField(max_length=255, null=True, blank=True)
+    secondary_phone_number = models.CharField(max_length=25, null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
     lead_source = models.ForeignKey(Lead_Source, on_delete=models.CASCADE, null=True, blank=True)
     lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.CASCADE, null=True, blank=True)

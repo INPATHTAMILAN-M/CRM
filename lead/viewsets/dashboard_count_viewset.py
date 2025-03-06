@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from accounts.models import Teams
-from ..models import Opportunity_Status, Opportunity, Lead_Status
+from ..models import  Opportunity, Lead_Status
 from lead.filters.lead_status_count_filter import OpportunityStatusFilter  # Import the filter
 
 class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
