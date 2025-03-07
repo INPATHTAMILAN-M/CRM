@@ -1,5 +1,5 @@
 import django_filters 
-from ..models import Opportunity, Lead_Source, Lead_Status, Opportunity_Status
+from ..models import Opportunity, Lead_Source, Lead_Status, Opportunity_Status, User
 from django.db.models import Q
 
 class OpportunityStatusFilter(django_filters.FilterSet):
@@ -14,6 +14,9 @@ class OpportunityStatusFilter(django_filters.FilterSet):
     to_date = django_filters.DateFilter(field_name="lead__created_on", lookup_expr="lte")
     search = django_filters.CharFilter(method="filter_search")
 
+
+    role_asssigned = django_filters.ModelChoiceFilter(queryset=User.objects.all(),method='filter_role_assigned', label="BDM Assigned")
+
     class Meta:
         model = Opportunity
         fields = [
@@ -27,6 +30,14 @@ class OpportunityStatusFilter(django_filters.FilterSet):
             "bde",
             'opp_status'
         ]
+
+
+    def filter_role_assigned(self, queryset, name, value):
+        if value:
+            return queryset.filter(
+                Q(lead__assigned_to=self.request.user) & Q(lead__created_by=value)
+            )
+        return queryset
 
     def filter_bdm(self, queryset, name, value):
         """Filter opportunities where the BDM is the lead owner or lead creator."""
