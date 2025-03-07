@@ -71,8 +71,8 @@ class Lead(models.Model):
     lead_owner = models.ForeignKey(User, related_name='leads_owned', on_delete=models.CASCADE)
     created_by = models.ForeignKey(User, related_name='leads_created', on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    state = models.ForeignKey(State, on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE,null=True, blank=True)
+    state = models.ForeignKey(State, on_delete=models.CASCADE,null=True, blank=True)
     company_website = models.CharField(max_length=255, null=True, blank=True)
     fax = models.CharField(max_length=255, null=True, blank=True)
     annual_revenue = models.FloatField(null=True, blank=True)
@@ -83,8 +83,8 @@ class Lead(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     status_date = models.DateField(null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
-    address = models.TextField()
-    city = models.ForeignKey(City,on_delete=models.CASCADE)
+    address = models.TextField(null=True, blank=True)
+    city = models.ForeignKey(City,on_delete=models.CASCADE,null=True, blank=True)
     
     LEAD_TYPE_CHOICES = [
         ('Digital Lead', 'Digital Lead'),

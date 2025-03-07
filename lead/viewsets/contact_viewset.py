@@ -212,7 +212,7 @@ class ImportLeadsAPIView(APIView):
 
         try:
             # Read Excel file
-            df = pd.read_excel(file, keep_default_na=False, sheet_name='Ramu 18.02.25')
+            df = pd.read_excel(file, keep_default_na=False, sheet_name='Inbound Leads Feb 25')
         except Exception as e:
             return Response({'error': f'Error reading Excel file: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -233,23 +233,31 @@ class ImportLeadsAPIView(APIView):
                         name=validated_data['company_name'],
                         defaults={
                             'lead_owner': lead_owner,
-                            'created_by': User.objects.get(id=11),
+                            'created_by': User.objects.get(id=16),
                             'address': validated_data.get('address'),
                             'country': validated_data.get('country'),
                             'state': validated_data.get('state'),
                             'city': validated_data.get('city'),
+                            'remark': validated_data.get('remark'),
+                            # 'lead_source' : validated_data.get('lead_source'),
                             'assigned_to': None,
                         }
                     )
-                    # Get or create Contact
                     contact, created_contact = Contact.objects.get_or_create(
                         phone_number=validated_data.get('phone_number'),
                         defaults={
                             'lead': lead,
                             'name': validated_data['name'],
-                            'created_by': User.objects.get(id=11),
+                            'created_by': request.user,
                             'remark': validated_data.get('remark'),
                             'status': validated_data.get('status'),
+
+                            'designation': validated_data.get('designation'),
+                            'department': validated_data.get('department'),
+                            'email_id': validated_data.get('email_id'),
+                            'lead_source' : validated_data.get('lead_source'),
+    
+                            'is_active': True,
                             'is_primary': True
                         }
                     )
@@ -269,12 +277,13 @@ class ImportLeadsAPIView(APIView):
                         lead=lead,
                         name=opportunity,
                         defaults={
-                            'created_by': User.objects.get(id=11),
+                            'created_by': request.user,
                             'opportunity_value': 0,
                             'closing_date': datetime.today() + timedelta(days=30),
                             'probability_in_percentage': 0,
                             'primary_contact': contact,
                             'opportunity_status': validated_data.get('opportunity_status'),
+                            'remark': validated_data.get('remark'),
                             'status_date': validated_data.get('status_date') or datetime.today(),
                         }
                     )

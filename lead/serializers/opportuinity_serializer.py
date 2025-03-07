@@ -147,45 +147,54 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def update(self, instance, validated_data):
-        # Get old values and new values
+        print("Received validated_data:", validated_data)  # Debugging
+
         old_stage = instance.stage
         new_stage = validated_data.get('stage', old_stage)
+
         old_opportunity_status = instance.opportunity_status
-        new_opportunity_status = validated_data.get('opportunity_status')
+        new_opportunity_status = validated_data.get('opportunity_status', old_opportunity_status)
 
         with transaction.atomic():
+            # ✅ Update instance fields from validated_data
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
 
-            # If the stage has changed, update the probability and create a new Opportunity_Stage
+            # ✅ Save instance after updating fields
+            instance.save()
+
+            # ✅ If stage changes, update probability and create Opportunity_Stage
             if old_stage != new_stage:
                 instance.probability_in_percentage = new_stage.probability
+                instance.save()  # <-- Ensure this is saved immediately
                 Opportunity_Stage.objects.create(
                     opportunity=instance,
                     stage=new_stage,
                     moved_by=self.context['request'].user
                 )
 
+            # ✅ If opportunity_status changes, log it and update lead status
             if old_opportunity_status != new_opportunity_status:
                 instance.status_date = datetime.date.today()
+                instance.save()  # <-- Ensure this is saved immediately
+
                 Log.objects.create(
                     contact=instance.primary_contact,
-                    opportunity_status = instance.opportunity_status,
+                    opportunity_status=instance.opportunity_status,
                     opportunity=instance,
                     log_stage=Log_Stage.objects.first(),
                     created_by=self.context['request'].user
                 )
-                lead_opportunities = instance.lead.opportunities_leads.order_by('id')
 
-                # Get the first opportunity in terms of ID (latest one)
-                first_opportunity = lead_opportunities.first()
+                # Update lead status if this is the latest opportunity
+                if instance.lead:
+                    lead_opportunities = instance.lead.opportunities_leads.order_by('id')
+                    first_opportunity = lead_opportunities.first()
 
-                if first_opportunity == instance:  # If the updating opportunity is the latest one
-                    # Update lead status to match opportunity status
-                    instance.lead.lead_status = new_opportunity_status
-                    instance.lead.save()
-            # Save the instance with the updated data
-            instance.save()
+                    if first_opportunity == instance:  
+                        instance.lead.lead_status = new_opportunity_status
+                        instance.lead.save()
+
             return instance
 
 

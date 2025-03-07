@@ -3,10 +3,10 @@ from accounts.models import User
 from datetime import datetime
 from lead.models import (
     Lead, Opportunity_Status, Contact_Status, Contact, 
-    Country, State, City, Opportunity_Name, Lead_Status
+    Country, State, City, Opportunity_Name, Lead_Status, Lead_Source
 )
 
-class CustomDateField(serializers.DateField):
+class CustomDateField(serializers.DateTimeField):
     def to_internal_value(self, data):
         # Check if the input is an empty string
         if data == "":
@@ -27,9 +27,10 @@ class LeadImportSerializer(serializers.Serializer):
     state = serializers.CharField(required=False, allow_blank=True)
     city = serializers.CharField(required=False, allow_blank=True)
     opportunity_name = serializers.CharField(max_length=200)
-    lead_owner = serializers.CharField(max_length=100)
+    # lead_owner = serializers.CharField(max_length=100,required=False,allow_blank=True)
     opportunity_status = serializers.CharField(max_length=50)
     status_date = CustomDateField()  # ✅ Allows None
+    lead_source = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
 
     def validate_status(self, value):
@@ -44,6 +45,14 @@ class LeadImportSerializer(serializers.Serializer):
             if not country_obj:
                 raise serializers.ValidationError("Invalid country.")
             return country_obj
+        return None
+    
+    def validate_lead_source(self, value):
+        if value:  # ✅ Skip validation if empty
+            lead_source_obj = Lead_Source.objects.filter(source=value).first()
+            if not lead_source_obj:
+                raise serializers.ValidationError("Invalid lead source.")
+            return lead_source_obj
         return None
 
     def validate_state(self, value):
@@ -74,9 +83,3 @@ class LeadImportSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid Opportunity name.")
         return opportunity_name_obj
 
-    def validate_lead_owner(self, value):
-        first_name = value.split(" ")[0]
-        user = User.objects.filter(first_name=first_name).first()
-        if not user:
-            raise serializers.ValidationError("Invalid lead owner. User not found.")
-        return user
