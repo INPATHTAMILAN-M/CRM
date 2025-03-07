@@ -6,10 +6,12 @@ from ..models import Lead_Status
 from ..serializers.lead_status_serializer import LeadStatusSerializer
 from ..filters.lead_status_filter import LeadStatusFilter
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 class LeadStatusViewSet(viewsets.ModelViewSet):
     queryset = Lead_Status.objects.all().order_by('-id')
+    permission_classes = [IsAuthenticated]
     serializer_class = LeadStatusSerializer
     filter_backends = (DjangoFilterBackend,)  # Specify the filter backend
     filterset_class = LeadStatusFilter  # Use the filter class here
