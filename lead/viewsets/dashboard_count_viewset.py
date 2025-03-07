@@ -49,7 +49,7 @@ class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
         # Exclude None values before aggregation
         opportunity_status_counts = (
             opportunity.exclude(opportunity_status=None)
-            .values('opportunity_status__name')
+            .values('opportunity_status__id', 'opportunity_status__name')
             .annotate(
                 today_count=Count('id', filter=Q(lead__created_on=today) | Q(status_date=today)),
                 this_month_count=Count('id', filter=Q(lead__created_on__month=timezone.now().month) | Q(status_date__month=timezone.now().month))
@@ -57,12 +57,13 @@ class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
         # Prepare result dictionary
-        opportunity_statuses = Lead_Status.objects.values_list('name', flat=True)
-        result = {status: {"today": 0, "this_month": 0} for status in opportunity_statuses}
+        opportunity_statuses = Lead_Status.objects.values('id', 'name')
+        result = {status["name"]: {"id": status["id"], "today": 0, "this_month": 0} for status in opportunity_statuses}
 
         for entry in opportunity_status_counts:
             if entry['opportunity_status__name']:  # Ensure it's not None
                 result[entry['opportunity_status__name']] = {
+                    "id": entry["opportunity_status__id"],
                     "today": entry["today_count"],
                     "this_month": entry["this_month_count"]
                 }
