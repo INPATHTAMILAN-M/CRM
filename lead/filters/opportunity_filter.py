@@ -27,8 +27,11 @@ class OpportunityFilter(django_filters.FilterSet):
     opp_status = django_filters.CharFilter(field_name='opportunity_status__name', lookup_expr='exact')
     opportunity_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
     created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__created_by')    
+    
     bdm = django_filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
     bde = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
+    
+    role_asssigned = django_filters.ModelChoiceFilter(queryset=User.objects.all(),method='filter_role_assigned', label="BDM Assigned")
 
     month = django_filters.BooleanFilter(method='filter_this_month', label="This Month")
     today = django_filters.BooleanFilter(method='filter_today', label="Today")
@@ -75,6 +78,14 @@ class OpportunityFilter(django_filters.FilterSet):
             )
         return queryset    
     
+    def filter_role_assigned(self, queryset, name, value):
+        if value:
+            return queryset.filter(
+                Q(lead__assigned_to=self.request.user) & Q(lead__created_by=value)
+            )
+        return queryset
+    
+
     def filter_this_month(self, queryset, name, value):
         if value:
             return queryset.filter(
