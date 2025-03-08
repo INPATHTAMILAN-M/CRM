@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from ..models import TaskConversationLog, Task
+from django.contrib.auth.models import User
 from django.db.models import Q
 
 class TaskConversationLogCreateSerializer(serializers.ModelSerializer):
@@ -48,8 +49,15 @@ class TaskConversationLogRetrieveSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['id', 'username',  'first_name', 'last_name', 'email', 'is_active']
+
 class TaskConversationLogListSerializer(serializers.ModelSerializer):
     is_viewed = serializers.SerializerMethodField()
+    created_by = UserSerializer()
 
     class Meta:
         model = TaskConversationLog
