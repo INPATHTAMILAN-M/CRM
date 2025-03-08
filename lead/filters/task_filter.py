@@ -1,17 +1,19 @@
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from ..models import Task, TaskConversationLog
-import django_filters
 from django.utils import timezone
+from django.db.models import Q
+
 
 class TaskFilter(filters.FilterSet):
 
     lead = filters.NumberFilter(field_name='contact__lead__id')   
     contact = filters.CharFilter(field_name='contact__name', lookup_expr='icontains', label='Contact Name') 
-    from_date = filters.DateFilter(field_name='created_on', lookup_expr='gte', label='From Date')
-    to_date = filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
+    from_date = filters.DateFilter(field_name='task_date_time', lookup_expr='gte', label='From Date')
+    to_date = filters.DateFilter(field_name='task_date_time', lookup_expr='lte', label='To Date', required=False)
     assigned_to_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_to', method='filter_assigned_to_me')
     assigned_by_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_by', method='filter_assigned_by_me')
+    
     has_reply = filters.BooleanFilter(field_name='task_conversation_logs__task', method='filter_has_reply')
 
     def filter_has_reply(self, queryset, name, value):
@@ -29,13 +31,16 @@ class TaskFilter(filters.FilterSet):
     
     
     def filter_assigned_to_me(self, queryset, name, value):
-        # Get logged-in user
-        user = self.request.user
-        if value:  # If value is True, filter tasks assigned to the user
-            return queryset.filter(task_task_assignments__assigned_to=user).distinct()
-        return queryset  # Return all if False or None
+        user = self.request.user  # Ensure 'self' has 'request'
+        
+        if value:  # If True, filter tasks assigned to the user but not assigned by them
+            return queryset.filter(
+                Q(task_task_assignments__assigned_to=user) & 
+                ~Q(task_task_assignments__assigned_by=user)  # Fix negation
+            ).distinct()
+        
+        return queryset 
 
-    # Custom method for filtering tasks assigned by the logged-in user
     def filter_assigned_by_me(self, queryset, name, value):
         # Get logged-in user
         user = self.request.user

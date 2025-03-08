@@ -136,12 +136,25 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
 
         return instance
 
+class TaskConversationLogSerializer(serializers.ModelSerializer):
+    created_by = UserSerializer()
+    class Meta:
+        model = TaskConversationLog
+        fields = '__all__'
+
+class LeadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
+        fields = '__all__'
+
+
 class TaskDetailSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
     log = LogSerializer()
     created_by = UserSerializer()
+    task_conversation_logs = TaskConversationLogSerializer(many=True, read_only=True)
 
     class Meta:
         model = Task
         fields = ['id', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 
-                  'created_on', 'is_active', 'task_type', 'remark']
+                  'created_on', 'is_active', 'task_type', 'remark','task_conversation_logs']

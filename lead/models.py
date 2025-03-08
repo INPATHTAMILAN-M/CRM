@@ -16,14 +16,14 @@ from accounts.models import (
 )
 
 class Lead_Status(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,unique=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
     
 class Opportunity_Status(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,unique=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

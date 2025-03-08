@@ -18,7 +18,6 @@ class OpportunityFilter(django_filters.FilterSet):
     created_on = django_filters.DateFromToRangeFilter()  # Date range filter
     is_active = django_filters.BooleanFilter()  # Boolean filter
 
-
     assigned_to = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__assigned_to')
     lead_source = django_filters.ModelChoiceFilter(queryset=Lead_Source.objects.all(), field_name='lead__lead_source')
     from_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='gte', label='From Date')

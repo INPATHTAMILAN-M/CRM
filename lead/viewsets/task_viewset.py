@@ -24,12 +24,12 @@ class TaskViewSet(viewsets.ModelViewSet):
         user = self.request.user
         queryset = Task.objects.filter(is_active=True) if user.groups.filter(name='Admin').exists() else Task.objects.filter(
             Q(id__in=Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)) | Q(created_by=user)
-        )
+        ).order_by('-task_date_time')
 
         if self.request.query_params.get('has_reply') is not None:
             queryset = queryset.annotate(latest_log=Max('task_conversation_logs__created_on')).order_by('-latest_log', '-id')
         
-        return queryset.order_by('-id').distinct()
+        return queryset.order_by('-task_date_time').distinct()
     
     def get_serializer_class(self):
         if self.action == 'create':

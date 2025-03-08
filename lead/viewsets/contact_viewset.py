@@ -239,7 +239,7 @@ class ImportLeadsAPIView(APIView):
                             'state': validated_data.get('state'),
                             'city': validated_data.get('city'),
                             'remark': validated_data.get('remark'),
-                            # 'lead_source' : validated_data.get('lead_source'),
+                            'lead_source' : validated_data.get('lead_source'),
                             'assigned_to': None,
                         }
                     )
