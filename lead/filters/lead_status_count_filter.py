@@ -7,7 +7,7 @@ class OpportunityStatusFilter(django_filters.FilterSet):
     assigned_to = django_filters.NumberFilter(field_name="lead__assigned_to", lookup_expr="exact")
     lead_source = django_filters.ModelChoiceFilter(queryset=Lead_Source.objects.all(), field_name='lead__lead_source')
     opp_status = django_filters.CharFilter(field_name='opportunity_status__name', lookup_expr='exact')
-    opportunity_status = django_filters.ModelChoiceFilter(queryset=Opportunity_Status.objects.all())
+    opportunity_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
     bdm = django_filters.NumberFilter(method="filter_bdm")
     bde = django_filters.NumberFilter(method="filter_bde")
     from_date = django_filters.DateFilter(field_name="lead__created_on", lookup_expr="gte")
