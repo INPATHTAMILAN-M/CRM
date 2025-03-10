@@ -56,7 +56,9 @@ class OpportunityViewset(viewsets.ModelViewSet):
         else:
             opportunity = queryset.none()
 
-        return opportunity
+        paginator = Paginator()
+        paginated_opportunity = paginator.paginate_queryset(opportunity, self.request)
+        return paginated_opportunity
 
     def get_serializer_class(self):
         if self.action == 'create':
