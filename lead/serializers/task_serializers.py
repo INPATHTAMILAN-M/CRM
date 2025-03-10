@@ -56,12 +56,13 @@ class TaskListSerializer(serializers.ModelSerializer):
     has_new_message = serializers.SerializerMethodField()
     can_reply = serializers.SerializerMethodField()
     assignment_details = serializers.SerializerMethodField()
+    task_task_assignments = TaskAssignmentListSerializer(many=True, read_only=True)
 
     class Meta:
         model = Task
         fields = ['id', 'remark', 'contact', 'log', 'task_date_time', 'task_detail', 
                   'created_by', 'created_on', 'is_active', 'task_creation_type','task_type',
-                  'reply_counts', 'has_new_message','can_reply','assignment_details']
+                  'reply_counts', 'has_new_message','can_reply','assignment_details','task_task_assignments']
 
     def get_assignment_details(self, obj):
         task_assignments = obj.task_task_assignments.all()
@@ -104,13 +105,13 @@ class TaskCreateSerializer(serializers.ModelSerializer):
                 assigned_to=assignment_data['assigned_to'],  # Set the assigned_to user from the request data
                 assigned_by=assigned_by # Always set assigned_by to the current user
             )
-            Notification.objects.create(
-                task=task,
-                receiver_id=assignment_data['assigned_to'],
-                message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
-                type='Task'
-            )
-        return task
+        #     Notification.objects.create(
+        #         task=task,
+        #         receiver_id=assignment_data['assigned_to'],
+        #         message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
+        #         type='Task'
+        #     )
+        # return task
     
 class TaskUpdateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(many=True, required=False)
@@ -138,12 +139,12 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
                         assigned_to=assignment['assigned_to'],
                         assigned_by=self.context['request'].user  # Set the current user as assigned_by
                     )
-                    Notification.objects.create(
-                    task=instance,
-                    receiver_id=assignment['assigned_to'],
-                    message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
-                    type='Task'
-                )
+                #     Notification.objects.create(
+                #     task=instance,
+                #     receiver_id=assignment['assigned_to'],
+                #     message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
+                #     type='Task'
+                # )
 
         return instance
 
