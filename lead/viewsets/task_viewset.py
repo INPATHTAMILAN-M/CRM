@@ -101,19 +101,21 @@ class TaskViewSet(viewsets.ModelViewSet):
             )
     
 class CalanderTaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.filter(is_active=True)
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskFilter
-    allowed_methods  = ['GET']
-    
+    http_method_names = ['get']
+
     def get_queryset(self):
         user = self.request.user
         if user.groups.filter(name='Admin').exists():
-            return Task.objects.filter(is_active=True)
-        task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
-        return Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user))
-    
+            queryset = Task.objects.filter(is_active=True)
+        else:
+            task_ids = Task_Assignment.objects.filter(assigned_to=user).values_list("task", flat=True)
+            queryset = Task.objects.filter(Q(id__in=task_ids) | Q(created_by=user), is_active=True)
+
+        return queryset.order_by('-task_date_time')
+
     def get_serializer_class(self):
         if self.action == 'list':
             return TaskListSerializer

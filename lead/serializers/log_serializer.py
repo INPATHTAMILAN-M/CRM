@@ -8,6 +8,7 @@ class LeadStatusSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class OpportunitySerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='name.name')
     opportunity_status = LeadStatusSerializer()
     class Meta:
         model = Opportunity
