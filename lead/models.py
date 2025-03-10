@@ -16,14 +16,14 @@ from accounts.models import (
 )
 
 class Lead_Status(models.Model):
-    name = models.CharField(max_length=255,unique=True)
+    name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
     
 class Opportunity_Status(models.Model):
-    name = models.CharField(max_length=255,unique=True)
+    name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -125,7 +125,6 @@ class Lead_Assignment(models.Model):
     assigned_to = models.ForeignKey(User, related_name='assigned_leads', on_delete=models.CASCADE)
     assigned_by = models.ForeignKey(User, related_name='assigned_by_leads', on_delete=models.CASCADE)
     assigned_on = models.DateField(auto_now_add=True)
-    text = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

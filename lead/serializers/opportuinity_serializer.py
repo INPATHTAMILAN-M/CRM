@@ -177,14 +177,14 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
             if old_opportunity_status != new_opportunity_status:
                 instance.status_date = datetime.date.today()
                 instance.save()  # <-- Ensure this is saved immediately
-                assigned_users = Lead_Assignment.objects.filter(lead=instance.lead).values_list('assigned_to', flat=True)
-                for user_id in assigned_users:
-                    Notification.objects.create(
-                        opportunity=instance,
-                        receiver_id=user_id,
-                        message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} changed the status of this Opportunity: '{instance.name.name}'.",
-                        type="Opportunity"
-                    )
+                # assigned_users = Lead_Assignment.objects.filter(lead=instance.lead).values_list('assigned_to', flat=True)
+                # for user_id in assigned_users:
+                #     Notification.objects.create(
+                #         opportunity=instance,
+                #         receiver_id=user_id,
+                #         message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} changed the status of this Opportunity: '{instance.name.name}'.",
+                #         type="Opportunity"
+                #     )
                 Log.objects.create(
                     contact=instance.primary_contact,
                     opportunity_status=instance.opportunity_status,
@@ -245,14 +245,14 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
                 log_stage = Log_Stage.objects.all().first(),
                 created_by=self.context['request'].user  # The user creating the opportunity
             )
-            assigned_users = Lead_Assignment.objects.filter(lead=opportunity.lead).values_list('assigned_to', flat=True)
-            for user_id in assigned_users:
-                Notification.objects.create(
-                    opportunity=opportunity,
-                    receiver_id=user_id,
-                    message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opportunity.name.name}'.",
-                    type="Opportunity"
-                )
+            # assigned_users = Lead_Assignment.objects.filter(lead=opportunity.lead).values_list('assigned_to', flat=True)
+            # for user_id in assigned_users:
+            #     Notification.objects.create(
+            #         opportunity=opportunity,
+            #         receiver_id=user_id,
+            #         message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opportunity.name.name}'.",
+            #         type="Opportunity"
+            #     )
             # Create the Opportunity_Stage record linked to the new Opportunity
             opportunity_stage = Opportunity_Stage(
                 opportunity=opportunity,
