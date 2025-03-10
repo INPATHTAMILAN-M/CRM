@@ -6,8 +6,8 @@ from django.utils import timezone
 from datetime import timedelta
 
 from lead.custom_pagination import Paginator
-from ..models import Task, Task_Assignment, Lead, Lead_Assignment
-from ..serializers.assignment_notification_serializer import TaskListSerializer, LeadSerializer
+from ..models import Opportunity, Task, Task_Assignment, Lead, Lead_Assignment
+from ..serializers.assignment_notification_serializer import OpportunityListSerializer, TaskListSerializer, LeadSerializer
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 
@@ -50,7 +50,24 @@ class AssignedNotificationAPIView(APIView):
                     assigned_on = timezone.datetime.strptime(assigned_on, '%Y-%m-%dT%H:%M:%SZ').date()  # Convert ISO 8601 string to date
                 lead['date'] = assigned_on
                 combined_data.append(lead)
+                
+        elif type_query == 'opportunity':
+            lead_assignments = Lead_Assignment.objects.filter(is_active=True,assigned_to=user)
+            lead_ids = lead_assignments.values_list('lead_id', flat=True)
+            leads = Lead.objects.filter(id__in=lead_ids)
+            opportunities = Opportunity.objects.filter(lead__in=lead_ids)
+            
+            if search_query:
+                opportunities = opportunities.filter(opportunity__name__icontains=search_query)
 
+            opportunity_serializer = OpportunityListSerializer(opportunities, many=True)
+
+            for opportunity in opportunity_serializer.data:
+                opportunity['type'] = 'opportunity'
+                assigned_on = opportunities.filter(opportunity=opportunity['id']).first().assigned_on
+                if isinstance(assigned_on, str):
+                    assigned_on = timezone.datetime.strptime(assigned_on, '%Y-%m-%dT%H:%M:%SZ').date()
+                    
         elif type_query == 'task':
             task_assignments = Task_Assignment.objects.filter(is_active=True,assigned_to=user)
 

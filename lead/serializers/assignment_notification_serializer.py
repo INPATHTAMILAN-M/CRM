@@ -300,3 +300,27 @@ class LeadSerializer(serializers.ModelSerializer):
             representation['primary_contact'] = None
        
         return representation
+
+class OpportunityListSerializer(serializers.ModelSerializer):
+    owner = OwnerSerializer(read_only=True)
+    lead = LeadSerializer(read_only=True)
+    currency_type= CurrencySerializer(read_only=True)
+    stage = StageSerializer(read_only=True)
+    created_by=OwnerSerializer(read_only=True)
+    file_url = serializers.SerializerMethodField()
+    primary_contact = ContactSerializer(read_only=True)
+    created_by =UserSerializer()
+    opportunity_status = LeadStatusSerializer(read_only=True)
+    name = OpportunityNameSerializer(read_only=True)
+    
+    
+    class Meta:
+        model = Opportunity
+        fields = "__all__"
+
+    def get_file_url(self, obj):
+        if obj.file:
+            file_url = obj.file.url
+            domain = "http://121.200.52.133:8000/"
+            return f"{domain}{file_url}"
+        return None

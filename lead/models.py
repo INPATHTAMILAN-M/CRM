@@ -125,6 +125,7 @@ class Lead_Assignment(models.Model):
     assigned_to = models.ForeignKey(User, related_name='assigned_leads', on_delete=models.CASCADE)
     assigned_by = models.ForeignKey(User, related_name='assigned_by_leads', on_delete=models.CASCADE)
     assigned_on = models.DateField(auto_now_add=True)
+    text = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -223,9 +224,7 @@ class Task(models.Model):
 
 
 class TaskConversationLog(models.Model):
-    task = models.ForeignKey(
-        'Task', on_delete=models.CASCADE, related_name='task_conversation_logs'
-    )
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='task_conversation_logs')
     message = models.TextField()
     seen_by = models.ManyToManyField(User, related_name='seen_task_conversation_logs', blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -272,7 +271,12 @@ class Email_Communication(models.Model):
         return f'Email from {self.from_user.username} to {self.to_users.count()} users'
     
 class Notification(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, null=True, blank=True)
+    opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, null=True, blank=True)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
+    conversation = models.ForeignKey(TaskConversationLog, on_delete=models.CASCADE, null=True, blank=True)
     receiver=models.ForeignKey(User, related_name='notification_receiver', on_delete=models.CASCADE)
     message=models.TextField()
     created_at=models.DateTimeField(auto_now_add=True)
     is_read=models.BooleanField(default=False)
+    type = models.CharField(max_length=20,null=True, blank=True)

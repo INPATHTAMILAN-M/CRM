@@ -15,8 +15,6 @@ class NotificationViewSet(viewsets.ModelViewSet):
             return NotificationCreateSerializer
         if self.action == 'list':
             return NotificationListSerializer
-        if self.action in ['update', 'partial_update']:
-            return NotificationUpdateSerializer
         return NotificationRetrieveSerializer  
 
     def get_queryset(self):

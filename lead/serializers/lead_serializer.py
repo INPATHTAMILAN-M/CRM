@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from lead.serializers.log_serializer import LogStageSerializer
-from ..models import Lead,Employee,Contact, Lead_Assignment, Log,Opportunity, Opportunity_Status, Opportunity_Name, Task_Assignment
+from ..models import Lead,Employee,Contact, Lead_Assignment, Log, Notification,Opportunity, Opportunity_Status, Opportunity_Name, Task_Assignment
 from accounts.models import (
     City, Focus_Segment,Market_Segment,
     Country, Stage,State,Tag,Vertical,
@@ -350,6 +350,15 @@ class PostLeadSerializer(serializers.ModelSerializer):
                 closing_date=timezone.now().date(),
                 opportunity_keyword = opportunity_keyword
             )
+            # Fetch all assigned_to users from Lead_Assignment for this lead
+            assigned_users = Lead_Assignment.objects.filter(lead=lead).values_list('assigned_to', flat=True)
+            for user_id in assigned_users:
+                Notification.objects.create(
+                    opportunity=opp,
+                    receiver_id=user_id,
+                    message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opportunity_name}'.",
+                    type = "Opportunity"
+                )
             print(opp)
 
 
@@ -372,4 +381,10 @@ class PostLeadSerializer(serializers.ModelSerializer):
                 assigned_to=assigned_to,
                 assigned_by=instance.created_by,
             )
+        Notification.objects.create(
+                lead=instance,
+                receiver=instance.assigned_to,
+                message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned to a new lead: '{instance.name}'.",
+                type="Lead"
+                )
         return super().update(instance, validated_data)

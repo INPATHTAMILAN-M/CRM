@@ -34,6 +34,12 @@ class LeadViewSet(viewsets.ModelViewSet):
             return PostLeadSerializer
         return LeadSerializer
     
+    def get_serializer_context(self):
+        # Add the request to the serializer context
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
     def perform_create(self, serializer):
         # Save the lead and assign the current logged-in user as 'created_by'
         lead = serializer.save(created_by=self.request.user)
@@ -51,6 +57,12 @@ class LeadViewSet(viewsets.ModelViewSet):
                 assigned_by=self.request.user,
                 is_active=True
             )
+            Notification.objects.create(
+                lead=lead,
+                receiver=lead.assigned_to,
+                message=f"{self.request.user.first_name} {self.request.user.last_name} assigned to a new lead: '{lead.name}'.",
+                type='Lead'
+                )
 
         # Send an email notification to the lead owner
         subject = "New Lead Created"
@@ -106,11 +118,11 @@ class LeadViewSet(viewsets.ModelViewSet):
             lead = serializer.save()
 
             # Notify about the update to lead owner and creator if necessary
-            if lead.lead_owner and self.request.user != lead.lead_owner:
-                Notification.objects.create(receiver=lead.lead_owner, message=f"Lead '{lead.name}' has been updated by {self.request.user}.")
+            # if lead.lead_owner and self.request.user != lead.lead_owner:
+            #     Notification.objects.create(receiver=lead.lead_owner, message=f"Lead '{lead.name}' has been updated by {self.request.user}.")
 
-            if lead.created_by and self.request.user != lead.created_by:
-                Notification.objects.create(receiver=lead.created_by, message=f"Lead '{lead.name}' has been updated by {self.request.user}.")
+            # if lead.created_by and self.request.user != lead.created_by:
+            #     Notification.objects.create(receiver=lead.created_by, message=f"Lead '{lead.name}' has been updated by {self.request.user}.")
 
             # Handle primary contact updates
             primary_contact_data = request.data.get('primary_contact', None)

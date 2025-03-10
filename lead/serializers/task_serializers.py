@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 from accounts.models import Log_Stage
 
-from ..models import Lead_Status, Task, Contact, Log, Task_Assignment, Lead, TaskConversationLog
+from ..models import Lead_Status, Notification, Task, Contact, Log, Task_Assignment, Lead, TaskConversationLog
 
 class LeadContactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -104,7 +104,12 @@ class TaskCreateSerializer(serializers.ModelSerializer):
                 assigned_to=assignment_data['assigned_to'],  # Set the assigned_to user from the request data
                 assigned_by=assigned_by # Always set assigned_by to the current user
             )
-
+            Notification.objects.create(
+                task=task,
+                receiver_id=assignment_data['assigned_to'],
+                message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
+                type='Task'
+            )
         return task
     
 class TaskUpdateSerializer(serializers.ModelSerializer):
@@ -133,6 +138,12 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
                         assigned_to=assignment['assigned_to'],
                         assigned_by=self.context['request'].user  # Set the current user as assigned_by
                     )
+                    Notification.objects.create(
+                    task=instance,
+                    receiver_id=assignment['assigned_to'],
+                    message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
+                    type='Task'
+                )
 
         return instance
 
