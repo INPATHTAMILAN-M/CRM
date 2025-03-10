@@ -247,6 +247,7 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
             )
             assigned_users = Lead_Assignment.objects.filter(lead=opportunity.lead).values_list('assigned_to', flat=True)
             for user_id in assigned_users:
+                print("Creating notification for user_id:", user_id)  # Debugging
                 Notification.objects.create(
                     opportunity=opportunity,
                     receiver_id=user_id,

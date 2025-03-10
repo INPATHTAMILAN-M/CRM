@@ -92,24 +92,30 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             return None  # Return None instead of raising an error
 
         task_assignment_data = validated_data.pop('task_assignment', [])
+        print("task")
         validated_data['created_by'] = self.context['request'].user  
         validated_data['task_creation_type'] = 'Manual'
         task = Task.objects.create(**validated_data)
-
+        print("task",task)
         # Iterate over the task_assignment list
         for assignment_data in task_assignment_data:
             assigned_by = assignment_data.get('assigned_by', self.context['request'].user)
+            print("ghbfgxn",assigned_by)
             Task_Assignment.objects.create(
                 task=task,
                 assigned_to=assignment_data['assigned_to'],  # Set the assigned_to user from the request data
-                assigned_by=assigned_by # Always set assigned_by to the current user
+                assigned_by=assigned_by  # Always set assigned_by to the current user
             )
+            print("okok", task)
+            print("before notification", task)
+            
             Notification.objects.create(
                 task=task,
-                receiver_id=assignment_data['assigned_to'],
-                message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
+                receiver=assignment_data['assigned_to'],
+                message=f"{assigned_by.first_name} {assigned_by.last_name} assigned a new Task.",
                 type='Task'
             )
+            print("notification",task)
         return task
     
 class TaskUpdateSerializer(serializers.ModelSerializer):
