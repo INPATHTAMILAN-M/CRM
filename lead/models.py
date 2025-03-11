@@ -275,6 +275,7 @@ class Notification(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
     conversation = models.ForeignKey(TaskConversationLog, on_delete=models.CASCADE, null=True, blank=True)
     receiver=models.ForeignKey(User, related_name='notification_receiver', on_delete=models.CASCADE)
+    assigned_by=models.ForeignKey(User, related_name='notification_sender', on_delete=models.CASCADE)
     message=models.TextField()
     created_at=models.DateTimeField(auto_now_add=True)
     is_read=models.BooleanField(default=False)

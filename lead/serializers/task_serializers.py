@@ -107,7 +107,6 @@ class TaskCreateSerializer(serializers.ModelSerializer):
                 assigned_to=assignment_data['assigned_to'],  # Set the assigned_to user from the request data
                 assigned_by=assigned_by  # Always set assigned_by to the current user
             )
-<<<<<<< HEAD
             print("okok", task)
             print("before notification", task)
             
@@ -119,15 +118,6 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             )
             print("notification",task)
         return task
-=======
-        #     Notification.objects.create(
-        #         task=task,
-        #         receiver_id=assignment_data['assigned_to'],
-        #         message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
-        #         type='Task'
-        #     )
-        # return task
->>>>>>> bce9ad4db3b7505ea9e40acdd60ab6d109a98dee
     
 class TaskUpdateSerializer(serializers.ModelSerializer):
     task_assignment = TaskAssignmentSerializer(many=True, required=False)
@@ -155,12 +145,12 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
                         assigned_to=assignment['assigned_to'],
                         assigned_by=self.context['request'].user  # Set the current user as assigned_by
                     )
-                #     Notification.objects.create(
-                #     task=instance,
-                #     receiver_id=assignment['assigned_to'],
-                #     message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
-                #     type='Task'
-                # )
+                    Notification.objects.create(
+                    task=instance,
+                    receiver_id=assignment['assigned_to'],
+                    message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
+                    type='Task'
+                )
 
         return instance
 

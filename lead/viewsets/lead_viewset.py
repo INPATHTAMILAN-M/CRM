@@ -150,10 +150,10 @@ class LeadViewSet(viewsets.ModelViewSet):
         instance.save()
 
         # Send notifications to the lead owner and creator about the deactivation
-        if self.request.user != instance.lead_owner:
-            Notification.objects.create(receiver=instance.lead_owner, message=f"Lead '{instance.name}' has been deactivated.")
-        if self.request.user != instance.created_by:
-            Notification.objects.create(receiver=instance.created_by, message=f"Lead '{instance.name}' has been deactivated.")
+        # if self.request.user != instance.lead_owner:
+        #     Notification.objects.create(receiver=instance.lead_owner, message=f"Lead '{instance.name}' has been deactivated.")
+        # if self.request.user != instance.created_by:
+        #     Notification.objects.create(receiver=instance.created_by, message=f"Lead '{instance.name}' has been deactivated.")
 
 
     def list(self, request, *args, **kwargs):

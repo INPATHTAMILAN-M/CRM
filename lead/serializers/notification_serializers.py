@@ -1,7 +1,5 @@
-
-from asyncio import Task
 from rest_framework import serializers
-from lead.models import Notification
+from lead.models import Notification,Task 
 
 from lead.serializers.log_serializer import LogStageSerializer
 from ..models import Lead,Employee,Contact, Log,Opportunity, Opportunity_Status, Opportunity_Name, Task_Assignment, TaskConversationLog
@@ -343,6 +341,12 @@ class NotificationRetrieveSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class NotificationListSerializer(serializers.ModelSerializer):
+    lead = LeadSerializer()
+    task = TaskListSerializer()
+    opportunity = OpportunityListSerializer()
+    conversation = TaskConversationLogListSerializer()
+    receiver = UserSerializer()
+    
     class Meta:
         model = Notification
         fields = '__all__'
