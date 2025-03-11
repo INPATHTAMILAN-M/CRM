@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.db import transaction
+
 from lead.models import (
     Contact, Department, Lead_Assignment, Lead_Status, Notification, 
     Opportunity, User, Lead, Opportunity_Stage, 
@@ -177,15 +179,19 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
             if old_opportunity_status != new_opportunity_status:
                 instance.status_date = datetime.date.today()
                 instance.save()  # <-- Ensure this is saved immediately
-                assigned_users = Lead_Assignment.objects.filter(lead=instance.lead).values_list('assigned_to', flat=True)
-                for user_id in assigned_users:
-                    Notification.objects.create(
-                        opportunity=instance,
-                        receiver_id=user_id,
-                        message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} changed the status of this Opportunity: '{instance.name.name}'.",
-                        assigned_by=self.context['request'].user,
-                        type="Opportunity"
-                    )
+                assigned_users = Lead_Assignment.objects.filter(lead=instance.lead).values_list('assigned_to', flat=True).distinct()
+                print("assigned_users",assigned_users)
+
+                # Use a transaction to ensure notifications are created atomically
+                with transaction.atomic():
+                    for user_id in assigned_users:
+                        Notification.objects.create(
+                            opportunity=instance,
+                            receiver_id=user_id,
+                            message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{instance.name.name}'.",
+                            assigned_by=self.context['request'].user,
+                            type="Opportunity"
+                        )
                 Log.objects.create(
                     contact=instance.primary_contact,
                     opportunity_status=instance.opportunity_status,
@@ -246,16 +252,19 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
                 log_stage = Log_Stage.objects.all().first(),
                 created_by=self.context['request'].user  # The user creating the opportunity
             )
-            assigned_users = Lead_Assignment.objects.filter(lead=opportunity.lead).values_list('assigned_to', flat=True)
-            for user_id in assigned_users:
-                print("Creating notification for user_id:", user_id)  # Debugging
-                Notification.objects.create(
-                    opportunity=opportunity,
-                    receiver_id=user_id,
-                    message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opportunity.name.name}'.",
-                    assigned_by=self.context['request'].user,
-                    type="Opportunity"
-                )
+            assigned_users = Lead_Assignment.objects.filter(lead=opportunity.lead).values_list('assigned_to', flat=True).distinct()
+            print("assigned_users",assigned_users)
+
+                # Use a transaction to ensure notifications are created atomically
+            with transaction.atomic():
+                for user_id in assigned_users:
+                    Notification.objects.create(
+                        opportunity=opportunity,
+                        receiver_id=user_id,
+                        message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opportunity.name.name}'.",
+                        assigned_by=self.context['request'].user,
+                        type="Opportunity"
+                    )
             # Create the Opportunity_Stage record linked to the new Opportunity
             opportunity_stage = Opportunity_Stage(
                 opportunity=opportunity,

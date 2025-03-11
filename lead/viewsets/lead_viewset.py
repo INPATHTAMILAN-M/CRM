@@ -35,9 +35,9 @@ class LeadViewSet(viewsets.ModelViewSet):
         return LeadSerializer
     
     def get_serializer_context(self):
-        # Add the request to the serializer context
+        """Pass request to serializer"""
         context = super().get_serializer_context()
-        context['request'] = self.request
+        context["request"] = self.request  # Add request context
         return context
     
     def perform_create(self, serializer):
@@ -114,7 +114,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             return Response({"error": "Lead not found."}, status=status.HTTP_404_NOT_FOUND)
 
         # Update the lead object
-        serializer =PostLeadSerializer(lead, data=request.data, partial=True)
+        serializer =PostLeadSerializer(lead, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             lead = serializer.save()
 

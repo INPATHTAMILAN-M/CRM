@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.db import transaction
+
 from django.utils import timezone
 from lead.serializers.log_serializer import LogStageSerializer
 from ..models import Lead,Employee,Contact, Lead_Assignment, Log, Notification,Opportunity, Opportunity_Status, Opportunity_Name, Task_Assignment
@@ -351,14 +353,13 @@ class PostLeadSerializer(serializers.ModelSerializer):
                 opportunity_keyword = opportunity_keyword
             )
             # Fetch all assigned_to users from Lead_Assignment for this lead
-            assigned_users = Lead_Assignment.objects.filter(lead=lead).values_list('assigned_to', flat=True)
-            for user_id in assigned_users:
+            if lead.assigned_to:
                 Notification.objects.create(
                     opportunity=opp,
-                    receiver_id=user_id,
-                    message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opportunity_name}'.",
+                    receiver_id=lead.assigned_to,
+                    message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opp.name.name}'.",
                     assigned_by=self.context['request'].user,
-                    type = "Opportunity"
+                    type="Opportunity"
                 )
             print(opp)
 

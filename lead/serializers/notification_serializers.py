@@ -37,6 +37,41 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'first_name', 'last_name','groups', 'email', 'is_active']
 
+class LeadStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Status
+        fields = '__all__'
+        
+class LeadSerializer(serializers.ModelSerializer):
+   
+    lead_owner = serializers.SerializerMethodField()
+    primary_contact = ContactSerializer(read_only=True)
+    assigned_to = UserSerializer()
+    lead_status = LeadStatusSerializer(read_only=True)  # Nested serializer for LeadStatus
+
+    class Meta:
+        model = Lead
+        fields = ['id', 'name', 'lead_owner', 'created_on', 'lead_status','status_date','primary_contact','assigned_to']
+
+    def get_lead_owner(self, obj):
+        return {
+            'id': obj.lead_owner.id,
+            'username': obj.lead_owner.username
+        }
+
+    def to_representation(self, instance):
+        # Get the basic representation first
+        representation = super().to_representation(instance)
+
+        primary_contact = instance.contact_leads.filter(is_primary=True).first()  # Use 'contact_leads'
+        if primary_contact:
+            primary_contact_data = ContactSerializer(primary_contact).data
+            representation['primary_contact'] = primary_contact_data
+        else:
+            representation['primary_contact'] = None
+       
+        return representation
+
 class TaskAssignmentSerializer(serializers.ModelSerializer):
     
     class Meta:
@@ -129,20 +164,14 @@ class LeadSourceFromSerializer(serializers.ModelSerializer):
         model = Lead_Source_From
         fields = '__all__'
 
-class LeadStatusSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lead_Status
-        fields = '__all__'
+
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = '__all__'
 
-class LeadSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lead
-        fields = '__all__'
+
 
 class ContactStatusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -269,35 +298,6 @@ class LogSerializer(serializers.ModelSerializer):
             'username': obj.created_by.username
         }
 
-class LeadSerializer(serializers.ModelSerializer):
-   
-    lead_owner = serializers.SerializerMethodField()
-    primary_contact = ContactSerializer(read_only=True)
-    assigned_to = UserSerializer()
-    lead_status = LeadStatusSerializer(read_only=True)  # Nested serializer for LeadStatus
-
-    class Meta:
-        model = Lead
-        fields = ['id', 'name', 'lead_owner', 'created_on', 'lead_status','status_date','primary_contact','assigned_to']
-
-    def get_lead_owner(self, obj):
-        return {
-            'id': obj.lead_owner.id,
-            'username': obj.lead_owner.username
-        }
-
-    def to_representation(self, instance):
-        # Get the basic representation first
-        representation = super().to_representation(instance)
-
-        primary_contact = instance.contact_leads.filter(is_primary=True).first()  # Use 'contact_leads'
-        if primary_contact:
-            primary_contact_data = ContactSerializer(primary_contact).data
-            representation['primary_contact'] = primary_contact_data
-        else:
-            representation['primary_contact'] = None
-       
-        return representation
 
 class OpportunityListSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
@@ -323,11 +323,13 @@ class OpportunityListSerializer(serializers.ModelSerializer):
             return f"{domain}{file_url}"
         return None
 class TaskConversationLogListSerializer(serializers.ModelSerializer):
+    task = TaskListSerializer()
+    seen_by = UserSerializer(many=True)
     created_by = UserSerializer()
 
     class Meta:
         model = TaskConversationLog
-        fields = ['id', 'task', 'message', 'created_by', 'created_on', 'seen_by', 'is_viewed']
+        fields = '__all__'
 
 class NotificationRetrieveSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
@@ -347,6 +349,7 @@ class NotificationListSerializer(serializers.ModelSerializer):
     conversation = TaskConversationLogListSerializer()
     receiver = UserSerializer()
     assigned_by = UserSerializer()
+
     class Meta:
         model = Notification
         fields = '__all__'
