@@ -114,6 +114,7 @@ class TaskCreateSerializer(serializers.ModelSerializer):
                 task=task,
                 receiver=assignment_data['assigned_to'],
                 message=f"{assigned_by.first_name} {assigned_by.last_name} assigned a new Task.",
+                assigned_by=self.context['request'].user,
                 type='Task'
             )
             print("notification",task)
@@ -149,6 +150,7 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
                     task=instance,
                     receiver_id=assignment['assigned_to'],
                     message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned a new Task.",
+                    assigned_by=self.context['request'].user,
                     type='Task'
                 )
 

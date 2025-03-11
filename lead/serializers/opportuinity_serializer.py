@@ -183,6 +183,7 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
                         opportunity=instance,
                         receiver_id=user_id,
                         message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} changed the status of this Opportunity: '{instance.name.name}'.",
+                        assigned_by=self.context['request'].user,
                         type="Opportunity"
                     )
                 Log.objects.create(
@@ -252,6 +253,7 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
                     opportunity=opportunity,
                     receiver_id=user_id,
                     message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opportunity.name.name}'.",
+                    assigned_by=self.context['request'].user,
                     type="Opportunity"
                 )
             # Create the Opportunity_Stage record linked to the new Opportunity

@@ -61,6 +61,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                 lead=lead,
                 receiver=lead.assigned_to,
                 message=f"{self.request.user.first_name} {self.request.user.last_name} assigned to a new lead: '{lead.name}'.",
+                assigned_by=self.request.user,
                 type='Lead'
                 )
 

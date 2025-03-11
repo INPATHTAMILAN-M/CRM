@@ -14,7 +14,7 @@ class OpportunityFilter(django_filters.FilterSet):
     currency_type = django_filters.ModelChoiceFilter(queryset=Country.objects.all())  # Filter by currency type
     closing_date = django_filters.DateFromToRangeFilter()  # Date range filter
     probability_in_percentage = django_filters.RangeFilter()  # Filter by percentage range
-    created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all())  # Filter by user who created
+    # created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all())  # Filter by user who created
     created_on = django_filters.DateFromToRangeFilter()  # Date range filter
     is_active = django_filters.BooleanFilter()  # Boolean filter
 
@@ -49,7 +49,6 @@ class OpportunityFilter(django_filters.FilterSet):
             'currency_type',
             'closing_date',
             'probability_in_percentage',
-            'created_by',
             'created_on',
             'is_active',
             'assigned_to',

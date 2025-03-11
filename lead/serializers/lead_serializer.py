@@ -357,6 +357,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
                     opportunity=opp,
                     receiver_id=user_id,
                     message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opportunity_name}'.",
+                    assigned_by=self.context['request'].user,
                     type = "Opportunity"
                 )
             print(opp)
@@ -379,13 +380,14 @@ class PostLeadSerializer(serializers.ModelSerializer):
             Lead_Assignment.objects.create(
                 lead=instance,  
                 assigned_to=assigned_to,
-                assigned_by=instance.created_by,
+                assigned_by=self.context['request'].user,
             )
         print("assigned_to",assigned_to)
         Notification.objects.create(
                 lead=instance,
                 receiver=assigned_to,
                 message=f"{instance.created_by.first_name} {instance.created_by.last_name} assigned to a new lead: '{instance.name}'.",
+                assigned_by=self.context['request'].user,
                 type="Lead"
                 )
         return super().update(instance, validated_data)

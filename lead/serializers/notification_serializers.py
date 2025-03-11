@@ -346,7 +346,7 @@ class NotificationListSerializer(serializers.ModelSerializer):
     opportunity = OpportunityListSerializer()
     conversation = TaskConversationLogListSerializer()
     receiver = UserSerializer()
-    
+    assigned_by = UserSerializer()
     class Meta:
         model = Notification
         fields = '__all__'
@@ -354,6 +354,6 @@ class NotificationListSerializer(serializers.ModelSerializer):
 class NotificationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['lead','task','opportunity','conversation','receiver', 'message', 'type']
+        fields = ['lead','task','opportunity','conversation','receiver', 'assigned_by','message', 'type']
 
 

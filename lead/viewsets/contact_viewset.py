@@ -52,8 +52,16 @@ class ContactViewSet(viewsets.ModelViewSet):
         instance.save()
         return Response({"message": "deactivated successfully."}, status=status.HTTP_200_OK)
 
-class ImportContactsAPIView(APIView): 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import pandas as pd
+from ..serializers.contact_import_serializer import ContactImportCreateSerializer
+
+
+class ImportContactsAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
+    serializer_class = ContactImportCreateSerializer
 
     def post(self, request, *args, **kwargs):
         file = request.FILES.get('file')
@@ -62,108 +70,56 @@ class ImportContactsAPIView(APIView):
             return Response({"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            workbook = openpyxl.load_workbook(file)
-            sheet = workbook.active
+            # Load and parse the Excel file using pandas
+            df = pd.read_excel(file)
 
-            headers = [cell.value.strip() if cell.value else "" for cell in sheet[1]]
-            headers = [header for header in headers if header]
+            # Check if there are any headers
+            if df.empty:
+                return Response({"error": "Excel contains no valid data."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if len(headers) == 0:
-                return Response({"error": "Excel contains no valid header fields."}, status=status.HTTP_400_BAD_REQUEST)
+            # Normalize column names to lowercase and strip any extra spaces
+            df.columns = df.columns.str.strip().str.lower()
 
-            column_mapping = {}
-            for index, header in enumerate(headers):
-                column_mapping[header.lower()] = index
+            # Validate if necessary columns are present
+            required_columns = ['company_name']  # You can add more required columns here
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                return Response({"error": f"Missing required columns: {', '.join(missing_columns)}"}, status=status.HTTP_400_BAD_REQUEST)
 
+            # Create the contact data to be serialized
             contacts_data = []
             errored_contacts = []  # To store contacts with errors for response
 
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                if not any(row):  
+            for _, row in df.iterrows():
+                if pd.isnull(row.get('company_name')):
+                    errored_contacts.append({'company_name': None, 'error': 'Missing company_name'})
                     continue
 
-                name = row[column_mapping.get('name')] if column_mapping.get('name') is not None else None
-                lead = row[column_mapping.get('lead')] if column_mapping.get('lead') is not None else None
-                company_name = row[column_mapping.get('company_name')] if column_mapping.get('company_name') is not None else None
-                contact_status_name = row[column_mapping.get('status')] if column_mapping.get('status') is not None else None
-                designation = row[column_mapping.get('designation')] if column_mapping.get('designation') is not None else None
-                department_name = row[column_mapping.get('department')] if column_mapping.get('department') is not None else None
-                phone_number = row[column_mapping.get('phone_number')] if column_mapping.get('phone_number') is not None else None
-                email_id = row[column_mapping.get('email_id')] if column_mapping.get('email_id') is not None else None
-                remark = row[column_mapping.get('remark')] if column_mapping.get('remark') is not None else None
-                lead_source_name = row[column_mapping.get('lead_source')] if column_mapping.get('lead_source') is not None else None
-                lead_source_from_name = row[column_mapping.get('lead_source_from')] if column_mapping.get('lead_source_from') is not None else None
-                is_active = row[column_mapping.get('is_active')] == 'TRUE' if column_mapping.get('is_active') is not None else False
-                is_archive = row[column_mapping.get('is_archive')] == 'TRUE' if column_mapping.get('is_archive') is not None else False
-                
-                if not company_name:
-                    errored_contacts.append({'lead': lead, 'error': 'Missing company_name'})
-                    continue
-
-                # Querying database for the IDs based on name
-                contact_status = None
-                if contact_status_name:
-                    try:
-                        contact_status = Contact_Status.objects.get(status=contact_status_name, is_active=True)
-                    except ObjectDoesNotExist:
-                        errored_contacts.append({'company_name': company_name, 'error': f"Contact status '{contact_status_name}' not found"})
-                        continue
-
-                department = None
-                if department_name:
-                    try:
-                        department = Department.objects.get(department=department_name, is_active=True)
-                    except ObjectDoesNotExist:
-                        errored_contacts.append({'company_name': company_name, 'error': f"Department '{department_name}' not found"})
-                        continue
-
-                lead_source = None
-                if lead_source_name:
-                    try:
-                        lead_source = Lead_Source.objects.get(source=lead_source_name, is_active=True)
-                    except ObjectDoesNotExist:
-                        errored_contacts.append({'company_name': company_name, 'error': f"Lead source '{lead_source_name}' not found"})
-                        continue
-
-                lead_source_from = None
-                if lead_source_from_name:
-                    try:
-                        lead_source_from = Lead_Source_From.objects.get(source_from=lead_source_from_name, is_active=True)
-                    except ObjectDoesNotExist:
-                        errored_contacts.append({'company_name': company_name, 'error': f"Lead source from '{lead_source_from_name}' not found"})
-                        continue
-
-                # Check for duplicate company_name or phone_number
-                if Contact.objects.filter(company_name=company_name).exists():
-                    errored_contacts.append({'company_name': company_name, 'error': 'Contact with this company name already exists'})
-                    continue
-
-                if Contact.objects.filter(phone_number=phone_number).exists():
-                    errored_contacts.append({'company_name': company_name, 'error': 'Contact with this phone number already exists'})
-                    continue
-
+                # Extract row data into a dictionary
                 contact_data = {
-                    'lead': lead,
-                    'name': name,
-                    'company_name': company_name,
-                    'contact_status': contact_status.id if contact_status else None,
-                    'designation': designation,
-                    'department': department.id if department else None,
-                    'phone_number': phone_number,
-                    'email_id': email_id,
-                    'remark': remark,
-                    'lead_source': lead_source.id if lead_source else None,
-                    'lead_source_from': lead_source_from.id if lead_source_from else None,
-                    'is_active': is_active,
-                    'is_archive': is_archive,
+                    'lead': row.get('lead') if pd.notnull(row.get('lead')) else None,
+                    'name': row.get('name') if pd.notnull(row.get('name')) else None,
+                    'company_name': row.get('company_name') if pd.notnull(row.get('company_name')) else None,
+                    'status': row.get('status') if pd.notnull(row.get('status')) else None,
+                    'designation': row.get('designation') if pd.notnull(row.get('designation')) else None,
+                    'department': row.get('department') if pd.notnull(row.get('department')) else None,
+                    'phone_number': row.get('phone_number') if pd.notnull(row.get('phone_number')) else None,
+                    'secondary_phone_number': row.get('secondary_phone_number') if pd.notnull(row.get('secondary_phone_number')) else None,
+                    'email_id': row.get('email_id') if pd.notnull(row.get('email_id')) else None,
+                    'remark': row.get('remark') if pd.notnull(row.get('remark')) else None,
+                    'lead_source': row.get('lead_source') if pd.notnull(row.get('lead_source')) else None,
+                    'lead_source_from': row.get('lead_source_from') if pd.notnull(row.get('lead_source_from')) else None,
+                    'is_active': row.get('is_active') == 'TRUE' if pd.notnull(row.get('is_active')) else False,
+                    'is_archive': row.get('is_archive') == 'TRUE' if pd.notnull(row.get('is_archive')) else False,
                     'created_by': request.user.id,
                 }
-                contacts_data.append(contact_data)
 
+                contacts_data.append(contact_data)
             if not contacts_data:
                 return Response({"error": "No valid contacts found in the file."}, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer = ContactImportCreateSerializer(data=contacts_data, many=True)
+            # Use serializer to validate and save contacts
+            serializer = self.serializer_class(data=contacts_data, many=True)
             if serializer.is_valid():
                 serializer.save()
                 response_data = {"message": "Contacts imported successfully", "data": serializer.data}
@@ -171,21 +127,13 @@ class ImportContactsAPIView(APIView):
                     response_data["errored_contacts"] = errored_contacts
                 return Response(response_data, status=status.HTTP_201_CREATED)
 
-            # Return the error details including the `id` and `company_name` for errored rows
-            error_details = []
-            for contact, error in zip(contacts_data, serializer.errors):
-                contact_error = {
-                    "id": contact.get("id", "N/A"),
-                    "company_name": contact.get("company_name", "N/A"),
-                    "error": error
-                }
-                error_details.append(contact_error)
-
+            # Return the error details if validation fails
+            error_details = [{"company_name": contact.get("company_name", "N/A"), "error": error}
+                             for contact, error in zip(contacts_data, serializer.errors)]
             return Response({"error": "Invalid data", "details": error_details}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             return Response({"error": f"Failed to process the Excel file: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 from rest_framework import status
