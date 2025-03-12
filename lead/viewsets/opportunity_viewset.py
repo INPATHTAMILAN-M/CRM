@@ -23,14 +23,11 @@ from ..filters.opportunity_filter import OpportunityFilter
 
 
 class OpportunityViewset(viewsets.ModelViewSet):
-    queryset = Opportunity.objects.all().order_by('-id')
+    queryset = Opportunity.objects.all().order_by('-id').exclude(opportunity_status=None)
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = OpportunityFilter
     pagination_class = Paginator
-
-
-    
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -41,7 +38,11 @@ class OpportunityViewset(viewsets.ModelViewSet):
             return OpportunityUpdateSerializer
         return OpportunityDetailSerializer
     
-        
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return response
+    
+
     def perform_create(self, serializer):
         self.send_lead_owner_email(serializer.instance)
         serializer.save(created_by=self.request.user)

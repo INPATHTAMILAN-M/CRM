@@ -85,21 +85,24 @@ class OpportunityFilter(django_filters.FilterSet):
     
 
     def filter_this_month(self, queryset, name, value):
+        """Filter records created in the current month and year."""
+
         if value:
             return queryset.filter(
-                Q(lead__created_on__month=timezone.now().month)|Q(status_date__month=timezone.now().month)
+                Q(lead__created_on__month=timezone.now().month, lead__created_on__year=timezone.now().year) |
+                Q(status_date__month=timezone.now().month, status_date__year=timezone.now().year)
             )
+        
         return queryset
-    
+
     def filter_today(self, queryset, name, value):
+        """Filter records created today."""
         if value:
             today = timezone.now().date()
             return queryset.filter(
-                Q(lead__created_on__year=today.year,
-                lead__created_on__month=today.month,
-                lead__created_on__day=today.day)|Q(status_date=today)
+                Q(lead__created_on=today) | Q(status_date=today)
             )
-        return queryset    
+        return queryset   
 
     def search_filter(self, queryset, name, value):
         """Search by lead name or opportunity name."""
