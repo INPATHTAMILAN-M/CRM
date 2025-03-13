@@ -7,7 +7,7 @@ from ..models import Contact, Lead
 
 
 class ContactFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(lookup_expr='icontains')
+    name = django_filters.CharFilter(method='filter_by_all_fields')
     lead = django_filters.ModelChoiceFilter(queryset=Lead.objects.all(), required=False)
     is_active = django_filters.BooleanFilter(field_name='is_active', lookup_expr='exact', required=False)
     is_archive = django_filters.BooleanFilter(field_name='is_archive', lookup_expr='exact', required=False)
@@ -31,3 +31,9 @@ class ContactFilter(django_filters.FilterSet):
             return queryset.filter(lead__isnull=True)  
         return queryset
     
+    def filter_by_all_fields(self, queryset, name, value):
+        return queryset.filter(
+            Q(name__icontains=value) |
+            Q(company_name__icontains=value) |
+            Q(phone_number__icontains=value)
+        )

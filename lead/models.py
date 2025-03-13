@@ -116,6 +116,7 @@ class Contact(models.Model):
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
     is_archive = models.BooleanField(default=False)
+
     
     def __str__(self):
         return self.name if self.name else "Unnamed Contact"
