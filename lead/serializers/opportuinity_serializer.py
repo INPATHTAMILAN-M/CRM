@@ -188,10 +188,11 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
                         Notification.objects.create(
                             opportunity=instance,
                             receiver_id=user_id,
-                            message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{instance.name.name}'.",
+                            message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} changed the status of this Opportunity: '{instance.name.name}'.",
                             assigned_by=self.context['request'].user,
                             type="Opportunity"
                         )
+
                 Log.objects.create(
                     contact=instance.primary_contact,
                     opportunity_status=instance.opportunity_status,

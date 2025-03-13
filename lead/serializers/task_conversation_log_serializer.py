@@ -20,14 +20,14 @@ class TaskConversationLogCreateSerializer(serializers.ModelSerializer):
             validated_data['created_by'] = self.context['request'].user
             instance = TaskConversationLog.objects.create(**validated_data)
             instance.seen_by.set([self.context['request'].user])
-            assigned_users = Task_Assignment.objects.filter(task=instance.task).values_list('assigned_to', flat=True)
+            assigned_users = Task_Assignment.objects.filter(task=instance.task).values_list('assigned_to', flat=True).distinct()
             for user_id in assigned_users:
                 Notification.objects.create(
                     conversation=instance,
                     receiver_id=user_id,
                     message=f"You received message from {self.context['request'].user.first_name} {self.context['request'].user.last_name}.",
                     assigned_by=self.context['request'].user,
-                    type = "Conversation"
+                    type = "Task"
                 )
             return instance
             
@@ -55,7 +55,7 @@ class TaskConversationLogUpdateSerializer(serializers.ModelSerializer):
                     receiver_id=user_id,
                     message=f"You received message from {self.context['request'].user.first_name} {self.context['request'].user.last_name}.",
                     assigned_by=self.context['request'].user,
-                    type = "Conversation"
+                    type = "Task"
                 )
             return super().update(instance, validated_data)
         

@@ -352,15 +352,28 @@ class PostLeadSerializer(serializers.ModelSerializer):
                 closing_date=timezone.now().date(),
                 opportunity_keyword = opportunity_keyword
             )
+            assigned_users = Lead_Assignment.objects.filter(lead=opp.lead).values_list('assigned_to', flat=True).distinct()
+            print("assigned_users",assigned_users)
+
+            # Use a transaction to ensure notifications are created atomically
+            with transaction.atomic():
+                for user_id in assigned_users:
+                    Notification.objects.create(
+                        opportunity=opp,
+                        receiver_id=user_id,
+                        message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} changed the status of this Opportunity: '{opp.name.name}'.",
+                        assigned_by=self.context['request'].user,
+                        type="Opportunity"
+                    )
             # Fetch all assigned_to users from Lead_Assignment for this lead
-            if lead.assigned_to:
-                Notification.objects.create(
-                    opportunity=opp,
-                    receiver_id=lead.assigned_to,
-                    message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opp.name.name}'.",
-                    assigned_by=self.context['request'].user,
-                    type="Opportunity"
-                )
+            # if lead.assigned_to:
+            #     Notification.objects.create(
+            #         opportunity=opp,
+            #         receiver_id=lead.assigned_to,
+            #         message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} created a new Opportunity: '{opp.name.name}'.",
+            #         assigned_by=self.context['request'].user,
+            #         type="Opportunity"
+            #     )
             print(opp)
 
 
@@ -377,18 +390,13 @@ class PostLeadSerializer(serializers.ModelSerializer):
                 assigned_to=assigned_to,
                 assigned_by=instance.created_by,
             )
-        if assigned_to is None:
-            Lead_Assignment.objects.create(
-                lead=instance,  
-                assigned_to=assigned_to,
-                assigned_by=self.context['request'].user,
-            )
-        print("assigned_to",assigned_to)
-        Notification.objects.create(
-                lead=instance,
-                receiver=assigned_to,
-                message=f"{instance.created_by.first_name} {instance.created_by.last_name} assigned to a new lead: '{instance.name}'.",
-                assigned_by=self.context['request'].user,
-                type="Lead"
-                )
+        
+            print("assigned_to",assigned_to)
+            # Notification.objects.create(
+            #         lead=instance,
+            #         receiver=assigned_to,
+            #         message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} assigned to a new lead: '{instance.name}'.",
+            #         assigned_by=self.context['request'].user,
+            #         type="Lead"
+            #         )
         return super().update(instance, validated_data)
