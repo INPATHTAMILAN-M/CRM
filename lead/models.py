@@ -113,7 +113,7 @@ class Contact(models.Model):
     source_from = models.TextField(null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
-    updated_on = models.DateField(null=True, blank=True)
+    updated_on = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
     is_archive = models.BooleanField(default=False)

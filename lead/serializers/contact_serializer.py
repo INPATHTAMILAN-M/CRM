@@ -59,5 +59,5 @@ class ContactUpdateSerializer(serializers.ModelSerializer):
         exclude = ('created_by',)
 
     def update(self, instance, validated_data):
-        instance.updated_on = timezone.now().date()
+        instance.updated_on = timezone.now()
         return super().update(instance, validated_data)
