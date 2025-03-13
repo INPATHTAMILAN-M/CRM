@@ -21,7 +21,7 @@ import pandas as pd
 from ..serializers.lead_import_serializer import LeadImportSerializer
 
 class ContactViewSet(viewsets.ModelViewSet):
-    queryset = Contact.objects.all().order_by('-id')
+    queryset = Contact.objects.all().order_by( '-updated_on','-created_on')
     permission_classes = [IsAuthenticated]  
     pagination_class = Paginator
     filter_backends = [DjangoFilterBackend]

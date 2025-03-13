@@ -1,10 +1,10 @@
-from datetime import timezone
 from rest_framework import serializers
 
 from lead.serializers.lead_serializer import  LeadSourceSerializer
 from ..models import Contact, Lead, Contact_Status, Lead_Source
 from django.contrib.auth.models import User
 from ..models import Department
+from django.utils import timezone
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,5 +59,5 @@ class ContactUpdateSerializer(serializers.ModelSerializer):
         exclude = ('created_by',)
 
     def update(self, instance, validated_data):
-        instance.updated_on = timezone.now()
+        instance.updated_on = timezone.now().date()
         return super().update(instance, validated_data)
