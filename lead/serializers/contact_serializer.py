@@ -1,3 +1,4 @@
+from datetime import timezone
 from rest_framework import serializers
 
 from lead.serializers.lead_serializer import  LeadSourceSerializer
@@ -56,3 +57,7 @@ class ContactUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         exclude = ('created_by',)
+
+    def update(self, instance, validated_data):
+        instance.updated_on = timezone.now()
+        return super().update(instance, validated_data)
