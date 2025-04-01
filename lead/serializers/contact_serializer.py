@@ -32,6 +32,7 @@ class ContactListSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer(read_only=True)
     created_by =UserSerializer()
     lead_source = LeadSourceSerializer(read_only=True)
+    assigned_to = UserSerializer(read_only=True)
     
     class Meta:
         model = Contact
