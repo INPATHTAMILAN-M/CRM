@@ -112,7 +112,7 @@ class Contact(models.Model):
     lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.CASCADE, null=True, blank=True)
     source_from = models.TextField(null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    created_on = models.DateField(auto_now_add=True)
+    created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
@@ -285,11 +285,11 @@ class Notification(models.Model):
 
 
 class Contact_Assignment(models.Model):
-    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
-    assigned_to = models.ForeignKey(User, related_name='assigned_contacts', on_delete=models.CASCADE)
-    assigned_by = models.ForeignKey(User, related_name='assigned_by_contacts', on_delete=models.CASCADE)
+    contact = models.OneToOneField(Contact, on_delete=models.CASCADE)
+    assigned_to = models.ForeignKey(User, related_name='assigned_contacts', on_delete=models.SET_NULL, null=True, blank=True)
+    assigned_by = models.ForeignKey(User, related_name='assigned_by_contacts', on_delete=models.SET_NULL, null=True, blank=True)
     assigned_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'{self.contact.name} assigned to {self.assigned_to.username}'
+        return f'{self.contact.name} assigned to {self.assigned_to.username if self.assigned_to else "Unassigned"}'
