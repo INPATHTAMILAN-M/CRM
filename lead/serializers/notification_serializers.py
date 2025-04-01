@@ -18,6 +18,7 @@ class LeadContactSerializer(serializers.ModelSerializer):
 
 class ContactSerializer(serializers.ModelSerializer):
     lead = LeadContactSerializer(read_only=True)
+    status = serializers.StringRelatedField()
     
     class Meta:
         model = Contact
