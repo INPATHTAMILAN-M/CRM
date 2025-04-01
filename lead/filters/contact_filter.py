@@ -21,11 +21,12 @@ class ContactFilter(django_filters.FilterSet):
     to_date = django_filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
     lead_status = django_filters.BaseInFilter(field_name='lead__lead_status__id', label="Lead Status Filter")
     created_by = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), label="Created By Filter")
-    
+
+    assigned_to_by_contact = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), field_name='assigned_to', label="Assigned To Filter")
     class Meta:
         model = Contact
         fields = ['name', 'lead', 'is_active', 'status', 'is_archive', 'lead_is_null', 'assigned_to', 'lead_source', 
-                  'from_date', 'to_date', 'lead_status', 'created_by']
+                  'from_date', 'to_date', 'lead_status', 'created_by', 'assigned_to_by_contact']
     
     def filter_lead_is_null(self, queryset, name, value):
         if value:
