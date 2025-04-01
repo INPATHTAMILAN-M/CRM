@@ -23,3 +23,13 @@ class ContactAssignmentRetrieveSerializer(serializers.ModelSerializer):
         model = Contact_Assignment
         fields = ['id', 'contact_name', 'assigned_to_username', 'assigned_by_username', 
                   'assigned_on', 'is_active']
+        
+class ContactAssignmentListSerializer(serializers.ModelSerializer):
+    contact_name = serializers.CharField(source='contact.name', read_only=True)
+    assigned_to_username = serializers.CharField(source='assigned_to.username', read_only=True)
+    assigned_by_username = serializers.CharField(source='assigned_by.username', read_only=True)
+
+    class Meta:
+        model = Contact_Assignment
+        fields = ['id', 'contact_name', 'assigned_to_username', 'assigned_by_username', 
+                  'assigned_on', 'is_active']
