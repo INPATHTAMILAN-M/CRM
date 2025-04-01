@@ -20,8 +20,11 @@ class ContactFilter(django_filters.FilterSet):
     date_range = django_filters.DateFromToRangeFilter(field_name='created_on__date', label='Date Range')
     to_date = django_filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
     lead_status = django_filters.BaseInFilter(field_name='lead__lead_status__id', label="Lead Status Filter")
-    created_by = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), label="Created By Filter")
-
+    created_by = django_filters.ModelMultipleChoiceFilter(
+        queryset=User.objects.all(),
+        method='filter_created_by_or_assigned_to',
+        label="Created By Filter"
+    )
     assigned_to_by_contact = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), field_name='assigned_to', label="Assigned To Filter")
     class Meta:
         model = Contact
@@ -31,6 +34,13 @@ class ContactFilter(django_filters.FilterSet):
     def filter_lead_is_null(self, queryset, name, value):
         if value:
             return queryset.filter(lead__isnull=True)  
+        return queryset
+    
+    def filter_created_by_or_assigned_to(self, queryset, name, value):
+        if value:
+            return queryset.filter(
+                Q(created_by__in=value) | Q(assigned_to__in=value)
+            )
         return queryset
     
     def filter_by_all_fields(self, queryset, name, value):
