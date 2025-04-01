@@ -16,8 +16,8 @@ class ContactFilter(django_filters.FilterSet):
 
     assigned_to = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), field_name='lead__assigned_to', label="Assigned To Filter")
     lead_source = django_filters.ModelChoiceFilter(queryset=Lead_Source.objects.all(), label="Lead Source Filter")
-    from_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='gte', label='From Date')
-    to_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='lte', label='To Date', required=False)
+    from_date = django_filters.DateFilter(field_name='created_on', lookup_expr='gte', label='From Date')
+    to_date = django_filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
     lead_status = django_filters.BaseInFilter(field_name='lead__lead_status__id', label="Lead Status Filter")
     created_by = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), label="Created By Filter")
     
