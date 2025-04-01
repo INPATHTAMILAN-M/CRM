@@ -21,8 +21,8 @@ import pandas as pd
 from ..serializers.lead_import_serializer import LeadImportSerializer
 
 class ContactViewSet(viewsets.ModelViewSet):
-    queryset = Contact.objects.all().order_by( '-updated_on','-created_on')
-    permission_classes = [IsAuthenticated]  
+    queryset = Contact.objects.filter(is_active=True).order_by( '-updated_on','-created_on')
+    permission_classes = [IsAuthenticated]
     pagination_class = Paginator
     filter_backends = [DjangoFilterBackend]
     filterset_class = ContactFilter
@@ -109,7 +109,7 @@ class ImportContactsAPIView(APIView):
                     'remark': row.get('remark') if pd.notnull(row.get('remark')) else None,
                     'lead_source': row.get('lead_source') if pd.notnull(row.get('lead_source')) else None,
                     'lead_source_from': row.get('lead_source_from') if pd.notnull(row.get('lead_source_from')) else None,
-                    'is_active': row.get('is_active') == 'TRUE' if pd.notnull(row.get('is_active')) else False,
+                    'is_active': row.get('is_active') == 'TRUE' if pd.notnull(row.get('is_active')) else True,
                     'is_archive': row.get('is_archive') == 'TRUE' if pd.notnull(row.get('is_archive')) else False,
                     'created_by': request.user.id,
                 }

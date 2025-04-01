@@ -112,7 +112,7 @@ class Contact(models.Model):
     lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.CASCADE, null=True, blank=True)
     source_from = models.TextField(null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    created_on = models.DateField(auto_now_add=True)
+    created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
@@ -120,7 +120,7 @@ class Contact(models.Model):
 
     
     def __str__(self):
-        return self.name if self.name else "Unnamed Contact"
+        return self.company_name if self.company_name else "Unnamed Contact"
 
 class Lead_Assignment(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE)

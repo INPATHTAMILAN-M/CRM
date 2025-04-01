@@ -27,14 +27,25 @@ class ContactImportCreateSerializer(serializers.ModelSerializer):
 
     def validate_company_name(self, value):
         """Check if the company name already exists."""
-        if Contact.objects.filter(company_name=value).exists():
-            raise serializers.ValidationError("Contact with this company name already exists")
+        existing_contact = Contact.objects.filter(company_name=value).first()
+        if existing_contact:
+            raise serializers.ValidationError({
+                "message": "Contact with this company name already exists",
+                "company_name": value,
+                "created_by": existing_contact.created_by
+            })
         return value
 
     def validate_phone_number(self, value):
         """Check if the phone number already exists."""
-        if value and Contact.objects.filter(phone_number=value).exists():
-            raise serializers.ValidationError("Contact with this phone number already exists")
+        existing_contact = Contact.objects.filter(phone_number=value).first()
+        if existing_contact:
+            raise serializers.ValidationError({
+                "message": "Contact with this phone number already exists",
+                "phone_number": value,
+                "company_name": existing_contact.company_name,
+                "created_by": existing_contact.created_by
+            })
         return value
 
     def validate_status(self, value):
