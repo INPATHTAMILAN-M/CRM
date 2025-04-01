@@ -5,6 +5,7 @@ from ..models import Contact, Lead, Contact_Status, Lead_Source
 from django.contrib.auth.models import User
 from ..models import Department
 from django.utils import timezone
+from ..models import Notification
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -60,4 +61,14 @@ class ContactUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.updated_on = timezone.now()
+        if assigned_to := validated_data.get('assigned_to'):
+            instance.assigned_to = assigned_to
+            Notification.objects.create(
+                message=f'Contact {instance.name} has been assigned to you.',
+                receiver=assigned_to,
+                contact=instance,
+                assigned_by=self.context['request'].user,
+                type = 'Contact'
+            )
+
         return super().update(instance, validated_data)

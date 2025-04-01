@@ -114,6 +114,7 @@ class Contact(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(null=True, blank=True)
+    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True,related_name="assigned_contacts")
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
     is_archive = models.BooleanField(default=False)
@@ -276,6 +277,7 @@ class Notification(models.Model):
     opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, null=True, blank=True)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
     conversation = models.ForeignKey(TaskConversationLog, on_delete=models.CASCADE, null=True, blank=True)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True, blank=True)
     receiver=models.ForeignKey(User, related_name='notification_receiver', on_delete=models.CASCADE)
     assigned_by=models.ForeignKey(User, related_name='notification_sender', on_delete=models.CASCADE)
     message=models.TextField()
@@ -283,13 +285,3 @@ class Notification(models.Model):
     is_read=models.BooleanField(default=False)
     type = models.CharField(max_length=20,null=True, blank=True)
 
-
-class Contact_Assignment(models.Model):
-    contact = models.OneToOneField(Contact, on_delete=models.CASCADE)
-    assigned_to = models.ForeignKey(User, related_name='assigned_contacts', on_delete=models.SET_NULL, null=True, blank=True)
-    assigned_by = models.ForeignKey(User, related_name='assigned_by_contacts', on_delete=models.SET_NULL, null=True, blank=True)
-    assigned_on = models.DateField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f'{self.contact.name} assigned to {self.assigned_to.username if self.assigned_to else "Unassigned"}'

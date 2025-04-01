@@ -8,4 +8,3 @@ from .opportunity_viewset import OpportunityViewset
 from .log_viewset import LogViewSet
 from .stage_viewset import StageViewSet
 from .focuse_segmant_viewset import FocusSegmentViewSet
-from .contact_assignment_viewset import ContactAssignmentViewSet
