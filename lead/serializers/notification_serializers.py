@@ -17,14 +17,11 @@ class LeadContactSerializer(serializers.ModelSerializer):
         fields = ['id','name']
 
 class ContactSerializer(serializers.ModelSerializer):
-    lead = LeadContactSerializer()
+    lead = LeadContactSerializer(read_only=True)
     
     class Meta:
         model = Contact
-        fields = [
-            'id', 'lead', 'company_name', 'name'
-        ]
-
+        fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
     groups = serializers.SerializerMethodField()
@@ -128,6 +125,7 @@ class NotificationRetrieveSerializer(serializers.ModelSerializer):
     opportunity = OpportunitySerializer()
     conversation = TaskConversationLogListSerializer()
     receiver = UserSerializer()
+    contact = ContactSerializer()
     
     class Meta:
         model = Notification
@@ -139,6 +137,7 @@ class NotificationListSerializer(serializers.ModelSerializer):
     opportunity = OpportunitySerializer()
     conversation = TaskConversationLogListSerializer()
     receiver = UserSerializer()
+    contact = ContactSerializer()
     assigned_by = UserSerializer()
     class Meta:
         model = Notification
