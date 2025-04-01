@@ -282,3 +282,14 @@ class Notification(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
     is_read=models.BooleanField(default=False)
     type = models.CharField(max_length=20,null=True, blank=True)
+
+
+class Contact_Assignment(models.Model):
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
+    assigned_to = models.ForeignKey(User, related_name='assigned_contacts', on_delete=models.CASCADE)
+    assigned_by = models.ForeignKey(User, related_name='assigned_by_contacts', on_delete=models.CASCADE)
+    assigned_on = models.DateField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.contact.name} assigned to {self.assigned_to.username}'
