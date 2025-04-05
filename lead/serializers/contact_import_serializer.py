@@ -37,7 +37,10 @@ class ContactImportCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_phone_number(self, value):
-        """Check if the phone number already exists."""
+        """Check if the phone number already exists, only if provided."""
+        if not value:
+            return value  # Skip validation for None or empty values
+
         existing_contact = Contact.objects.filter(phone_number=value).first()
         if existing_contact:
             raise serializers.ValidationError({
