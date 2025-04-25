@@ -199,8 +199,6 @@ class Log(models.Model):
     log_type= models.CharField(max_length=20, choices=LOG_TYPE_CHOICES, null=True, blank=True)
 
 
-    def __str__(self):
-        return f'Log for {self.contact.name}'
 
 class Task(models.Model):
     contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
