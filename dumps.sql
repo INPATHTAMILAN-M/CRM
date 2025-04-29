@@ -29,7 +29,7 @@ CREATE TABLE `accounts_city` (
   PRIMARY KEY (`id`),
   KEY `accounts_city_state_id_4ea0890d_fk_accounts_state_id` (`state_id`),
   CONSTRAINT `accounts_city_state_id_4ea0890d_fk_accounts_state_id` FOREIGN KEY (`state_id`) REFERENCES `accounts_state` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -55,7 +55,7 @@ CREATE TABLE `accounts_contact_status` (
   `description` longtext DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -83,7 +83,7 @@ CREATE TABLE `accounts_country` (
   `currency_active` tinyint(1) NOT NULL,
   `country_code` varchar(15) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,7 +112,7 @@ CREATE TABLE `accounts_focus_segment` (
   PRIMARY KEY (`id`),
   KEY `accounts_focus_segme_vertical_id_e099ce7d_fk_accounts_` (`vertical_id`),
   CONSTRAINT `accounts_focus_segme_vertical_id_e099ce7d_fk_accounts_` FOREIGN KEY (`vertical_id`) REFERENCES `accounts_vertical` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -138,7 +138,7 @@ CREATE TABLE `accounts_lead_source` (
   `description` longtext DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -167,7 +167,7 @@ CREATE TABLE `accounts_lead_source_from` (
   PRIMARY KEY (`id`),
   KEY `accounts_lead_source_source_id_e2f11b17_fk_accounts_` (`source_id`),
   CONSTRAINT `accounts_lead_source_source_id_e2f11b17_fk_accounts_` FOREIGN KEY (`source_id`) REFERENCES `accounts_lead_source` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -193,7 +193,7 @@ CREATE TABLE `accounts_log_stage` (
   `description` longtext DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -219,7 +219,7 @@ CREATE TABLE `accounts_market_segment` (
   `description` longtext DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -244,7 +244,7 @@ CREATE TABLE `accounts_salutation` (
   `salutation` varchar(15) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -271,7 +271,7 @@ CREATE TABLE `accounts_stage` (
   `probability` int(11) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -298,7 +298,7 @@ CREATE TABLE `accounts_state` (
   PRIMARY KEY (`id`),
   KEY `accounts_state_country_id_39e7b64f_fk_accounts_country_id` (`country_id`),
   CONSTRAINT `accounts_state_country_id_39e7b64f_fk_accounts_country_id` FOREIGN KEY (`country_id`) REFERENCES `accounts_country` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -324,7 +324,7 @@ CREATE TABLE `accounts_tag` (
   `description` longtext DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -350,7 +350,7 @@ CREATE TABLE `accounts_teams` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `accounts_teams_bdm_user_id_a7db182f_uniq` (`bdm_user_id`),
   CONSTRAINT `accounts_teams_bdm_user_id_a7db182f_fk_auth_user_id` FOREIGN KEY (`bdm_user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -379,7 +379,7 @@ CREATE TABLE `accounts_teams_bde_user` (
   KEY `accounts_teams_bde_user_user_id_d9f30332_fk_auth_user_id` (`user_id`),
   CONSTRAINT `accounts_teams_bde_user_teams_id_f5938761_fk_accounts_teams_id` FOREIGN KEY (`teams_id`) REFERENCES `accounts_teams` (`id`),
   CONSTRAINT `accounts_teams_bde_user_user_id_d9f30332_fk_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -408,7 +408,7 @@ CREATE TABLE `accounts_user_group` (
   KEY `accounts_user_group_user_id_5e08a261_fk_auth_user_id` (`user_id`),
   CONSTRAINT `accounts_user_group_group_id_6b5ea533_fk_auth_group_id` FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`),
   CONSTRAINT `accounts_user_group_user_id_5e08a261_fk_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -434,7 +434,7 @@ CREATE TABLE `accounts_vertical` (
   `description` longtext DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -459,7 +459,7 @@ CREATE TABLE `auth_group` (
   `name` varchar(150) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -488,7 +488,7 @@ CREATE TABLE `auth_group_permissions` (
   KEY `auth_group_permissio_permission_id_84c5c92e_fk_auth_perm` (`permission_id`),
   CONSTRAINT `auth_group_permissio_permission_id_84c5c92e_fk_auth_perm` FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`),
   CONSTRAINT `auth_group_permissions_group_id_b120cbf9_fk_auth_group_id` FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -515,7 +515,7 @@ CREATE TABLE `auth_permission` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_permission_content_type_id_codename_01ab375a_uniq` (`content_type_id`,`codename`),
   CONSTRAINT `auth_permission_content_type_id_2f476e4b_fk_django_co` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=173 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=173 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -549,7 +549,7 @@ CREATE TABLE `auth_user` (
   `date_joined` datetime(6) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -578,7 +578,7 @@ CREATE TABLE `auth_user_groups` (
   KEY `auth_user_groups_group_id_97559544_fk_auth_group_id` (`group_id`),
   CONSTRAINT `auth_user_groups_group_id_97559544_fk_auth_group_id` FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`),
   CONSTRAINT `auth_user_groups_user_id_6a12ed8b_fk_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -607,7 +607,7 @@ CREATE TABLE `auth_user_user_permissions` (
   KEY `auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm` (`permission_id`),
   CONSTRAINT `auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm` FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`),
   CONSTRAINT `auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -640,7 +640,7 @@ CREATE TABLE `django_admin_log` (
   KEY `django_admin_log_user_id_c564eba6_fk_auth_user_id` (`user_id`),
   CONSTRAINT `django_admin_log_content_type_id_c4bce8eb_fk_django_co` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`),
   CONSTRAINT `django_admin_log_user_id_c564eba6_fk_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -666,7 +666,7 @@ CREATE TABLE `django_content_type` (
   `model` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `django_content_type_app_label_model_76bd3d3b_uniq` (`app_label`,`model`)
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -692,7 +692,7 @@ CREATE TABLE `django_migrations` (
   `name` varchar(255) NOT NULL,
   `applied` datetime(6) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=139 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=139 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -718,7 +718,7 @@ CREATE TABLE `django_session` (
   `expire_date` datetime(6) NOT NULL,
   PRIMARY KEY (`session_key`),
   KEY `django_session_expire_date_a5c62663` (`expire_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -777,7 +777,7 @@ CREATE TABLE `lead_contact` (
   CONSTRAINT `lead_contact_lead_source_from_id_52060ed8_fk_accounts_` FOREIGN KEY (`lead_source_from_id`) REFERENCES `accounts_lead_source_from` (`id`),
   CONSTRAINT `lead_contact_lead_source_id_eee60438_fk_accounts_lead_source_id` FOREIGN KEY (`lead_source_id`) REFERENCES `accounts_lead_source` (`id`),
   CONSTRAINT `lead_contact_status_id_17f86ba7_fk_accounts_contact_status_id` FOREIGN KEY (`status_id`) REFERENCES `accounts_contact_status` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2492 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2492 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -802,7 +802,7 @@ CREATE TABLE `lead_department` (
   `department` varchar(255) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -826,7 +826,7 @@ CREATE TABLE `lead_designation` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `designation` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -855,7 +855,7 @@ CREATE TABLE `lead_email_communication` (
   PRIMARY KEY (`id`),
   KEY `lead_email_communication_from_user_id_58bf1c80_fk_auth_user_id` (`from_user_id`),
   CONSTRAINT `lead_email_communication_from_user_id_58bf1c80_fk_auth_user_id` FOREIGN KEY (`from_user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -883,7 +883,7 @@ CREATE TABLE `lead_email_communication_to_users` (
   KEY `lead_email_communica_user_id_694e56a2_fk_auth_user` (`user_id`),
   CONSTRAINT `lead_email_communica_email_communication__17740806_fk_lead_emai` FOREIGN KEY (`email_communication_id`) REFERENCES `lead_email_communication` (`id`),
   CONSTRAINT `lead_email_communica_user_id_694e56a2_fk_auth_user` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -924,7 +924,7 @@ CREATE TABLE `lead_employee` (
   CONSTRAINT `lead_employee_department_id_dcd2a4ec_fk_lead_department_id` FOREIGN KEY (`department_id`) REFERENCES `lead_department` (`id`),
   CONSTRAINT `lead_employee_designation_id_e3e30d00_fk_lead_designation_id` FOREIGN KEY (`designation_id`) REFERENCES `lead_designation` (`id`),
   CONSTRAINT `lead_employee_user_id_eb6bf0f7_fk_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -994,7 +994,7 @@ CREATE TABLE `lead_lead` (
   CONSTRAINT `lead_lead_lead_status_id_d51e4ebf_fk_lead_lead_status_id` FOREIGN KEY (`lead_status_id`) REFERENCES `lead_lead_status` (`id`),
   CONSTRAINT `lead_lead_market_segment_id_15737e63_fk_accounts_` FOREIGN KEY (`market_segment_id`) REFERENCES `accounts_market_segment` (`id`),
   CONSTRAINT `lead_lead_state_id_95917a31_fk_accounts_state_id` FOREIGN KEY (`state_id`) REFERENCES `accounts_state` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=384 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=384 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1028,7 +1028,7 @@ CREATE TABLE `lead_lead_assignment` (
   CONSTRAINT `lead_lead_assignment_assigned_by_id_c67b6c65_fk_auth_user_id` FOREIGN KEY (`assigned_by_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_lead_assignment_assigned_to_id_ae0ec0fd_fk_auth_user_id` FOREIGN KEY (`assigned_to_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_lead_assignment_lead_id_f0de1ddb_fk_lead_lead_id` FOREIGN KEY (`lead_id`) REFERENCES `lead_lead` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=271 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=271 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1053,7 +1053,7 @@ CREATE TABLE `lead_lead_bucket` (
   `name` varchar(255) NOT NULL,
   `description` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1078,7 +1078,7 @@ CREATE TABLE `lead_lead_status` (
   `name` varchar(255) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1107,7 +1107,7 @@ CREATE TABLE `lead_lead_tags` (
   KEY `lead_lead_tags_tag_id_bbba5fbc_fk_accounts_tag_id` (`tag_id`),
   CONSTRAINT `lead_lead_tags_lead_id_af7c7cd4_fk_lead_lead_id` FOREIGN KEY (`lead_id`) REFERENCES `lead_lead` (`id`),
   CONSTRAINT `lead_lead_tags_tag_id_bbba5fbc_fk_accounts_tag_id` FOREIGN KEY (`tag_id`) REFERENCES `accounts_tag` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1156,7 +1156,7 @@ CREATE TABLE `lead_log` (
   CONSTRAINT `lead_log_log_stage_id_5991a060_fk_accounts_log_stage_id` FOREIGN KEY (`log_stage_id`) REFERENCES `accounts_log_stage` (`id`),
   CONSTRAINT `lead_log_opportunity_id_fed1925c_fk_lead_opportunity_id` FOREIGN KEY (`opportunity_id`) REFERENCES `lead_opportunity` (`id`),
   CONSTRAINT `lead_log_opportunity_status_id_42210337_fk_lead_lead_status_id` FOREIGN KEY (`opportunity_status_id`) REFERENCES `lead_lead_status` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=588 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=588 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1187,7 +1187,7 @@ CREATE TABLE `lead_note` (
   KEY `lead_note_opportunity_id_f9d1a71e_fk_lead_opportunity_id` (`opportunity_id`),
   CONSTRAINT `lead_note_note_by_id_e038fdf1_fk_auth_user_id` FOREIGN KEY (`note_by_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_note_opportunity_id_f9d1a71e_fk_lead_opportunity_id` FOREIGN KEY (`opportunity_id`) REFERENCES `lead_opportunity` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1235,7 +1235,7 @@ CREATE TABLE `lead_notification` (
   CONSTRAINT `lead_notification_opportunity_id_864f6e5b_fk_lead_opportunity_id` FOREIGN KEY (`opportunity_id`) REFERENCES `lead_opportunity` (`id`),
   CONSTRAINT `lead_notification_receiver_id_6d3e26b5_fk_auth_user_id` FOREIGN KEY (`receiver_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_notification_task_id_827de4fa_fk_lead_task_id` FOREIGN KEY (`task_id`) REFERENCES `lead_task` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=442 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=442 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1296,7 +1296,7 @@ CREATE TABLE `lead_opportunity` (
   CONSTRAINT `lead_opportunity_owner_id_d36802e3_fk_auth_user_id` FOREIGN KEY (`owner_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_opportunity_primary_contact_id_7ddb261f_fk_lead_contact_id` FOREIGN KEY (`primary_contact_id`) REFERENCES `lead_contact` (`id`),
   CONSTRAINT `lead_opportunity_stage_id_383a0b4f_fk_accounts_stage_id` FOREIGN KEY (`stage_id`) REFERENCES `accounts_stage` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=470 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=470 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1321,7 +1321,7 @@ CREATE TABLE `lead_opportunity_name` (
   `name` varchar(255) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1354,7 +1354,7 @@ CREATE TABLE `lead_opportunity_stage` (
   CONSTRAINT `lead_opportunity_sta_opportunity_id_def2568b_fk_lead_oppo` FOREIGN KEY (`opportunity_id`) REFERENCES `lead_opportunity` (`id`),
   CONSTRAINT `lead_opportunity_stage_moved_by_id_8adc1a1e_fk_auth_user_id` FOREIGN KEY (`moved_by_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_opportunity_stage_stage_id_7266ff33_fk_accounts_stage_id` FOREIGN KEY (`stage_id`) REFERENCES `accounts_stage` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=222 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=222 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1379,7 +1379,7 @@ CREATE TABLE `lead_opportunity_status` (
   `name` varchar(255) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1418,7 +1418,7 @@ CREATE TABLE `lead_task` (
   CONSTRAINT `lead_task_contact_id_7c5d6460_fk_lead_contact_id` FOREIGN KEY (`contact_id`) REFERENCES `lead_contact` (`id`),
   CONSTRAINT `lead_task_created_by_id_4dafa118_fk_auth_user_id` FOREIGN KEY (`created_by_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_task_log_id_3ba6d802_fk_lead_log_id` FOREIGN KEY (`log_id`) REFERENCES `lead_log` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=283 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=283 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1453,7 +1453,7 @@ CREATE TABLE `lead_task_assignment` (
   CONSTRAINT `lead_task_assignment_assigned_by_id_8eaac6f6_fk_auth_user_id` FOREIGN KEY (`assigned_by_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_task_assignment_assigned_to_id_d6d38a7c_fk_auth_user_id` FOREIGN KEY (`assigned_to_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_task_assignment_task_id_ef397ae7_fk_lead_task_id` FOREIGN KEY (`task_id`) REFERENCES `lead_task` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=245 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=245 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1484,7 +1484,7 @@ CREATE TABLE `lead_taskconversationlog` (
   KEY `lead_taskconversationlog_task_id_e4b8aa02_fk_lead_task_id` (`task_id`),
   CONSTRAINT `lead_taskconversationlog_created_by_id_2efae074_fk_auth_user_id` FOREIGN KEY (`created_by_id`) REFERENCES `auth_user` (`id`),
   CONSTRAINT `lead_taskconversationlog_task_id_e4b8aa02_fk_lead_task_id` FOREIGN KEY (`task_id`) REFERENCES `lead_task` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1513,7 +1513,7 @@ CREATE TABLE `lead_taskconversationlog_seen_by` (
   KEY `lead_taskconversatio_user_id_f6990ab0_fk_auth_user` (`user_id`),
   CONSTRAINT `lead_taskconversatio_taskconversationlog__9f33a731_fk_lead_task` FOREIGN KEY (`taskconversationlog_id`) REFERENCES `lead_taskconversationlog` (`id`),
   CONSTRAINT `lead_taskconversatio_user_id_f6990ab0_fk_auth_user` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1539,7 +1539,7 @@ CREATE TABLE `token_blacklist_blacklistedtoken` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `token_id` (`token_id`),
   CONSTRAINT `token_blacklist_blacklistedtoken_token_id_3cc7fe56_fk` FOREIGN KEY (`token_id`) REFERENCES `token_blacklist_outstandingtoken` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=322 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=322 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1570,7 +1570,7 @@ CREATE TABLE `token_blacklist_outstandingtoken` (
   UNIQUE KEY `token_blacklist_outstandingtoken_jti_hex_d9bdf6f7_uniq` (`jti`),
   KEY `token_blacklist_outs_user_id_83bc629a_fk_auth_user` (`user_id`),
   CONSTRAINT `token_blacklist_outs_user_id_83bc629a_fk_auth_user` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=602 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=602 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
