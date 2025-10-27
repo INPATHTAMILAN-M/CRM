@@ -4,6 +4,7 @@ from accounts.viewsets.city_viewset import CityViewSet
 from accounts.viewsets.salutation_viewset import SalutationViewSet
 from accounts.viewsets.teams_viewset import TeamsFilterViewSet, TeamsViewSet
 from accounts.viewsets.users_viewset import AllUsersViewSet, GetBdeUserViewSet, GetDmUserViewSet, GetLeadOwnerViewSet, GetOwnerUserViewSet, GetTaskAssignedToUserViewSet, UsersForLeadViewSet
+from accounts.viewsets.monthly_target_viewset import MonthlyTargetViewSet
 from lead.viewsets.contact_status_viewset import ContactStatusViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
 from lead.viewsets.country_viewset import CountryViewSet
@@ -76,4 +77,5 @@ router.register(r'notifications', NotificationViewSet, basename='notification')
 
 # in accounts
 router.register(r'salutations', SalutationViewSet)
+router.register(r'monthly-targets', MonthlyTargetViewSet, basename='monthly_targets')
 urlpatterns = router.urls

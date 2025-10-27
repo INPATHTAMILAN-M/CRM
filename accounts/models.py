@@ -131,3 +131,15 @@ class Teams(models.Model):
 
     def __str__(self):
         return f"BDE - {', '.join([user.username for user in self.bde_user.all()])} under BDM - {self.bdm_user.username}"
+
+class MonthlyTarget(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    month = models.IntegerField()  # 1-12
+    year = models.IntegerField()
+    target_amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        unique_together = ('user', 'month', 'year')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.month}/{self.year} - {self.target_amount}"
