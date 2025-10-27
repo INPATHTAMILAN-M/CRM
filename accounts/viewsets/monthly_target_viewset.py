@@ -4,7 +4,9 @@ from rest_framework.response import Response
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import Group
 from accounts.models import MonthlyTarget
-from accounts.serializers.monthly_target_serializer import MonthlyTargetSerializer
+from accounts.serializers.monthly_target_serializer import (
+    MonthlyTargetSerializer, MonthlyTargetCreateSerializer
+)
 from lead.custom_pagination import Paginator
 
 
@@ -16,6 +18,7 @@ class MonthlyTargetViewSet(viewsets.ModelViewSet):
     filterset_fields = ['user', 'month', 'year']
     http_method_names = ['get', 'post','patch', 'delete']
     pagination_class = Paginator
+
 
     def get_queryset(self):
         user = self.request.user
@@ -53,3 +56,8 @@ class MonthlyTargetViewSet(viewsets.ModelViewSet):
         else:
             # Forbidden
             return Response({"detail": "You do not have permission to delete this target."}, status=status.HTTP_403_FORBIDDEN)
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return MonthlyTargetCreateSerializer
+        return MonthlyTargetSerializer
