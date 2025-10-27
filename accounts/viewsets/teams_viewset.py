@@ -5,9 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from accounts.filters.teams_filter import TeamsFilter
 from accounts.models import Teams
-from accounts.serializers.teams_serializer import TeamsCreateSerializer, TeamsFilterSerializer, TeamsListSerializer, TeamsUpdateSerializer, UserSerializer
-from rest_framework import status
-from django.shortcuts import get_object_or_404
+from accounts.serializers.teams_serializer import TeamsCreateSerializer, TeamsListSerializer, TeamsUpdateSerializer, UserSerializer
 from django.contrib.auth.models import User
 
 from lead.custom_pagination import Paginator
@@ -27,7 +25,6 @@ class TeamsViewSet(viewsets.ModelViewSet):
         return TeamsCreateSerializer  
 
 # viewset.py
-
 class TeamsFilterViewSet(viewsets.ModelViewSet):
     queryset = Teams.objects.all()
     permission_classes = [IsAuthenticated]
