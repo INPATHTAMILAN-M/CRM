@@ -3,9 +3,13 @@ from accounts.models import MonthlyTarget
 from accounts.models import User
 
 class UserSerializer(serializers.ModelSerializer):
+    group = serializers.SerializerMethodField()
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'group']
+
+    def get_group(self, obj):
+        return {"id": obj.groups.first().id, "name": obj.groups.first().name} if obj.groups.exists() else None
 
 class MonthlyTargetCreateSerializer(serializers.ModelSerializer):
     class Meta:
