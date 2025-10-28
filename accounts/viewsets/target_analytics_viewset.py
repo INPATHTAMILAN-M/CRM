@@ -56,7 +56,7 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             opportunities = Opportunity.objects.filter(
                 Q(lead__created_by=user) | Q(lead__assigned_to=user),
                 closing_date__month=month,
-                closing_date__year=year,
+                closing_date__year=year,opportunity_status=34,
                 is_active=True
             )
             
