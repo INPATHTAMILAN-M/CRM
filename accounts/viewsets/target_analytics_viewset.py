@@ -9,7 +9,7 @@ from decimal import Decimal
 
 from accounts.models import MonthlyTarget
 from accounts.serializers.target_analytics_serializer import TargetAnalyticsSerializer
-from lead.models import Opportunity, Lead_Status
+from lead.models import Opportunity
 
 
 class TargetAnalyticsViewSet(viewsets.ViewSet):
