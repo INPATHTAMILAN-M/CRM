@@ -59,7 +59,7 @@ class MonthlyTargetViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'create':
-            return MonthlyTargetCreateSerializer
-        return MonthlyTargetSerializer
+            return MonthlyTargetSerializer
+        return MonthlyTargetCreateSerializer
 
 
