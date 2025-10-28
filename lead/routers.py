@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from accounts.viewsets.city_viewset import CityViewSet
 from accounts.viewsets.monthly_target_viewset import MonthlyTargetViewSet
 from accounts.viewsets.salutation_viewset import SalutationViewSet
+from accounts.viewsets.target_analytics_viewset import TargetAnalyticsViewSet
 from accounts.viewsets.teams_viewset import TeamsFilterViewSet, TeamsViewSet
 from accounts.viewsets.users_viewset import (
     AllUsersViewSet,
@@ -87,4 +88,5 @@ router.register(r'notifications', NotificationViewSet, basename='notification')
 # in accounts
 router.register(r'salutations', SalutationViewSet)
 router.register(r'monthly-targets', MonthlyTargetViewSet, basename='monthly_targets')
+router.register(r'target-analytics', TargetAnalyticsViewSet, basename='target_analytics')
 urlpatterns = router.urls
