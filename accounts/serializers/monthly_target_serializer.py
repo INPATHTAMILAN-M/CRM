@@ -18,8 +18,6 @@ class MonthlyTargetCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at']
 
 class MonthlyTargetSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
     class Meta:
         model = MonthlyTarget
         fields = ['id', 'user', 'month', 'year', 'target_amount', 'created_at']
