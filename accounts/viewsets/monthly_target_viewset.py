@@ -59,7 +59,9 @@ class MonthlyTargetViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'create':
-            return MonthlyTargetSerializer
-        return MonthlyTargetCreateSerializer
+            return MonthlyTargetCreateSerializer
+        if self.action in ['update', 'partial_update']:
+            return MonthlyTargetCreateSerializer
+        return MonthlyTargetSerializer
 
 
