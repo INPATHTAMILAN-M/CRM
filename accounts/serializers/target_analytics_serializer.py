@@ -8,7 +8,6 @@ class TargetAnalyticsSerializer(serializers.Serializer):
     """
     type = serializers.CharField()
     title = serializers.CharField()
-    subtitle = serializers.CharField()
     target = serializers.DecimalField(max_digits=10, decimal_places=2)
     achieved = serializers.DecimalField(max_digits=10, decimal_places=2)
     percentage = serializers.IntegerField()
