@@ -5,6 +5,7 @@ from accounts.viewsets.monthly_target_viewset import MonthlyTargetViewSet
 from accounts.viewsets.salutation_viewset import SalutationViewSet
 from accounts.viewsets.target_analytics_viewset import TargetAnalyticsViewSet
 from accounts.viewsets.teams_viewset import TeamsFilterViewSet, TeamsViewSet
+from accounts.viewsets.user_target_viewset import UserTargetViewSet
 from accounts.viewsets.users_viewset import (
     AllUsersViewSet,
     GetBdeUserViewSet,
@@ -88,5 +89,6 @@ router.register(r'notifications', NotificationViewSet, basename='notification')
 # in accounts
 router.register(r'salutations', SalutationViewSet)
 router.register(r'monthly-targets', MonthlyTargetViewSet, basename='monthly_targets')
+router.register(r"user-targets", UserTargetViewSet, basename="user-target")
 router.register(r'target-analytics', TargetAnalyticsViewSet, basename='target_analytics')
 urlpatterns = router.urls
