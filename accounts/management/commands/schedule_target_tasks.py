@@ -33,11 +33,11 @@ class Command(BaseCommand):
         #     repeats=-1
         # )
         
-        self.stdout.write(
-            self.style.SUCCESS(
-                f'Successfully scheduled recalculate_all_monthly_targets (ID: {result2})'
-            )
-        )
+        # self.stdout.write(
+        #     self.style.SUCCESS(
+        #         f'Successfully scheduled recalculate_all_monthly_targets (ID: {result2})'
+        #     )
+        # )
         
         # self.stdout.write(
         #     self.style.SUCCESS(
