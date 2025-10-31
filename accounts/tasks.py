@@ -38,6 +38,8 @@ def adjust_monthly_targets():
     for user_target in users_with_targets:
         user = user_target.user
         user_overall_target = user_target.target
+        print(f"\n=== Processing User: {user.username} (ID: {user.id}) ===")
+        print(f"User Overall Target: {user_overall_target}")
         
         # Get current month's target
         try:
@@ -47,8 +49,9 @@ def adjust_monthly_targets():
                 year=current_year
             )
             current_target_amount = current_monthly_target.target_amount
+            print(f"Current Monthly Target ({current_month}/{current_year}): {current_target_amount}")
         except MonthlyTarget.DoesNotExist:
-            # No current month target, skip this user
+            print(f"No current month target found for {user.username}, skipping...")
             continue
         
         # Get achieved amount from opportunities (same logic as analytics viewset)
@@ -60,11 +63,15 @@ def adjust_monthly_targets():
             is_active=True
         )
         
+        opportunity_count = opportunities.count()
         achieved_result = opportunities.aggregate(total=Sum('opportunity_value'))
         achieved_amount = Decimal(achieved_result.get('total') or 0)
+        print(f"Opportunities Found: {opportunity_count}")
+        print(f"Achieved Amount: {achieved_amount}")
         
         # Calculate difference between target and achieved
         difference = current_target_amount - achieved_amount
+        print(f"Difference (Target - Achieved): {difference}")
         
         # Get or create next month's target
         next_monthly_target, created = MonthlyTarget.objects.get_or_create(
@@ -73,6 +80,7 @@ def adjust_monthly_targets():
             year=next_year,
             defaults={'target_amount': user_overall_target}  # Default to overall target
         )
+        print(f"Next Month Target ({next_month}/{next_year}) - Created: {created}, Current Value: {next_monthly_target.target_amount}")
         
         if difference > 0:
             # User achieved less than target (shortfall)
@@ -81,6 +89,7 @@ def adjust_monthly_targets():
             new_next_target = next_monthly_target.target_amount + increase
             next_monthly_target.target_amount = new_next_target
             next_monthly_target.save()
+            print(f"⬆️ SHORTFALL: Increasing next month target by {increase} to {new_next_target}")
             
         elif difference < 0:
             # User achieved more than target (excess)
@@ -92,6 +101,9 @@ def adjust_monthly_targets():
             )
             next_monthly_target.target_amount = new_next_target
             next_monthly_target.save()
+            print(f"⬇️ EXCESS: Reducing next month target by {reduction} to {new_next_target}")
+        else:
+            print(f"✅ PERFECT: Target met exactly, no adjustment needed")
         
         # If difference == 0, no changes needed (perfectly met target)
     
