@@ -63,8 +63,8 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
         def get_value(model, users, month=None, year=None):
             filters = Q()
             for u in users:
-                filters |= Q(lead__created_by=u) | Q(lead__assigned_to=u) | Q(opportunity_status=34)
-            qs = model.objects.filter(filters, is_active=True)
+                filters |= Q(lead__created_by=u) | Q(lead__assigned_to=u)
+            qs = model.objects.filter(filters, opportunity_status=34, is_active=True)
             if month:
                 qs = qs.filter(closing_date__month=month)
             if year:
