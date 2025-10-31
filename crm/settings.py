@@ -72,7 +72,7 @@ INSTALLED_APPS = [
 
 Q_CLUSTER = {
     'name': 'DjangoQ',
-    'workers': 2,                  # keep low to save RAM
+    'workers': 4,                  # keep low to save RAM
     'recycle': 500,
     'timeout': 90,
     'retry': 120,
