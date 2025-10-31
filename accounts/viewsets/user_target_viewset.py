@@ -16,7 +16,7 @@ class UserTargetViewSet(viewsets.ModelViewSet):
     queryset = UserTarget.objects.all().order_by('-id')
     permission_classes = [IsAuthenticated]
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ['user', 'month', 'year', 'status']
+    filterset_fields = ['user', 'created_at']
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
