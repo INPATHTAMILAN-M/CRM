@@ -5,43 +5,53 @@ from django_q.tasks import schedule, Schedule
 
 
 class Command(BaseCommand):
-    help = 'Schedule monthly target creation and adjustment tasks with Django-Q'
+    help = 'Schedules monthly target creation (month end) and adjustment (month start) tasks with Django-Q.'
 
     def handle(self, *args, **options):
         now = timezone.now()
         tz = timezone.get_current_timezone()
 
-        # --- Common next run time: first day of next month at 00:00 ---
+        # ----------------------------
+        # 1️⃣ Month-end schedule (create targets)
+        # ----------------------------
         first_next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
+        last_day_this_month = first_next_month - timedelta(days=1)
+        month_end_time = datetime.combine(last_day_this_month, time(23, 59)).astimezone(tz)
 
-        # Task 1: Create monthly targets at 00:00
-        create_time = datetime.combine(first_next_month, time(0, 0)).astimezone(tz)
-
-        # Task 2: Adjust monthly targets 10 minutes later (00:10)
-        adjust_time = datetime.combine(first_next_month, time(0, 10)).astimezone(tz)
-
-        # --- Schedule 1 ---
         result1 = schedule(
             'accounts.tasks.create_monthly_targets_for_all_users',
             name='create_monthly_targets_for_all_users',
             schedule_type=Schedule.MONTHLY,
             months=1,
             repeats=-1,
-            next_run=create_time
+            next_run=month_end_time
         )
 
-        # --- Schedule 2 ---
+        first_day_next_month = first_next_month  # already calculated
+        month_start_time = datetime.combine(first_day_next_month, time(0, 10)).astimezone(tz)
+
         result2 = schedule(
             'accounts.tasks.adjust_monthly_targets',
             name='adjust_monthly_targets',
             schedule_type=Schedule.MONTHLY,
             months=1,
             repeats=-1,
-            next_run=adjust_time
+            next_run=month_start_time
         )
 
-        self.stdout.write(self.style.SUCCESS(
-            f'Successfully scheduled:\n'
-            f'  1️⃣ create_monthly_targets_for_all_users (ID: {result1.id}) at {create_time}\n'
-            f'  2️⃣ adjust_monthly_targets (ID: {result2.id}) at {adjust_time}'
-        ))
+        # ----------------------------
+        # ✅ Output results
+        # ----------------------------
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"""Successfully scheduled monthly tasks:
+
+                        🕛 1️⃣ create_monthly_targets_for_all_users
+                            - Runs at end of month: {month_end_time}
+                            - Schedule ID: {result1.id}
+
+                        🕐 2️⃣ adjust_monthly_targets
+                            - Runs at start of month: {month_start_time}
+                            - Schedule ID: {result2.id}
+                """ ) 
+                )
