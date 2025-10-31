@@ -32,7 +32,7 @@ def adjust_monthly_targets():
     
     # Get all users with targets (exclude admins)
     users_with_targets = UserTarget.objects.select_related('user').exclude(
-        user__groups__name__iexact='admin'
+        user__groups__name__iexact='Admin'
     )
     
     for user_target in users_with_targets:
@@ -128,7 +128,7 @@ def calculate_user_monthly_target(user_id, month=None, year=None):
         return None
     
     # Don't create targets for admin users
-    if user.groups.filter(name__iexact='admin').exists():
+    if user.groups.filter(name__iexact='Admin').exists():
         return None
     
     # Get user's overall target
@@ -164,7 +164,7 @@ def recalculate_all_monthly_targets():
     current_year = today.year
     
     user_targets = UserTarget.objects.select_related('user').exclude(
-        user__groups__name__iexact='admin'
+        user__groups__name__iexact='Admin'
     )
     
     count = 0
@@ -199,7 +199,7 @@ def create_monthly_targets_for_all_users(month=None, year=None, default_target=D
     
     # Get all active users excluding admins
     all_users = User.objects.filter(is_active=True).exclude(
-        groups__name__iexact='admin'
+        groups__name__iexact='Admin'
     ).distinct()
     
     stats = {
