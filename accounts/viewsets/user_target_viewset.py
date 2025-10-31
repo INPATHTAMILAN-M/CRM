@@ -24,6 +24,6 @@ class UserTargetViewSet(viewsets.ModelViewSet):
             return UserTargetCreateSerializer
         elif self.action == 'retrieve':
             return UserTargetRetrieveSerializer
-        elif self.action == 'update':
+        elif self.action in ['update', 'partial_update']:
             return UserTargetUpdateSerializer
         return UserTargetListSerializer

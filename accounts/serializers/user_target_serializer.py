@@ -55,12 +55,13 @@ class UserTargetUpdateSerializer(serializers.ModelSerializer):
         
         # Get month and year from when the instance was last updated
         updated_at = instance.updated_at
+        updated_user = instance.user
         update_month = updated_at.month
         update_year = updated_at.year
         
         # Update or create MonthlyTarget for the month/year when instance was updated
         MonthlyTarget.objects.update_or_create(
-            user=instance.user,
+            user=updated_user,
             month=update_month,
             year=update_year,
             defaults={'target_amount': new_target}
