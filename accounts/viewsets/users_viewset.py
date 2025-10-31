@@ -6,12 +6,13 @@ from lead.custom_pagination import Paginator
 from ..serializers.user_serializer import UserSerializer
 
 # ViewSet for Users for Lead
-class AllUsersViewSet(viewsets.ReadOnlyModelViewSet):
+class AllUsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
     pagination_class = Paginator
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
 
 class UsersForLeadViewSet(viewsets.ReadOnlyModelViewSet):
