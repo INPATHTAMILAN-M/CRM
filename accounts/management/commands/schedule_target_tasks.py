@@ -12,12 +12,20 @@ class Command(BaseCommand):
         tz = timezone.get_current_timezone()
 
         # ----------------------------
-        # 1️⃣ Month-end schedule (create targets)
+        # Calculate key dates
         # ----------------------------
         first_next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
         last_day_this_month = first_next_month - timedelta(days=1)
+
+        # Month-end: last day of this month at 23:59
         month_end_time = datetime.combine(last_day_this_month, time(23, 59)).astimezone(tz)
 
+        # Month-start: first day of next month at 00:10
+        month_start_time = datetime.combine(first_next_month, time(0, 10)).astimezone(tz)
+
+        # ----------------------------
+        # 1️⃣ Schedule: create targets at end of the month
+        # ----------------------------
         result1 = schedule(
             'accounts.tasks.create_monthly_targets_for_all_users',
             name='create_monthly_targets_for_all_users',
@@ -27,9 +35,9 @@ class Command(BaseCommand):
             next_run=month_start_time
         )
 
-        first_day_next_month = first_next_month  # already calculated
-        month_start_time = datetime.combine(first_day_next_month, time(0, 10)).astimezone(tz)
-
+        # ----------------------------
+        # 2️⃣ Schedule: adjust targets at start of next month
+        # ----------------------------
         result2 = schedule(
             'accounts.tasks.adjust_monthly_targets',
             name='adjust_monthly_targets',
@@ -44,14 +52,16 @@ class Command(BaseCommand):
         # ----------------------------
         self.stdout.write(
             self.style.SUCCESS(
-                f"""Successfully scheduled monthly tasks:
+                f"""
+Successfully scheduled monthly tasks:
 
-                        🕛 1️⃣ create_monthly_targets_for_all_users
-                            - Runs at end of month: {month_end_time}
-                            - Schedule ID: {result1.id}
+🕛 1️⃣ create_monthly_targets_for_all_users
+    - Runs at end of month: {month_end_time}
+    - Schedule ID: {result1.id}
 
-                        🕐 2️⃣ adjust_monthly_targets
-                            - Runs at start of month: {month_start_time}
-                            - Schedule ID: {result2.id}
-                """ ) 
-                )
+🕐 2️⃣ adjust_monthly_targets
+    - Runs at start of month: {month_start_time}
+    - Schedule ID: {result2.id}
+"""
+            )
+        )
