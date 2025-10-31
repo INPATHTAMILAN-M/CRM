@@ -178,3 +178,77 @@ def recalculate_all_monthly_targets():
         count += 1
     
     return f"Recalculated monthly targets for {count} users for {current_month}/{current_year}"
+
+
+def create_monthly_targets_for_all_users(month=None, year=None, default_target=Decimal('0.00')):
+    """
+    Create MonthlyTarget for all users using their UserTarget value.
+    If a UserTarget doesn't exist for a user, create one with the default_target value.
+    
+    Args:
+        month: Target month (1-12), defaults to current month
+        year: Target year, defaults to current year
+        default_target: Default target amount if UserTarget doesn't exist
+    
+    Returns:
+        Dictionary with creation statistics
+    """
+    today = datetime.now()
+    target_month = month or today.month
+    target_year = year or today.year
+    
+    # Get all active users excluding admins
+    all_users = User.objects.filter(is_active=True).exclude(
+        groups__name__iexact='admin'
+    ).distinct()
+    
+    stats = {
+        'total_users': 0,
+        'monthly_targets_created': 0,
+        'monthly_targets_existed': 0,
+        'user_targets_created': 0,
+        'errors': []
+    }
+    
+    for user in all_users:
+        try:
+            stats['total_users'] += 1
+            
+            # Get or create UserTarget
+            user_target, ut_created = UserTarget.objects.get_or_create(
+                user=user,
+                defaults={'target': default_target}
+            )
+            
+            if ut_created:
+                stats['user_targets_created'] += 1
+                print(f"Created UserTarget for {user.username} with target {default_target}")
+            
+            # Get or create MonthlyTarget using UserTarget value
+            monthly_target, mt_created = MonthlyTarget.objects.get_or_create(
+                user=user,
+                month=target_month,
+                year=target_year,
+                defaults={'target_amount': user_target.target}
+            )
+            
+            if mt_created:
+                stats['monthly_targets_created'] += 1
+                print(f"Created MonthlyTarget for {user.username}: {user_target.target} for {target_month}/{target_year}")
+            else:
+                stats['monthly_targets_existed'] += 1
+                print(f"MonthlyTarget already exists for {user.username} for {target_month}/{target_year}")
+                
+        except Exception as e:
+            error_msg = f"Error processing user {user.username}: {str(e)}"
+            stats['errors'].append(error_msg)
+            print(error_msg)
+    
+    summary = (f"Processed {stats['total_users']} users: "
+               f"{stats['monthly_targets_created']} monthly targets created, "
+               f"{stats['monthly_targets_existed']} already existed, "
+               f"{stats['user_targets_created']} user targets created, "
+               f"{len(stats['errors'])} errors")
+    
+    print(f"\n=== Summary ===\n{summary}")
+    return stats
