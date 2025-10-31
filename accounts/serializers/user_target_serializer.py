@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from ..models import UserTarget
+from datetime import datetime
+from ..models import UserTarget, MonthlyTarget
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -43,6 +44,29 @@ class UserTargetUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserTarget
         fields = ['target']
+    
+    def update(self, instance, validated_data):
+        """Update UserTarget and corresponding MonthlyTarget records"""
+        new_target = validated_data.get('target', instance.target)
+        
+        # Update the UserTarget
+        instance.target = new_target
+        instance.save()
+        
+        # Get month and year from when the instance was last updated
+        updated_at = instance.updated_at
+        update_month = updated_at.month
+        update_year = updated_at.year
+        
+        # Update or create MonthlyTarget for the month/year when instance was updated
+        MonthlyTarget.objects.update_or_create(
+            user=instance.user,
+            month=update_month,
+            year=update_year,
+            defaults={'target_amount': new_target}
+        )
+        
+        return instance
 
 
 class UserTargetListSerializer(serializers.ModelSerializer):
