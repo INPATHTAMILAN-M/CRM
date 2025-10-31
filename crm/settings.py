@@ -63,10 +63,29 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'drf_spectacular_sidecar',
+    'django_q',
     'accounts',
     'lead',
     'corsheaders',
 ]
+
+
+Q_CLUSTER = {
+    'name': 'DjangoQ',
+    'workers': 2,                  # keep low to save RAM
+    'recycle': 500,
+    'timeout': 90,
+    'retry': 120,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default',     
+    'broker_class': 'django_q.brokers.redis_broker.Redis',
+    'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 0,
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
