@@ -24,7 +24,7 @@ class Command(BaseCommand):
             schedule_type=Schedule.MONTHLY,
             months=1,
             repeats=-1,
-            next_run=month_end_time
+            next_run=month_start_time
         )
 
         first_day_next_month = first_next_month  # already calculated
@@ -36,7 +36,7 @@ class Command(BaseCommand):
             schedule_type=Schedule.MONTHLY,
             months=1,
             repeats=-1,
-            next_run=month_start_time
+            next_run=month_end_time
         )
 
         # ----------------------------
