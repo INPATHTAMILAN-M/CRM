@@ -25,10 +25,16 @@ class UserTargetCreateSerializer(serializers.ModelSerializer):
         fields = ['user', 'target']
     
     def validate(self, data):
-        # Ensure user doesn't already have a target (if you want one target per user)
         user = data.get('user')
+        
+        # Prevent admin users from having targets
+        if user.groups.filter(name__iexact='admin').exists():
+            raise serializers.ValidationError("Cannot create target for admin users.")
+        
+        # Ensure user doesn't already have a target
         if UserTarget.objects.filter(user=user).exists():
             raise serializers.ValidationError("A target already exists for this user. Use update instead.")
+        
         return data
 
 

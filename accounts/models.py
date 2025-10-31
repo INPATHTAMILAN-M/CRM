@@ -141,6 +141,9 @@ class UserTarget(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.target}"
+    
+    class Meta:
+        unique_together = ('user', 'target')
 
 
 class MonthlyTarget(models.Model):
