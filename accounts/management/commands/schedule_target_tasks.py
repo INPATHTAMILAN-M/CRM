@@ -13,8 +13,8 @@ class Command(BaseCommand):
         result = schedule(
             'accounts.tasks.adjust_monthly_targets',
             name='adjust_monthly_targets',
-            schedule_type=Schedule.MINUTES, # I = minutes
-            minutes=1,
+            schedule_type=Schedule.MONTHLY, # I = minutes
+            months=1,
             repeats=-1  # Repeat indefinitely
         )
         
@@ -24,24 +24,4 @@ class Command(BaseCommand):
             )
         )
         
-        # # Schedule daily recalculation
-        # result2 = schedule(
-        #     'accounts.tasks.recalculate_all_monthly_targets',
-        #     name='recalculate_all_monthly_targets',
-        #     schedule_type=Schedule.DAILY,
-        #     minutes=1440,
-        #     repeats=-1
-        # )
         
-        # self.stdout.write(
-        #     self.style.SUCCESS(
-        #         f'Successfully scheduled recalculate_all_monthly_targets (ID: {result2})'
-        #     )
-        # )
-        
-        # self.stdout.write(
-        #     self.style.SUCCESS(
-        #         '\nSchedules created! Make sure Django-Q cluster is running:\n'
-        #         'python manage.py qcluster'
-        #     )
-        # )
