@@ -14,7 +14,6 @@ class AllUsersViewSet(viewsets.ModelViewSet):
     pagination_class = Paginator
     http_method_names = ['get', 'post', 'patch', 'delete']
 
-
 class UsersForLeadViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
