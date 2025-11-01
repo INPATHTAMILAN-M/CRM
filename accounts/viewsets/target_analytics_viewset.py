@@ -61,15 +61,25 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             return int(((achieved / target) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
         def get_value(model, users, month=None, year=None):
-            filters = Q()
-            for u in users:
-                filters |= Q(lead__created_by=u) | Q(lead__assigned_to=u)
-            qs = model.objects.filter(filters, opportunity_status=34, is_active=True)
-            if month:
-                qs = qs.filter(closing_date__month=month)
-            if year:
-                qs = qs.filter(closing_date__year=year)
-            return Decimal(qs.aggregate(total=Sum("opportunity_value"))["total"] or 0)
+            total_value = Decimal("0.00")
+
+            for user in users:
+                qs = model.objects.filter(opportunity_status=34, is_active=True)
+                if month:
+                    qs = qs.filter(closing_date__month=month)
+                if year:
+                    qs = qs.filter(closing_date__year=year)
+                # Define filters with weights
+                filters_with_weights = [
+                    (Q(lead__created_by=user) & Q(lead__assigned_to=user), 1),   # both roles → full
+                    (Q(lead__created_by=user) & ~Q(lead__assigned_to=user), 0.5), # only creator → half
+                    (~Q(lead__created_by=user) & Q(lead__assigned_to=user), 0.5), # only assigned → half
+                ]
+
+                for condition, weight in filters_with_weights:
+                    value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
+                    total_value += Decimal(value) * Decimal(weight)
+            return total_value
 
         def get_target(month, year):
             return (
