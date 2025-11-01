@@ -43,12 +43,13 @@ class UserTargetUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating UserTarget"""
     class Meta:
         model = UserTarget
-        fields = ['target']
+        fields = ['target','is_active']
     
     def update(self, instance, validated_data):
         """Update UserTarget and corresponding MonthlyTarget records"""
         new_target = validated_data.get('target', instance.target)
-        
+        is_active = validated_data.get('is_active', instance.is_active)
+        instance.is_active = is_active
         # Update the UserTarget
         instance.target = new_target
         instance.save()
@@ -76,7 +77,7 @@ class UserTargetListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserTarget
-        fields = ['id', 'user', 'target', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'target', 'is_active', 'created_at', 'updated_at']
 
 
 class UserTargetRetrieveSerializer(serializers.ModelSerializer):
@@ -85,4 +86,4 @@ class UserTargetRetrieveSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserTarget
-        fields = ['id', 'user', 'target', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'target', 'is_active', 'created_at', 'updated_at']

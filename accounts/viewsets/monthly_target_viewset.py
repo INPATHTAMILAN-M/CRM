@@ -11,7 +11,7 @@ from lead.custom_pagination import Paginator
 
 
 class MonthlyTargetViewSet(viewsets.ModelViewSet):
-    queryset = MonthlyTarget.objects.all().order_by('-year', '-month')
+    queryset = MonthlyTarget.objects.all()
     serializer_class = MonthlyTargetSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
