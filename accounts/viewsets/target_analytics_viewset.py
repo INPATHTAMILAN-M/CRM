@@ -115,7 +115,7 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "target": prev_target,
                 "achieved": prev_ach,
                 "percentage": pct(prev_ach, prev_target),
-                "increase": curr_ach > prev_ach,
+                "increase": curr_ach > prev_target,
             },
             {
                 "type": "currentMonth",
@@ -124,7 +124,7 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "target": curr_target,
                 "achieved": curr_ach,
                 "percentage": pct(curr_ach, curr_target),
-                "increase": curr_ach > prev_ach,
+                "increase": curr_ach > curr_target,
             },
             {
                 "type": "nextMonth",
