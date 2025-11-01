@@ -16,4 +16,8 @@ sudo systemctl daemon-reload || { echo "Failed to restart daemon. Exiting."; exi
 echo "Restarting Nginx..."
 sudo systemctl restart nginx || { echo "Failed to restart Nginx. Exiting."; exit 1; }
 
+# Restart the Django-Q service
+echo "Restarting Django-Q..."
+sudo systemctl restart django-q || { echo "Failed to restart Django-Q. Exiting."; exit 1; }
+
 echo "All services restarted successfully!"
