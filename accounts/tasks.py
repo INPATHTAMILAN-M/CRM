@@ -4,7 +4,44 @@ Django-Q tasks for monthly target calculations and adjustments
 from decimal import Decimal
 from datetime import datetime
 from django.contrib.auth.models import User
+from django.db.models import Sum, Q
 from .models import UserTarget, MonthlyTarget
+
+
+def calculate_user_achieved_amount(user, month, year):
+    """
+    Calculate achieved amount for a user with weighted logic:
+    - Full amount if user is both creator and assignee
+    - Half amount if user is only creator or only assignee
+    """
+    from lead.models import Opportunity
+    
+    base_qs = Opportunity.objects.filter(
+        opportunity_status=34,
+        is_active=True,
+        closing_date__month=month,
+        closing_date__year=year
+    )
+    
+    # Full amount: both creator and assignee
+    both_value = Decimal(
+        base_qs.filter(Q(lead__created_by=user) & Q(lead__assigned_to=user))
+        .aggregate(total=Sum('opportunity_value'))['total'] or 0
+    )
+    
+    # Half amount: only creator
+    only_creator_value = Decimal(
+        base_qs.filter(Q(lead__created_by=user) & ~Q(lead__assigned_to=user))
+        .aggregate(total=Sum('opportunity_value'))['total'] or 0
+    ) / 2
+    
+    # Half amount: only assignee
+    only_assigned_value = Decimal(
+        base_qs.filter(~Q(lead__created_by=user) & Q(lead__assigned_to=user))
+        .aggregate(total=Sum('opportunity_value'))['total'] or 0
+    ) / 2
+    
+    return both_value + only_creator_value + only_assigned_value
 
 
 def adjust_monthly_targets(*args, **kwargs):
@@ -19,9 +56,6 @@ def adjust_monthly_targets(*args, **kwargs):
     
     This should be scheduled to run monthly via Django-Q
     """
-    from django.db.models import Sum, Q
-    from lead.models import Opportunity
-    
     today = datetime.now()
     current_month = today.month
     current_year = today.year
@@ -54,19 +88,8 @@ def adjust_monthly_targets(*args, **kwargs):
             print(f"No current month target found for {user.username}, skipping...")
             continue
         
-        # Get achieved amount from opportunities (same logic as analytics viewset)
-        opportunities = Opportunity.objects.filter(
-            Q(lead__created_by=user) | Q(lead__assigned_to=user),
-            closing_date__month=current_month,
-            closing_date__year=current_year,
-            opportunity_status=34,  # Closed/Won status
-            is_active=True
-        )
-        
-        opportunity_count = opportunities.count()
-        achieved_result = opportunities.aggregate(total=Sum('opportunity_value'))
-        achieved_amount = Decimal(achieved_result.get('total') or 0)
-        print(f"Opportunities Found: {opportunity_count}")
+        # Calculate achieved amount with weighted logic
+        achieved_amount = calculate_user_achieved_amount(user, current_month, current_year)
         print(f"Achieved Amount: {achieved_amount}")
         
         # Calculate difference between target and achieved
