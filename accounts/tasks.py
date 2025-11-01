@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from .models import UserTarget, MonthlyTarget
 
 
-def adjust_monthly_targets():
+def adjust_monthly_targets(*args, **kwargs):
     """
     Adjust monthly targets based on actual opportunity achievements.
     
@@ -180,7 +180,7 @@ def recalculate_all_monthly_targets():
     return f"Recalculated monthly targets for {count} users for {current_month}/{current_year}"
 
 
-def create_monthly_targets_for_all_users(month=None, year=None, default_target=Decimal('0.00')):
+def create_monthly_targets_for_all_users(month=None, year=None, default_target=Decimal('0.00'), **kwargs):
     """
     Create MonthlyTarget for all users using their UserTarget value.
     If a UserTarget doesn't exist for a user, create one with the default_target value.
@@ -189,10 +189,12 @@ def create_monthly_targets_for_all_users(month=None, year=None, default_target=D
         month: Target month (1-12), defaults to current month
         year: Target year, defaults to current year
         default_target: Default target amount if UserTarget doesn't exist
+        **kwargs: Accept and ignore any extra kwargs passed by schedulers (e.g. 'months', 'repeats')
     
     Returns:
         Dictionary with creation statistics
     """
+    # Extra kwargs from django-q schedule parameters are automatically ignored
     today = datetime.now()
     target_month = month or today.month
     target_year = year or today.year
