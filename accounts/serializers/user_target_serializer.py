@@ -37,6 +37,29 @@ class UserTargetCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("A target already exists for this user. Use update instead.")
         
         return data
+    
+    def create(self, validated_data):
+        """Create UserTarget and corresponding MonthlyTarget for current month"""
+        user = validated_data['user']
+        target_amount = validated_data['target']
+        
+        # Create UserTarget
+        user_target = UserTarget.objects.create(
+            user=user,
+            target=target_amount,
+            is_active=True,
+        )
+        
+        # Create MonthlyTarget for current month
+        current_date = datetime.now()
+        MonthlyTarget.objects.create(
+            user=user,
+            month=current_date.month,
+            year=current_date.year,
+            target_amount=target_amount
+        )
+        
+        return user_target
 
 
 class UserTargetUpdateSerializer(serializers.ModelSerializer):
