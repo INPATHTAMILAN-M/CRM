@@ -52,11 +52,11 @@ class UserTargetCreateSerializer(serializers.ModelSerializer):
         
         # Create MonthlyTarget for current month
         current_date = datetime.now()
-        MonthlyTarget.objects.create(
+        MonthlyTarget.objects.get_or_create(
             user=user,
             month=current_date.month,
             year=current_date.year,
-            target_amount=target_amount
+            defaults={'target_amount': target_amount}
         )
         
         return user_target
