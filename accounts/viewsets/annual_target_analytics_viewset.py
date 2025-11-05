@@ -110,6 +110,133 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
             total += both + only_creator + only_assigned
         return total
 
+    def _get_current_period_data(self, target_users, year_type, year):
+        """Get current period data for summary format."""
+        today = date.today()
+        current_month = today.month
+        current_year = today.year
+        
+        # Determine which periods the current month falls into
+        ranges = self._period_ranges(year_type, year)
+        summary_data = []
+        
+        # Monthly - current month
+        monthly_start = date(current_year, current_month, 1)
+        monthly_end = (monthly_start + relativedelta(months=1)) - relativedelta(days=1)
+        monthly_target = self._sum_monthly_targets(target_users, monthly_start, monthly_end)
+        monthly_achieved = self._calc_achieved_for_period(target_users, monthly_start, monthly_end)
+        monthly_pct = 0
+        monthly_increase = True
+        if monthly_target:
+            monthly_pct = int(((Decimal(str(monthly_achieved)) / Decimal(str(monthly_target))) * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+            monthly_increase = monthly_pct > 50  # Simple logic, can be enhanced
+        
+        summary_data.append({
+            "title": "monthly",
+            "target": float(monthly_target),
+            "achieved": float(monthly_achieved),
+            "increase": monthly_increase,
+            "percentage": monthly_pct
+        })
+        
+        # Quarterly - find which quarter current month falls into
+        quarter_num = ((current_month - 1) // 3) + 1
+        if year_type == 'financial':
+            # For financial year starting April
+            if current_month >= 4:
+                q_start_month = 4 + ((quarter_num - 1) * 3)
+                q_year = current_year
+            else:
+                q_start_month = 1 + ((quarter_num - 1) * 3)
+                q_year = current_year
+        else:
+            q_start_month = 1 + ((quarter_num - 1) * 3)
+            q_year = current_year
+            
+        quarterly_start = date(q_year, q_start_month, 1)
+        quarterly_end = (quarterly_start + relativedelta(months=3)) - relativedelta(days=1)
+        quarterly_target = self._sum_monthly_targets(target_users, quarterly_start, quarterly_end)
+        quarterly_achieved = self._calc_achieved_for_period(target_users, quarterly_start, quarterly_end)
+        quarterly_pct = 0
+        quarterly_increase = True
+        if quarterly_target:
+            quarterly_pct = int(((Decimal(str(quarterly_achieved)) / Decimal(str(quarterly_target))) * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+            quarterly_increase = quarterly_pct > 50
+            
+        summary_data.append({
+            "title": "quarterly",
+            "target": float(quarterly_target),
+            "achieved": float(quarterly_achieved),
+            "increase": quarterly_increase,
+            "percentage": quarterly_pct
+        })
+        
+        # Half Yearly - find which half current month falls into
+        if year_type == 'financial':
+            if current_month >= 4 and current_month <= 9:
+                half_start = date(current_year, 4, 1)
+                half_end = date(current_year, 9, 30)
+            else:
+                if current_month >= 10:
+                    half_start = date(current_year, 10, 1)
+                    half_end = date(current_year + 1, 3, 31)
+                else:
+                    half_start = date(current_year - 1, 10, 1)
+                    half_end = date(current_year, 3, 31)
+        else:
+            if current_month <= 6:
+                half_start = date(current_year, 1, 1)
+                half_end = date(current_year, 6, 30)
+            else:
+                half_start = date(current_year, 7, 1)
+                half_end = date(current_year, 12, 31)
+                
+        half_target = self._sum_monthly_targets(target_users, half_start, half_end)
+        half_achieved = self._calc_achieved_for_period(target_users, half_start, half_end)
+        half_pct = 0
+        half_increase = True
+        if half_target:
+            half_pct = int(((Decimal(str(half_achieved)) / Decimal(str(half_target))) * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+            half_increase = half_pct > 50
+            
+        summary_data.append({
+            "title": "half yearly",
+            "target": float(half_target),
+            "achieved": float(half_achieved),
+            "increase": half_increase,
+            "percentage": half_pct
+        })
+        
+        # Annual - current year
+        if year_type == 'financial':
+            if current_month >= 4:
+                annual_start = date(current_year, 4, 1)
+                annual_end = date(current_year + 1, 3, 31)
+            else:
+                annual_start = date(current_year - 1, 4, 1)
+                annual_end = date(current_year, 3, 31)
+        else:
+            annual_start = date(current_year, 1, 1)
+            annual_end = date(current_year, 12, 31)
+            
+        annual_target = self._sum_monthly_targets(target_users, annual_start, annual_end)
+        annual_achieved = self._calc_achieved_for_period(target_users, annual_start, annual_end)
+        annual_pct = 0
+        annual_increase = True
+        if annual_target:
+            annual_pct = int(((Decimal(str(annual_achieved)) / Decimal(str(annual_target))) * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+            annual_increase = annual_pct > 50
+            
+        summary_data.append({
+            "title": "annually",
+            "target": float(annual_target),
+            "achieved": float(annual_achieved),
+            "increase": annual_increase,
+            "percentage": annual_pct
+        })
+        
+        return summary_data
+
     @extend_schema(
         parameters=[
             OpenApiParameter(name='year_type', description="'financial' or 'physical'", required=False, type=OpenApiTypes.STR),
@@ -118,6 +245,7 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
             OpenApiParameter(name='user_id', description='Filter by user id', required=False, type=OpenApiTypes.INT),
             OpenApiParameter(name='team_id', description='Filter by team id', required=False, type=OpenApiTypes.INT),
             OpenApiParameter(name='company_name', description='Filter by company name (lead name)', required=False, type=OpenApiTypes.STR),
+            OpenApiParameter(name='summary', description='True/False - Return summary format with current period data', required=False, type=OpenApiTypes.BOOL),
         ]
     )
     @action(detail=False, methods=['get'], url_path='annual-analytics')
@@ -130,6 +258,7 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
         year_type = request.query_params.get('year_type', 'physical')
         period = request.query_params.get('period', 'all')
         year = request.query_params.get('year')
+        summary = request.query_params.get('summary', 'false').lower() == 'true'
 
         try:
             year = int(year) if year else date.today().year
@@ -160,6 +289,11 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
 
         if not target_users:
             return Response({'error': 'No matching users found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # If summary is requested, return summary format
+        if summary:
+            summary_data = self._get_current_period_data(target_users, year_type, year)
+            return Response(summary_data)
 
         ranges = self._period_ranges(year_type, year)
 
