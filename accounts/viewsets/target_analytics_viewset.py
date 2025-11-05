@@ -179,7 +179,7 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             },
             {
                 "type": "PhysicalYear",
-                "title": "Physical Year Target",
+                "title": "Physical Year",
                 "subtitle": "Yearly summary",
                 "target": annual_target,
                 "achieved": annual_ach,
