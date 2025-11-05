@@ -43,6 +43,7 @@ from lead.viewsets.task_assignment_viewset import TaskAssignmentViewSet
 from lead.viewsets.task_conversation_log_viewset import TaskConversationLogViewSet
 from lead.viewsets.task_viewset import CalanderTaskViewSet, TaskViewSet
 from lead.viewsets.vertical_viewset import VerticalViewSet
+from accounts.viewsets.annual_target_analytics_viewset import AnnualTargetAnalyticsViewSet
 
 
 
@@ -91,4 +92,5 @@ router.register(r'salutations', SalutationViewSet)
 router.register(r'monthly-targets', MonthlyTargetViewSet, basename='monthly_targets')
 router.register(r"user-targets", UserTargetViewSet, basename="user-target")
 router.register(r'target-analytics', TargetAnalyticsViewSet, basename='target_analytics')
+router.register(r'annual-target-analytics', AnnualTargetAnalyticsViewSet, basename='annual_target_analytics')
 urlpatterns = router.urls

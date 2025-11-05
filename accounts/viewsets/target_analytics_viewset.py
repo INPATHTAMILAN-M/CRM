@@ -7,6 +7,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_HALF_UP
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from accounts.models import MonthlyTarget, Teams
 from accounts.serializers.target_analytics_serializer import TargetAnalyticsSerializer
@@ -17,6 +18,13 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
     """ViewSet for target analytics calculations."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='user_id', description='Filter by user id', required=False, type=OpenApiTypes.INT),
+            OpenApiParameter(name='team_id', description='Filter by team id', required=False, type=OpenApiTypes.INT),
+            OpenApiParameter(name='company_name', description='Filter by company name (lead name)', required=False, type=OpenApiTypes.STR),
+        ]
+    )
     @action(detail=False, methods=["get"], url_path="analytics")
     def get_analytics(self, request):
         User = get_user_model()
