@@ -1,207 +1,187 @@
-from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
-from django.db.models import Q, Sum
-from django.contrib.auth import get_user_model
-from dateutil.relativedelta import relativedelta
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db.models import Q, Sum
+from datetime import date, datetime
+from dateutil.relativedelta import relativedelta
+from decimal import Decimal, ROUND_HALF_UP
+from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from accounts.models import MonthlyTarget, Teams
+from accounts.serializers.target_analytics_serializer import TargetAnalyticsSerializer
 from lead.models import Opportunity, Lead
 
 
 class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
-    """Provides annual analytics for financial or physical year."""
+    """Provides annual analytics for two year types (financial Apr-Mar and physical Jan-Dec)
 
+    Query params:
+      - year_type: 'financial' or 'physical' (default: 'physical')
+      - period: 'monthly'|'quarterly'|'half'|'annual'|'all' (default: 'all')
+      - year: integer year (for financial, use start year, e.g. 2024 means Apr-2024..Mar-2025)
+      - user_id, team_id, company_name (same selection rules as existing analytics)
+    """
     permission_classes = [IsAuthenticated]
 
-    # ---------------- Helper Methods ---------------- #
+    def _period_ranges(self, year_type, year):
+        """Return dicts of period label -> (start_date, end_date) depending on period granularity.
+        year_type: 'financial' or 'physical'
+        year: int
+        """
+        ranges = {}
+        if year_type == 'financial':
+            # Financial year starts April of 'year' and ends March of 'year+1'
+            fy_start = date(year, 4, 1)
+            fy_end = date(year + 1, 3, 31)
+        else:
+            # Physical calendar year Jan-Dec
+            fy_start = date(year, 1, 1)
+            fy_end = date(year, 12, 31)
 
-    def _get_year_range(self, year_type, year):
-        return (date(year, 4, 1), date(year + 1, 3, 31)) if year_type == 'financial' else (date(year, 1, 1), date(year, 12, 31))
+        # Monthly ranges
+        cur = fy_start
+        while cur <= fy_end:
+            start = cur.replace(day=1)
+            next_month = (start + relativedelta(months=1))
+            end = (next_month - relativedelta(days=1))
+            label = start.strftime('%b %Y')
+            ranges.setdefault('monthly', []).append((label, start, end))
+            cur = next_month
 
-    def _month_year_pairs(self, start, end):
-        pairs, cur = [], start.replace(day=1)
-        while cur <= end:
+        # Quarterly ranges (3-months)
+        q_start = fy_start
+        quarter_idx = 1
+        while q_start <= fy_end:
+            q_end = (q_start + relativedelta(months=3)) - relativedelta(days=1)
+            label = f'Q{quarter_idx} {q_start.year if year_type=="physical" else (q_start.year if q_start.month>=4 else q_start.year-1)}'
+            ranges.setdefault('quarterly', []).append((label, q_start, min(q_end, fy_end)))
+            q_start = q_end + relativedelta(days=1)
+            quarter_idx += 1
+
+        # Half yearly (6 months)
+        h1_start = fy_start
+        h1_end = (h1_start + relativedelta(months=6)) - relativedelta(days=1)
+        h2_start = h1_end + relativedelta(days=1)
+        h2_end = fy_end
+        ranges['half'] = [(
+            'H1 ' + str(year), h1_start, min(h1_end, fy_end)
+        ), (
+            'H2 ' + str(year), h2_start, h2_end
+        )]
+
+        # Annual
+        ranges['annual'] = [(f'{year_type.title()} Year {year}', fy_start, fy_end)]
+
+        return ranges
+
+    def _month_year_pairs(self, start_date, end_date):
+        pairs = []
+        cur = start_date.replace(day=1)
+        while cur <= end_date:
             pairs.append((cur.month, cur.year))
             cur = (cur + relativedelta(months=1)).replace(day=1)
         return pairs
 
-    def _sum_targets(self, users, start, end):
+    def _sum_monthly_targets(self, users, start_date, end_date):
+        pairs = self._month_year_pairs(start_date, end_date)
+        if not pairs:
+            return Decimal('0.00')
         q = Q()
-        for m, y in self._month_year_pairs(start, end):
+        for m, y in pairs:
             q |= Q(month=m, year=y)
-        total = MonthlyTarget.objects.filter(q, user__in=users).aggregate(total=Sum('target_amount'))['total'] or 0
-        return Decimal(total)
+        qs = MonthlyTarget.objects.filter(q, user__in=users)
+        return Decimal(qs.aggregate(total=Sum('target_amount')).get('total') or 0)
 
-    def _sum_achieved(self, users, start, end):
+    def _calc_achieved_for_period(self, users, start_date, end_date):
+        """Calculate achieved amount for a set of users within date range using weighted logic."""
         total = Decimal('0.00')
-        opps = Opportunity.objects.filter(opportunity_status=34, is_active=True, closing_date__range=(start, end))
+        base_qs = Opportunity.objects.filter(
+            opportunity_status=34,
+            is_active=True,
+            closing_date__gte=start_date,
+            closing_date__lte=end_date,
+        )
         for u in users:
-            both = opps.filter(Q(lead__created_by=u) & Q(lead__assigned_to=u)).aggregate(Sum('opportunity_value'))['opportunity_value__sum'] or 0
-            created = opps.filter(Q(lead__created_by=u) & ~Q(lead__assigned_to=u)).aggregate(Sum('opportunity_value'))['opportunity_value__sum'] or 0
-            assigned = opps.filter(~Q(lead__created_by=u) & Q(lead__assigned_to=u)).aggregate(Sum('opportunity_value'))['opportunity_value__sum'] or 0
-            total += Decimal(both) + Decimal(created)/2 + Decimal(assigned)/2
+            both = Decimal(base_qs.filter(Q(lead__created_by=u) & Q(lead__assigned_to=u)).aggregate(total=Sum('opportunity_value'))['total'] or 0)
+            only_creator = Decimal(base_qs.filter(Q(lead__created_by=u) & ~Q(lead__assigned_to=u)).aggregate(total=Sum('opportunity_value'))['total'] or 0) / 2
+            only_assigned = Decimal(base_qs.filter(~Q(lead__created_by=u) & Q(lead__assigned_to=u)).aggregate(total=Sum('opportunity_value'))['total'] or 0) / 2
+            total += both + only_creator + only_assigned
         return total
-
-    def _resolve_users(self, request):
-        User = get_user_model()
-        user = request.user
-        if not user.groups.filter(name__iexact='admin').exists():
-            return [user]
-
-        params = request.query_params
-        if user_id := params.get('user_id'):
-            return User.objects.filter(id=user_id)
-        if team_id := params.get('team_id'):
-            team = Teams.objects.filter(id=team_id).first()
-            return [team.bdm_user, *team.bde_user.all()] if team else []
-        if company := params.get('company_name'):
-            leads = Lead.objects.filter(name__icontains=company)
-            ids = {l.created_by_id for l in leads if l.created_by_id} | {l.assigned_to_id for l in leads if l.assigned_to_id}
-            return User.objects.filter(id__in=ids)
-        return User.objects.filter(is_active=True).exclude(groups__name__iexact='admin')
-
-    def _period_range(self, today, mode, year_type='physical'):
-        """Return (current, previous) period ranges based on mode and year_type."""
-        if year_type == 'financial':
-            # Financial year: April to March
-            if mode == 'monthly':
-                start = today.replace(day=1)
-                prev = (start - relativedelta(months=1)).replace(day=1)
-                end = (start + relativedelta(months=1)) - relativedelta(days=1)
-                prev_end = (prev + relativedelta(months=1)) - relativedelta(days=1)
-            elif mode == 'quarterly':
-                # Financial quarters: Apr-Jun, Jul-Sep, Oct-Dec, Jan-Mar
-                if today.month >= 4:  # Apr-Mar of same year
-                    fy_start = date(today.year, 4, 1)
-                    months_since_start = (today.year - fy_start.year) * 12 + today.month - fy_start.month
-                else:  # Jan-Mar of next financial year
-                    fy_start = date(today.year - 1, 4, 1)
-                    months_since_start = 12 + today.month - 4
-                
-                quarter = months_since_start // 3 + 1
-                start_month = fy_start.month + (quarter - 1) * 3
-                if start_month > 12:
-                    start = date(fy_start.year + 1, start_month - 12, 1)
-                else:
-                    start = date(fy_start.year, start_month, 1)
-                end = start + relativedelta(months=3, days=-1)
-                prev = start - relativedelta(months=3)
-                prev_end = prev + relativedelta(months=3, days=-1)
-            elif mode == 'half':
-                # Financial halves: Apr-Sep, Oct-Mar
-                if today.month >= 4 and today.month <= 9:  # First half
-                    start = date(today.year, 4, 1)
-                    end = date(today.year, 9, 30)
-                    prev = date(today.year - 1, 10, 1)
-                    prev_end = date(today.year, 3, 31)
-                else:  # Second half (Oct-Mar)
-                    if today.month >= 10:  # Oct-Dec
-                        start = date(today.year, 10, 1)
-                        end = date(today.year + 1, 3, 31)
-                        prev = date(today.year, 4, 1)
-                        prev_end = date(today.year, 9, 30)
-                    else:  # Jan-Mar
-                        start = date(today.year - 1, 10, 1)
-                        end = date(today.year, 3, 31)
-                        prev = date(today.year - 1, 4, 1)
-                        prev_end = date(today.year - 1, 9, 30)
-            else:  # annual
-                if today.month >= 4:  # Apr-Mar of current FY
-                    start = date(today.year, 4, 1)
-                    end = date(today.year + 1, 3, 31)
-                    prev = date(today.year - 1, 4, 1)
-                    prev_end = date(today.year, 3, 31)
-                else:  # Jan-Mar of current FY (previous calendar year)
-                    start = date(today.year - 1, 4, 1)
-                    end = date(today.year, 3, 31)
-                    prev = date(today.year - 2, 4, 1)
-                    prev_end = date(today.year - 1, 3, 31)
-        else:
-            # Physical year: January to December
-            if mode == 'monthly':
-                start = today.replace(day=1)
-                prev = (start - relativedelta(months=1)).replace(day=1)
-                end = (start + relativedelta(months=1)) - relativedelta(days=1)
-                prev_end = (prev + relativedelta(months=1)) - relativedelta(days=1)
-            elif mode == 'quarterly':
-                quarter = (today.month - 1) // 3 + 1
-                start_month = (quarter - 1) * 3 + 1
-                start = date(today.year, start_month, 1)
-                end = start + relativedelta(months=3, days=-1)
-                prev = start - relativedelta(months=3)
-                prev_end = prev + relativedelta(months=3, days=-1)
-            elif mode == 'half':
-                half = 1 if today.month <= 6 else 2
-                start = date(today.year, 1 if half == 1 else 7, 1)
-                end = start + relativedelta(months=6, days=-1)
-                prev = start - relativedelta(months=6)
-                prev_end = prev + relativedelta(months=6, days=-1)
-            else:  # annual
-                start, end = date(today.year, 1, 1), date(today.year, 12, 31)
-                prev, prev_end = date(today.year - 1, 1, 1), date(today.year - 1, 12, 31)
-        return (start, end), (prev, prev_end)
-
-    # ---------------- Main Endpoint ---------------- #
 
     @extend_schema(
         parameters=[
-            OpenApiParameter('year_type', OpenApiTypes.STR, description="'financial' or 'physical'"),
-            OpenApiParameter('period', OpenApiTypes.STR, description="'monthly'|'quarterly'|'half'|'annual'|'all'"),
-            OpenApiParameter('year', OpenApiTypes.INT, description="Start year for financial or calendar year."),
-            OpenApiParameter('summary', OpenApiTypes.BOOL, description="If true, returns summarized view."),
-            OpenApiParameter('user_id', OpenApiTypes.INT),
-            OpenApiParameter('team_id', OpenApiTypes.INT),
-            OpenApiParameter('company_name', OpenApiTypes.STR),
+            OpenApiParameter(name='year_type', description="'financial' or 'physical'", required=False, type=OpenApiTypes.STR),
+            OpenApiParameter(name='period', description="'monthly'|'quarterly'|'half'|'annual'|'all'", required=False, type=OpenApiTypes.STR),
+            OpenApiParameter(name='year', description='Year (integer). For financial, use start year e.g. 2024 for Apr-2024..Mar-2025', required=False, type=OpenApiTypes.INT),
+            OpenApiParameter(name='user_id', description='Filter by user id', required=False, type=OpenApiTypes.INT),
+            OpenApiParameter(name='team_id', description='Filter by team id', required=False, type=OpenApiTypes.INT),
+            OpenApiParameter(name='company_name', description='Filter by company name (lead name)', required=False, type=OpenApiTypes.STR),
         ]
     )
     @action(detail=False, methods=['get'], url_path='annual-analytics')
-    def get_annual_analytics(self, request):
+    def annual_analytics(self, request):
+        User = get_user_model()
+        user = request.user
+        is_admin = user.groups.filter(name__iexact='admin').exists()
+
+        # Inputs
         year_type = request.query_params.get('year_type', 'physical')
         period = request.query_params.get('period', 'all')
-        summary = request.query_params.get('summary', 'false').lower() == 'true'
-        year = int(request.query_params.get('year', date.today().year))
-        users = self._resolve_users(request)
-        if not users:
+        year = request.query_params.get('year')
+
+        try:
+            year = int(year) if year else date.today().year
+        except ValueError:
+            return Response({'error': 'Invalid year'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determine target users same as existing view
+        if is_admin:
+            user_id = request.query_params.get('user_id')
+            company_name = request.query_params.get('company_name')
+            team_id = request.query_params.get('team_id')
+
+            if user_id:
+                target_users = User.objects.filter(id=user_id)
+            elif team_id:
+                team = Teams.objects.filter(id=team_id).first()
+                if not team:
+                    return Response({'error': 'Team not found.'}, status=status.HTTP_404_NOT_FOUND)
+                target_users = [team.bdm_user, *team.bde_user.all()]
+            elif company_name:
+                leads = Lead.objects.filter(name__icontains=company_name)
+                user_ids = {l.created_by_id for l in leads if l.created_by_id} | {l.assigned_to_id for l in leads if l.assigned_to_id}
+                target_users = User.objects.filter(id__in=user_ids)
+            else:
+                target_users = User.objects.filter(is_active=True).exclude(groups__name__iexact='admin')
+        else:
+            target_users = [user]
+
+        if not target_users:
             return Response({'error': 'No matching users found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        today = date.today()
-        result = []
-        modes = [period] if period != 'all' else ['monthly', 'quarterly', 'half', 'annual']
+        ranges = self._period_ranges(year_type, year)
 
-        for mode in modes:
-            if summary:
-                (cur_s, cur_e), (prev_s, prev_e) = self._period_range(today, mode, year_type)
-                cur_target = self._sum_targets(users, cur_s, cur_e)
-                cur_ach = self._sum_achieved(users, cur_s, cur_e)
-                prev_ach = self._sum_achieved(users, prev_s, prev_e)
+        periods_to_return = []
+        requested = [period] if period != 'all' else ['monthly', 'quarterly', 'half', 'annual']
 
-                pct = int(((cur_ach / cur_target) * 100).quantize(Decimal('1'), ROUND_HALF_UP)) if cur_target else 0
-                result.append({
-                    'title': mode.title(),
-                    'target': cur_target,
-                    'achieved': cur_ach,
-                    'increase': cur_ach > prev_ach,
-                    'percentage': pct
+        for p in requested:
+            period_list = []
+            for label, start, end in ranges.get(p, []):
+                target_sum = self._sum_monthly_targets(target_users, start, end)
+                achieved = self._calc_achieved_for_period(target_users, start, end)
+                pct = 0
+                if target_sum:
+                    pct = int(((Decimal(str(achieved)) / Decimal(str(target_sum))) * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+                period_list.append({
+                    'label': label,
+                    'start': start,
+                    'end': end,
+                    'target': target_sum,
+                    'achieved': achieved,
+                    'percentage': pct,
                 })
-            else:
-                start, end = self._get_year_range(year_type, year)
-                details = []
-                step = {'monthly': 1, 'quarterly': 3, 'half': 6, 'annual': 12}[mode]
-                cur = start
-                while cur <= end:
-                    label = f"{cur.strftime('%b %Y')}" if mode == 'monthly' else f"{mode.title()} {cur.year}"
-                    next_date = cur + relativedelta(months=step)
-                    s_end = min(next_date - relativedelta(days=1), end)
-                    t = self._sum_targets(users, cur, s_end)
-                    a = self._sum_achieved(users, cur, s_end)
-                    pct = int(((a / t) * 100).quantize(Decimal('1'), ROUND_HALF_UP)) if t else 0
-                    details.append({'label': label, 'target': t, 'achieved': a, 'percentage': pct})
-                    cur = next_date
-                result.append({'period_type': mode, 'items': details})
+            periods_to_return.append({'period_type': p, 'items': period_list})
 
-        return Response(result, status=status.HTTP_200_OK)
+        return Response(periods_to_return)
