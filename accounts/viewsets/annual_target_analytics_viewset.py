@@ -70,17 +70,15 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
             closing_date__range=(start, end),
         )
         total = Decimal("0.00")
+
         for u in users:
-            both = qs.filter(lead__created_by=u, lead__assigned_to=u).aggregate(
-                s=Sum("opportunity_value")
-            )["s"] or 0
-            created = qs.filter(lead__created_by=u).exclude(
-                lead__assigned_to=u
-            ).aggregate(s=Sum("opportunity_value"))["s"] or 0
-            assigned = qs.filter(lead__assigned_to=u).exclude(
-                lead__created_by=u
-            ).aggregate(s=Sum("opportunity_value"))["s"] or 0
-            total += Decimal(both) + (Decimal(created) + Decimal(assigned)) / 2
+            # Count all opportunities where the user is either creator OR assignee
+            value = qs.filter(
+                Q(lead__created_by=u) | Q(lead__assigned_to=u)
+            ).aggregate(total=Sum("opportunity_value"))["total"] or 0
+
+            total += Decimal(value)
+
         return total
 
     def _get_ranges(self, year_type, year):
