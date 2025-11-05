@@ -178,8 +178,8 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "increase": financial_achieved > prev_financial_achieved,
             },
             {
-                "type": "annual",
-                "title": "Annual Target",
+                "type": "PhysicalYear",
+                "title": "Physical Year Target",
                 "subtitle": "Yearly summary",
                 "target": annual_target,
                 "achieved": annual_ach,
