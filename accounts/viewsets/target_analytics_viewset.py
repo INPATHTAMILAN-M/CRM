@@ -71,7 +71,7 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
         def get_value(model, users, month=None, year=None):
             total_value = Decimal("0.00")
 
-            for user in users:
+            for target_user in users:
                 qs = model.objects.filter(opportunity_status=34, is_active=True)
                 if month:
                     qs = qs.filter(closing_date__month=month)
@@ -79,9 +79,9 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                     qs = qs.filter(closing_date__year=year)
                 # Define filters with weights
                 filters_with_weights = [
-                    (Q(lead__created_by=user) & Q(lead__assigned_to=user), 1),   # both roles → full
-                    (Q(lead__created_by=user) & ~Q(lead__assigned_to=user), 0.5), # only creator → half
-                    (~Q(lead__created_by=user) & Q(lead__assigned_to=user), 0.5), # only assigned → half
+                    (Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 1),   # both roles → full
+                    (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user), 0.5), # only creator → half
+                    (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5), # only assigned → half
                 ]
 
                 for condition, weight in filters_with_weights:
@@ -97,10 +97,44 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 or Decimal("0.00")
             )
 
+        def month_year_pairs(start_date, end_date):
+            pairs = []
+            cur = start_date.replace(day=1)
+            while cur <= end_date:
+                pairs.append((cur.month, cur.year))
+                cur = (cur + relativedelta(months=1)).replace(day=1)
+            return pairs
+
+        def sum_targets_for_range(start_date, end_date):
+            pairs = month_year_pairs(start_date, end_date)
+            total = Decimal("0.00")
+            for m, y in pairs:
+                total += get_target(m, y)
+            return total
+
+        def sum_achieved_for_range(start_date, end_date):
+            pairs = month_year_pairs(start_date, end_date)
+            total = Decimal("0.00")
+            for m, y in pairs:
+                total += get_value(Opportunity, target_users, month=m, year=y)
+            return total
+
         # --- Calculate Values ---
+
         prev_target = get_target(prev_date.month, prev_date.year)
         curr_target = get_target(today.month, today.year)
         next_target = get_target(next_date.month, next_date.year)
+
+        # Financial year calculations (Apr - Mar)
+        fy_start_year = today.year if today.month >= 4 else today.year - 1
+        fy_start = date(fy_start_year, 4, 1)
+        fy_end = date(fy_start_year + 1, 3, 31)
+        financial_target = sum_targets_for_range(fy_start, fy_end)
+        financial_achieved = sum_achieved_for_range(fy_start, fy_end)
+        # previous financial year for comparison
+        prev_fy_start = date(fy_start_year - 1, 4, 1)
+        prev_fy_end = date(fy_start_year, 3, 31)
+        prev_financial_achieved = sum_achieved_for_range(prev_fy_start, prev_fy_end)
 
         prev_ach = get_value(Opportunity, target_users, prev_date.month, prev_date.year)
         curr_ach = get_value(Opportunity, target_users, today.month, today.year)
@@ -119,29 +153,29 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             {
                 "type": "prevMonth",
                 "title": "Previous Month",
-                "subtitle": "Last month’s performance",
+                "subtitle": "Last month's performance",
                 "target": prev_target,
                 "achieved": prev_ach,
                 "percentage": pct(prev_ach, prev_target),
-                "increase": curr_ach > prev_target,
+                "increase": curr_ach > prev_ach,  # Compare current vs previous achievement
             },
             {
                 "type": "currentMonth",
                 "title": "Current Month",
-                "subtitle": "Ongoing month’s progress",
+                "subtitle": "Ongoing month's progress",
                 "target": curr_target,
                 "achieved": curr_ach,
                 "percentage": pct(curr_ach, curr_target),
-                "increase": curr_ach > curr_target,
+                "increase": curr_ach > prev_ach,  # Compare current vs previous achievement
             },
             {
-                "type": "nextMonth",
-                "title": "Next Month",
-                "subtitle": "Upcoming target forecast",
-                "target": next_target,
-                "achieved": Decimal("0.00"),
-                "percentage": 0,
-                "increase": False,
+                "type": "financialYear",
+                "title": "Financial Year",
+                "subtitle": "Apr - Mar financial year",
+                "target": financial_target,
+                "achieved": financial_achieved,
+                "percentage": pct(financial_achieved, financial_target),
+                "increase": financial_achieved > prev_financial_achieved,
             },
             {
                 "type": "annual",
