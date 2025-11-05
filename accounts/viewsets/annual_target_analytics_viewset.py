@@ -65,29 +65,85 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
             return User.objects.filter(id__in=ids)
         return User.objects.filter(is_active=True).exclude(groups__name__iexact='admin')
 
-    def _period_range(self, today, mode):
-        """Return (current, previous) period ranges based on mode."""
-        if mode == 'monthly':
-            start = today.replace(day=1)
-            prev = (start - relativedelta(months=1)).replace(day=1)
-            end = (start + relativedelta(months=1)) - relativedelta(days=1)
-            prev_end = (prev + relativedelta(months=1)) - relativedelta(days=1)
-        elif mode == 'quarterly':
-            quarter = (today.month - 1) // 3 + 1
-            start_month = (quarter - 1) * 3 + 1
-            start = date(today.year, start_month, 1)
-            end = start + relativedelta(months=3, days=-1)
-            prev = start - relativedelta(months=3)
-            prev_end = prev + relativedelta(months=3, days=-1)
-        elif mode == 'half':
-            half = 1 if today.month <= 6 else 2
-            start = date(today.year, 1 if half == 1 else 7, 1)
-            end = start + relativedelta(months=6, days=-1)
-            prev = start - relativedelta(months=6)
-            prev_end = prev + relativedelta(months=6, days=-1)
-        else:  # annual
-            start, end = date(today.year, 1, 1), date(today.year, 12, 31)
-            prev, prev_end = date(today.year - 1, 1, 1), date(today.year - 1, 12, 31)
+    def _period_range(self, today, mode, year_type='physical'):
+        """Return (current, previous) period ranges based on mode and year_type."""
+        if year_type == 'financial':
+            # Financial year: April to March
+            if mode == 'monthly':
+                start = today.replace(day=1)
+                prev = (start - relativedelta(months=1)).replace(day=1)
+                end = (start + relativedelta(months=1)) - relativedelta(days=1)
+                prev_end = (prev + relativedelta(months=1)) - relativedelta(days=1)
+            elif mode == 'quarterly':
+                # Financial quarters: Apr-Jun, Jul-Sep, Oct-Dec, Jan-Mar
+                if today.month >= 4:  # Apr-Mar of same year
+                    fy_start = date(today.year, 4, 1)
+                    months_since_start = (today.year - fy_start.year) * 12 + today.month - fy_start.month
+                else:  # Jan-Mar of next financial year
+                    fy_start = date(today.year - 1, 4, 1)
+                    months_since_start = 12 + today.month - 4
+                
+                quarter = months_since_start // 3 + 1
+                start_month = fy_start.month + (quarter - 1) * 3
+                if start_month > 12:
+                    start = date(fy_start.year + 1, start_month - 12, 1)
+                else:
+                    start = date(fy_start.year, start_month, 1)
+                end = start + relativedelta(months=3, days=-1)
+                prev = start - relativedelta(months=3)
+                prev_end = prev + relativedelta(months=3, days=-1)
+            elif mode == 'half':
+                # Financial halves: Apr-Sep, Oct-Mar
+                if today.month >= 4 and today.month <= 9:  # First half
+                    start = date(today.year, 4, 1)
+                    end = date(today.year, 9, 30)
+                    prev = date(today.year - 1, 10, 1)
+                    prev_end = date(today.year, 3, 31)
+                else:  # Second half (Oct-Mar)
+                    if today.month >= 10:  # Oct-Dec
+                        start = date(today.year, 10, 1)
+                        end = date(today.year + 1, 3, 31)
+                        prev = date(today.year, 4, 1)
+                        prev_end = date(today.year, 9, 30)
+                    else:  # Jan-Mar
+                        start = date(today.year - 1, 10, 1)
+                        end = date(today.year, 3, 31)
+                        prev = date(today.year - 1, 4, 1)
+                        prev_end = date(today.year - 1, 9, 30)
+            else:  # annual
+                if today.month >= 4:  # Apr-Mar of current FY
+                    start = date(today.year, 4, 1)
+                    end = date(today.year + 1, 3, 31)
+                    prev = date(today.year - 1, 4, 1)
+                    prev_end = date(today.year, 3, 31)
+                else:  # Jan-Mar of current FY (previous calendar year)
+                    start = date(today.year - 1, 4, 1)
+                    end = date(today.year, 3, 31)
+                    prev = date(today.year - 2, 4, 1)
+                    prev_end = date(today.year - 1, 3, 31)
+        else:
+            # Physical year: January to December
+            if mode == 'monthly':
+                start = today.replace(day=1)
+                prev = (start - relativedelta(months=1)).replace(day=1)
+                end = (start + relativedelta(months=1)) - relativedelta(days=1)
+                prev_end = (prev + relativedelta(months=1)) - relativedelta(days=1)
+            elif mode == 'quarterly':
+                quarter = (today.month - 1) // 3 + 1
+                start_month = (quarter - 1) * 3 + 1
+                start = date(today.year, start_month, 1)
+                end = start + relativedelta(months=3, days=-1)
+                prev = start - relativedelta(months=3)
+                prev_end = prev + relativedelta(months=3, days=-1)
+            elif mode == 'half':
+                half = 1 if today.month <= 6 else 2
+                start = date(today.year, 1 if half == 1 else 7, 1)
+                end = start + relativedelta(months=6, days=-1)
+                prev = start - relativedelta(months=6)
+                prev_end = prev + relativedelta(months=6, days=-1)
+            else:  # annual
+                start, end = date(today.year, 1, 1), date(today.year, 12, 31)
+                prev, prev_end = date(today.year - 1, 1, 1), date(today.year - 1, 12, 31)
         return (start, end), (prev, prev_end)
 
     # ---------------- Main Endpoint ---------------- #
@@ -119,7 +175,7 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
 
         for mode in modes:
             if summary:
-                (cur_s, cur_e), (prev_s, prev_e) = self._period_range(today, mode)
+                (cur_s, cur_e), (prev_s, prev_e) = self._period_range(today, mode, year_type)
                 cur_target = self._sum_targets(users, cur_s, cur_e)
                 cur_ach = self._sum_achieved(users, cur_s, cur_e)
                 prev_ach = self._sum_achieved(users, prev_s, prev_e)
