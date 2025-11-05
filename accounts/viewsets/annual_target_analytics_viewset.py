@@ -116,12 +116,30 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
         current_month = today.month
         current_year = today.year
         
-        # Determine which periods the current month falls into
-        ranges = self._period_ranges(year_type, year)
+        # Determine the target year to use
+        if year_type == 'financial':
+            # For financial year, determine which financial year we're currently in
+            if current_month >= 4:
+                current_financial_year = current_year
+            else:
+                current_financial_year = current_year - 1
+            target_year = year if year else current_financial_year
+        else:
+            # For physical year
+            target_year = year if year else current_year
+        
         summary_data = []
         
-        # Monthly - current month
-        monthly_start = date(current_year, current_month, 1)
+        # Monthly - current month (or reference month for different years)
+        if year == target_year or year is None:
+            # Use current month for current year or when no specific year is provided
+            monthly_start = date(current_year, current_month, 1)
+        else:
+            # For different years, use December as reference month
+            ref_month = 12 if year_type == 'physical' else (3 if current_month < 4 else current_month)
+            ref_year = target_year if year_type == 'physical' else (target_year + 1 if ref_month == 3 else target_year)
+            monthly_start = date(ref_year, ref_month, 1)
+            
         monthly_end = (monthly_start + relativedelta(months=1)) - relativedelta(days=1)
         monthly_target = self._sum_monthly_targets(target_users, monthly_start, monthly_end)
         monthly_achieved = self._calc_achieved_for_period(target_users, monthly_start, monthly_end)
@@ -129,7 +147,7 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
         monthly_increase = True
         if monthly_target:
             monthly_pct = int(((Decimal(str(monthly_achieved)) / Decimal(str(monthly_target))) * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
-            monthly_increase = monthly_pct > 50  # Simple logic, can be enhanced
+            monthly_increase = monthly_pct > 50
         
         summary_data.append({
             "title": "monthly",
@@ -140,18 +158,23 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
         })
         
         # Quarterly - find which quarter current month falls into
-        quarter_num = ((current_month - 1) // 3) + 1
         if year_type == 'financial':
-            # For financial year starting April
+            # Financial year quarters: Q1(Apr-Jun), Q2(Jul-Sep), Q3(Oct-Dec), Q4(Jan-Mar)
             if current_month >= 4:
+                # Apr-Dec: Q1, Q2, Q3
+                quarter_num = ((current_month - 4) // 3) + 1
                 q_start_month = 4 + ((quarter_num - 1) * 3)
-                q_year = current_year
+                q_year = target_year
             else:
-                q_start_month = 1 + ((quarter_num - 1) * 3)
-                q_year = current_year
+                # Jan-Mar: Q4 of financial year
+                quarter_num = 4
+                q_start_month = 1
+                q_year = target_year + 1 if target_year < current_year else current_year
         else:
+            # Physical year quarters: Q1(Jan-Mar), Q2(Apr-Jun), Q3(Jul-Sep), Q4(Oct-Dec)
+            quarter_num = ((current_month - 1) // 3) + 1
             q_start_month = 1 + ((quarter_num - 1) * 3)
-            q_year = current_year
+            q_year = target_year
             
         quarterly_start = date(q_year, q_start_month, 1)
         quarterly_end = (quarterly_start + relativedelta(months=3)) - relativedelta(days=1)
@@ -174,22 +197,26 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
         # Half Yearly - find which half current month falls into
         if year_type == 'financial':
             if current_month >= 4 and current_month <= 9:
-                half_start = date(current_year, 4, 1)
-                half_end = date(current_year, 9, 30)
+                # Apr-Sep: First half of financial year
+                half_start = date(target_year, 4, 1)
+                half_end = date(target_year, 9, 30)
             else:
+                # Oct-Mar: Second half of financial year
                 if current_month >= 10:
-                    half_start = date(current_year, 10, 1)
-                    half_end = date(current_year + 1, 3, 31)
-                else:
-                    half_start = date(current_year - 1, 10, 1)
-                    half_end = date(current_year, 3, 31)
+                    half_start = date(target_year, 10, 1)
+                    half_end = date(target_year + 1, 3, 31)
+                else:  # Jan-Mar
+                    half_start = date(target_year, 10, 1)
+                    half_end = date(target_year + 1, 3, 31)
         else:
             if current_month <= 6:
-                half_start = date(current_year, 1, 1)
-                half_end = date(current_year, 6, 30)
+                # Jan-Jun: First half of physical year
+                half_start = date(target_year, 1, 1)
+                half_end = date(target_year, 6, 30)
             else:
-                half_start = date(current_year, 7, 1)
-                half_end = date(current_year, 12, 31)
+                # Jul-Dec: Second half of physical year
+                half_start = date(target_year, 7, 1)
+                half_end = date(target_year, 12, 31)
                 
         half_target = self._sum_monthly_targets(target_users, half_start, half_end)
         half_achieved = self._calc_achieved_for_period(target_users, half_start, half_end)
@@ -207,17 +234,13 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
             "percentage": half_pct
         })
         
-        # Annual - current year
+        # Annual - use the target year
         if year_type == 'financial':
-            if current_month >= 4:
-                annual_start = date(current_year, 4, 1)
-                annual_end = date(current_year + 1, 3, 31)
-            else:
-                annual_start = date(current_year - 1, 4, 1)
-                annual_end = date(current_year, 3, 31)
+            annual_start = date(target_year, 4, 1)
+            annual_end = date(target_year + 1, 3, 31)
         else:
-            annual_start = date(current_year, 1, 1)
-            annual_end = date(current_year, 12, 31)
+            annual_start = date(target_year, 1, 1)
+            annual_end = date(target_year, 12, 31)
             
         annual_target = self._sum_monthly_targets(target_users, annual_start, annual_end)
         annual_achieved = self._calc_achieved_for_period(target_users, annual_start, annual_end)
