@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.db.models import Q
 from datetime import datetime
 from ..models import UserTarget, MonthlyTarget
 
@@ -83,7 +84,20 @@ class UserTargetUpdateSerializer(serializers.ModelSerializer):
         update_month = updated_at.month
         update_year = updated_at.year
         
-        # Update or create MonthlyTarget for the month/year when instance was updated
+        # Update MonthlyTarget for current month/year and all future months
+        # Build a filter for all months >= update_month in update_year and all future years
+        
+        # Filter: (year = update_year AND month >= update_month) OR (year > update_year)
+        filter_condition = Q(
+            user=updated_user
+        ) & (
+            Q(year=update_year, month__gte=update_month) | Q(year__gt=update_year)
+        )
+        
+        # Update all existing MonthlyTargets that match the condition
+        MonthlyTarget.objects.filter(filter_condition).update(target_amount=new_target)
+        
+        # Also ensure the current month/year has a MonthlyTarget (in case it doesn't exist)
         MonthlyTarget.objects.update_or_create(
             user=updated_user,
             month=update_month,

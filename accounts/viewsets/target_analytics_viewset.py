@@ -53,6 +53,9 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             else:
                 target_users = User.objects.filter(is_active=True).exclude(groups__name__iexact="admin")
         else:
+            user_id = request.query_params.get("user_id")
+            if user_id:
+                user = User.objects.filter(id=user_id).first()
             target_users = [user]
 
         if not target_users:
