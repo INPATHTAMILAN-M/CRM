@@ -158,6 +158,8 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
                 pct = int(((achieved / target) * 100).quantize(Decimal("1"), ROUND_HALF_UP)) if target else 0
                 summary_data.append({
                     "title": titles[key],
+                    "start_date": start.strftime("%Y-%m-%d"),
+                    "end_date": end.strftime("%Y-%m-%d"),
                     "target": float(target),
                     "achieved": float(achieved),
                     "percentage": pct,

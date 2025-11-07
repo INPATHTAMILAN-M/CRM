@@ -5,63 +5,73 @@ from django_q.tasks import schedule, Schedule
 
 
 class Command(BaseCommand):
-    help = 'Schedules monthly target creation (month end) and adjustment (month start) tasks with Django-Q.'
+    help = "Schedules monthly target creation and adjustment tasks (using Django-Q)."
+
+    def add_arguments(self, parser):
+        parser.add_argument('--force', action='store_true', help='Recreate schedules if they already exist')
+        parser.add_argument('--list', action='store_true', help='List existing schedules only')
 
     def handle(self, *args, **options):
-        now = timezone.now()
         tz = timezone.get_current_timezone()
+        now = timezone.now()
 
-        # ----------------------------
-        # Calculate key dates
-        # ----------------------------
+        if options['list']:
+            self._list_schedules()
+            return
+
+        # Calculate month boundaries
         first_next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
         last_day_this_month = first_next_month - timedelta(days=1)
 
-        # Month-end: last day of this month at 23:59
-        month_end_time = datetime.combine(last_day_this_month, time(23, 59)).astimezone(tz)
+        # Month start & end run times
+        month_start = datetime.combine(first_next_month, time(0, 10)).astimezone(tz)
+        month_end = datetime.combine(last_day_this_month, time(23, 59)).astimezone(tz)
 
-        # Month-start: first day of next month at 00:10
-        month_start_time = datetime.combine(first_next_month, time(0, 10)).astimezone(tz)
+        tasks = [
+            {
+                "name": "create_monthly_targets_for_all_users",
+                "task": "accounts.tasks.create_monthly_targets_for_all_users",
+                "next_run": month_start,
+            },
+            {
+                "name": "adjust_monthly_targets",
+                "task": "accounts.tasks.adjust_monthly_targets",
+                "next_run": month_end,
+            },
+        ]
 
-        # ----------------------------
-        # 1️⃣ Schedule: create targets at end of the month
-        # ----------------------------
-        result1 = schedule(
-            'accounts.tasks.create_monthly_targets_for_all_users',
-            name='create_monthly_targets_for_all_users',
-            schedule_type=Schedule.MONTHLY,
-            months=1,
-            repeats=-1,
-            next_run=month_start_time
-        )
+        for t in tasks:
+            self._create_or_update_schedule(t, options['force'])
 
-        # ----------------------------
-        # 2️⃣ Schedule: adjust targets at start of next month
-        # ----------------------------
-        result2 = schedule(
-            'accounts.tasks.adjust_monthly_targets',
-            name='adjust_monthly_targets',
-            schedule_type=Schedule.MONTHLY,
-            months=1,
-            repeats=-1,
-            next_run=month_end_time
-        )
+    def _create_or_update_schedule(self, task_info, force):
+        existing = Schedule.objects.filter(name=task_info['name']).first()
 
-        # ----------------------------
-        # ✅ Output results
-        # ----------------------------
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"""
-Successfully scheduled monthly tasks:
+        if existing and not force:
+            self.stdout.write(self.style.WARNING(f"📋 {task_info['name']} already exists (ID: {existing.id})"))
+            return
 
-🕛 1️⃣ create_monthly_targets_for_all_users
-    - Runs at end of month: {month_end_time}
-    - Schedule ID: {result1.id}
+        if existing and force:
+            existing.delete()
+            self.stdout.write(self.style.WARNING(f"🗑️ Recreating {task_info['name']}..."))
 
-🕐 2️⃣ adjust_monthly_targets
-    - Runs at start of month: {month_start_time}
-    - Schedule ID: {result2.id}
-"""
+        try:
+            sched = schedule(
+                task_info['task'],
+                name=task_info['name'],
+                schedule_type=Schedule.MONTHLY,
+                months=1,
+                repeats=-1,
+                next_run=task_info['next_run'],
             )
-        )
+            self.stdout.write(self.style.SUCCESS(f"✅ Scheduled: {task_info['name']} → {task_info['next_run']}"))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"❌ Error scheduling {task_info['name']}: {e}"))
+
+    def _list_schedules(self):
+        schedules = Schedule.objects.all().order_by('name')
+        if not schedules.exists():
+            self.stdout.write(self.style.WARNING("⚠️ No schedules found"))
+            return
+        self.stdout.write(self.style.SUCCESS("📋 Existing Django-Q schedules:"))
+        for s in schedules:
+            self.stdout.write(f" - {s.name} | Next run: {s.next_run}")
