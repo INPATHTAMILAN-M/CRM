@@ -228,6 +228,19 @@ def create_targets_for_financial_and_physical_year(
     Create MonthlyTarget records for all active users for distinct
     financial years (Apr–Mar) and physical years (Jan–Dec).
     Avoids duplicate months between FY and PY.
+    
+    Only creates targets for users where current date (month/year) >= user.date_joined (month/year).
+    Also only creates monthly targets for months >= user's joining month/year.
+    
+    Args:
+        start_financial_year: Starting financial year
+        end_financial_year: Ending financial year  
+        start_physical_year: Starting physical year
+        end_physical_year: Ending physical year
+        default_target: Default target amount for new UserTarget records
+        
+    Returns:
+        Dictionary with creation statistics including skipped users
     """
     today = datetime.now()
     current_year = today.year
@@ -247,6 +260,7 @@ def create_targets_for_financial_and_physical_year(
         user_targets_created=0,
         monthly_targets_created=0,
         monthly_targets_existed=0,
+        users_skipped_not_joined=0,
         errors=[]
     )
 
@@ -272,6 +286,16 @@ def create_targets_for_financial_and_physical_year(
     # --- Process users ---
     for user in users:
         try:
+            # Check if current date (month/year) >= user's joining date (month/year)
+            joined_date = user.date_joined.date()  # Convert datetime to date
+            
+            if today.year < joined_date.year or (today.year == joined_date.year and today.month < joined_date.month):
+                print(f"⏳ Skipping {user.username}: joined on {joined_date}, current date {today.strftime('%Y-%m-%d')} is before joining month/year")
+                stats["users_skipped_not_joined"] += 1
+                continue
+                
+            print(f"✅ Processing {user.username}: joined on {joined_date}, eligible for target creation")
+            
             stats["total_users"] += 1
             user_target, created = UserTarget.objects.get_or_create(
                 user=user, defaults={"target": default_target}
@@ -281,6 +305,10 @@ def create_targets_for_financial_and_physical_year(
 
             with transaction.atomic():
                 for month, year in all_months:
+                    # Additional check: only create targets for months >= joining month/year
+                    if year < joined_date.year or (year == joined_date.year and month < joined_date.month):
+                        continue  # Skip months before user joined
+                        
                     _, mt_created = MonthlyTarget.objects.get_or_create(
                         user=user,
                         month=month,
@@ -295,7 +323,8 @@ def create_targets_for_financial_and_physical_year(
             stats["errors"].append(f"{user.username}: {e}")
 
     print(
-        f"Users: {stats['total_users']} | "
+        f"Users: {stats['total_users']} processed | "
+        f"Skipped (not joined yet): {stats['users_skipped_not_joined']} | "
         f"UserTargets Created: {stats['user_targets_created']} | "
         f"Monthly Created: {stats['monthly_targets_created']} | "
         f"Existed: {stats['monthly_targets_existed']} | "
@@ -311,6 +340,31 @@ def create_targets_from_start_to_current(
     default_target=Decimal("0.00"),
     **kwargs
 ):
+    """
+    Automatically create targets from start years to current FY/PY based on today's date.
+    
+    Logic:
+    - Determines current financial year based on today's date (Apr-Mar cycle)
+    - Determines current physical year based on today's date (Jan-Dec cycle)
+    - If start years not provided, uses current years as both start and end
+    - If start years provided, creates from start year to current year
+    - Only processes users where current date >= user.date_joined (month/year comparison)
+    - Only creates monthly targets for months >= user's joining month/year
+    
+    Args:
+        start_financial_year: Starting financial year (defaults to current FY)
+        start_physical_year: Starting physical year (defaults to current year)
+        default_target: Default target amount for users without UserTarget
+        **kwargs: Additional arguments passed to the main function
+    
+    Returns:
+        Dictionary with creation statistics including skipped users
+        
+    Examples:
+        # Current date: Nov 7, 2025 (FY 2025-26, PY 2025)
+        create_targets_from_start_to_current()  # Creates for FY 2025 and PY 2025 only
+        create_targets_from_start_to_current(start_financial_year=2020)  # Creates FY 2020-2025
+    """
     today = datetime.now()
     current_year = today.year
     current_month = today.month
