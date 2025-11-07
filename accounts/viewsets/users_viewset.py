@@ -93,8 +93,6 @@ class UsersForLeadViewSet(viewsets.ReadOnlyModelViewSet):
         target_groups = Group.objects.filter(name__in=["TM", "Tele Marketer"])
         return queryset.filter(groups__in=target_groups).distinct()
 
-
-# ViewSet for Lead Owner based on BDM group
 class GetLeadOwnerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
