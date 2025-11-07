@@ -68,6 +68,7 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
             opportunity_status=34,
             is_active=True,
             closing_date__range=(start, end),
+            
         )
         total = Decimal("0.00")
 

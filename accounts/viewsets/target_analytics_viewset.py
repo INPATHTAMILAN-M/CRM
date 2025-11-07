@@ -151,12 +151,24 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             or Decimal("0.00")
         )
 
+        # Calculate date ranges for each period
+        prev_month_start = prev_date.replace(day=1)
+        prev_month_end = today.replace(day=1) - relativedelta(days=1)
+        
+        curr_month_start = today.replace(day=1)
+        curr_month_end = (today.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
+        
+        physical_year_start = date(today.year, 1, 1)
+        physical_year_end = date(today.year, 12, 31)
+
         # --- Response ---
         data = [
             {
                 "type": "prevMonth",
                 "title": "Previous Month",
                 "subtitle": "Last month's performance",
+                "start_date": prev_month_start.strftime("%Y-%m-%d"),
+                "end_date": prev_month_end.strftime("%Y-%m-%d"),
                 "target": prev_target,
                 "achieved": prev_ach,
                 "percentage": pct(prev_ach, prev_target),
@@ -166,6 +178,8 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "type": "currentMonth",
                 "title": "Current Month",
                 "subtitle": "Ongoing month's progress",
+                "start_date": curr_month_start.strftime("%Y-%m-%d"),
+                "end_date": curr_month_end.strftime("%Y-%m-%d"),
                 "target": curr_target,
                 "achieved": curr_ach,
                 "percentage": pct(curr_ach, curr_target),
@@ -175,6 +189,8 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "type": "financialYear",
                 "title": "Financial Year",
                 "subtitle": "Apr - Mar financial year",
+                "start_date": fy_start.strftime("%Y-%m-%d"),
+                "end_date": fy_end.strftime("%Y-%m-%d"),
                 "target": financial_target,
                 "achieved": financial_achieved,
                 "percentage": pct(financial_achieved, financial_target),
@@ -184,6 +200,8 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "type": "PhysicalYear",
                 "title": "Physical Year",
                 "subtitle": "Yearly summary",
+                "start_date": physical_year_start.strftime("%Y-%m-%d"),
+                "end_date": physical_year_end.strftime("%Y-%m-%d"),
                 "target": annual_target,
                 "achieved": annual_ach,
                 "percentage": pct(annual_ach, annual_target),
