@@ -11,5 +11,7 @@ class TargetAnalyticsSerializer(serializers.Serializer):
     target = serializers.DecimalField(max_digits=10, decimal_places=2)
     achieved = serializers.DecimalField(max_digits=10, decimal_places=2)
     percentage = serializers.IntegerField()
+    start_date = serializers.CharField()
+    end_date = serializers.CharField()
     increase = serializers.BooleanField()
     status = serializers.CharField(required=False, allow_null=True)
