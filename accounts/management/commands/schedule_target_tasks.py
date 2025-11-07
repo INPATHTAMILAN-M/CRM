@@ -27,16 +27,56 @@ class Command(BaseCommand):
         month_start = datetime.combine(first_next_month, time(0, 10)).astimezone(tz)
         month_end = datetime.combine(last_day_this_month, time(23, 59)).astimezone(tz)
 
+        # Calculate next financial year start (April 1st)
+        current_year = now.year
+        if now.month >= 4:  # If we're in Apr-Dec, next financial year is next calendar year
+            next_financial_year = current_year + 1
+        else:  # If we're in Jan-Mar, next financial year is this calendar year
+            next_financial_year = current_year
+        financial_year_start = datetime.combine(
+            datetime(next_financial_year, 4, 1).date(), 
+            time(1, 0)
+        ).astimezone(tz)
+
+        # Calculate next physical year start (January 1st)
+        next_physical_year = current_year + 1
+        physical_year_start = datetime.combine(
+            datetime(next_physical_year, 1, 1).date(), 
+            time(1, 0)
+        ).astimezone(tz)
+
         tasks = [
             {
                 "name": "create_monthly_targets_for_all_users",
                 "task": "accounts.tasks.create_monthly_targets_for_all_users",
                 "next_run": month_start,
+                "schedule_type": Schedule.MONTHLY,
+                "repeats": -1,
+                "months": 1,
             },
             {
                 "name": "adjust_monthly_targets",
                 "task": "accounts.tasks.adjust_monthly_targets",
                 "next_run": month_end,
+                "schedule_type": Schedule.MONTHLY,
+                "repeats": -1,
+                "months": 1,
+            },
+            {
+                "name": "create_targets_financial_year_start",
+                "task": "accounts.tasks.create_targets_from_start_to_current",
+                "next_run": financial_year_start,
+                "schedule_type": Schedule.YEARLY,
+                "repeats": -1,
+                "months": 12,
+            },
+            {
+                "name": "create_targets_physical_year_start",
+                "task": "accounts.tasks.create_targets_from_start_to_current",
+                "next_run": physical_year_start,
+                "schedule_type": Schedule.YEARLY,
+                "repeats": -1,
+                "months": 12,
             },
         ]
 
@@ -58,12 +98,15 @@ class Command(BaseCommand):
             sched = schedule(
                 task_info['task'],
                 name=task_info['name'],
-                schedule_type=Schedule.MONTHLY,
-                months=1,
-                repeats=-1,
+                schedule_type=task_info['schedule_type'],
+                months=task_info['months'],
+                repeats=task_info['repeats'],
                 next_run=task_info['next_run'],
             )
-            self.stdout.write(self.style.SUCCESS(f"✅ Scheduled: {task_info['name']} → {task_info['next_run']}"))
+            schedule_type_name = "MONTHLY" if task_info['schedule_type'] == Schedule.MONTHLY else "YEARLY"
+            self.stdout.write(self.style.SUCCESS(
+                f"✅ Scheduled ({schedule_type_name}): {task_info['name']} → {task_info['next_run']}"
+            ))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"❌ Error scheduling {task_info['name']}: {e}"))
 
@@ -74,4 +117,5 @@ class Command(BaseCommand):
             return
         self.stdout.write(self.style.SUCCESS("📋 Existing Django-Q schedules:"))
         for s in schedules:
-            self.stdout.write(f" - {s.name} | Next run: {s.next_run}")
+            schedule_type = "MONTHLY" if s.schedule_type == Schedule.MONTHLY else "YEARLY"
+            self.stdout.write(f" - {s.name} ({schedule_type}) | Next run: {s.next_run}")
