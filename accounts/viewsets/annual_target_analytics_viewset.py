@@ -68,17 +68,20 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
             opportunity_status=34,
             is_active=True,
             closing_date__range=(start, end),
-            
         )
         total = Decimal("0.00")
 
         for u in users:
-            # Count all opportunities where the user is either creator OR assignee
-            value = qs.filter(
-                Q(lead__created_by=u) | Q(lead__assigned_to=u)
-            ).aggregate(total=Sum("opportunity_value"))["total"] or 0
+            # Define filters with weights - same logic as target_analytics_viewset
+            filters_with_weights = [
+                (Q(lead__created_by=u) & Q(lead__assigned_to=u), 1),   # both roles → full
+                (Q(lead__created_by=u) & ~Q(lead__assigned_to=u), 0.5), # only creator → half
+                (~Q(lead__created_by=u) & Q(lead__assigned_to=u), 0.5), # only assigned → half
+            ]
 
-            total += Decimal(value)
+            for condition, weight in filters_with_weights:
+                value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
+                total += Decimal(value) * Decimal(weight)
 
         return total
 
