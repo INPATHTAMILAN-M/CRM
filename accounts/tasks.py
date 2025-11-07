@@ -133,76 +133,6 @@ def adjust_monthly_targets(*args, **kwargs):
     return f"Adjusted monthly targets for {users_with_targets.count()} users"
 
 
-def calculate_user_monthly_target(user_id, month=None, year=None):
-    """
-    Calculate and set monthly target for a specific user.
-    
-    Args:
-        user_id: User ID
-        month: Month (1-12), defaults to current month
-        year: Year, defaults to current year
-    
-    Returns:
-        MonthlyTarget instance or None
-    """
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        return None
-    
-    # Don't create targets for admin users
-    if user.groups.filter(name__iexact='Admin').exists():
-        return None
-    
-    # Get user's overall target
-    try:
-        user_target = UserTarget.objects.get(user=user)
-    except UserTarget.DoesNotExist:
-        return None
-    
-    # Use current month/year if not provided
-    if month is None or year is None:
-        today = datetime.now()
-        month = month or today.month
-        year = year or today.year
-    
-    # Create or update monthly target
-    monthly_target, created = MonthlyTarget.objects.update_or_create(
-        user=user,
-        month=month,
-        year=year,
-        defaults={'target_amount': user_target.target}
-    )
-    
-    return monthly_target
-
-
-def recalculate_all_monthly_targets():
-    """
-    Recalculate monthly targets for all users for the current month.
-    Useful for initial setup or monthly reset.
-    """
-    today = datetime.now()
-    current_month = today.month
-    current_year = today.year
-    
-    user_targets = UserTarget.objects.select_related('user').exclude(
-        user__groups__name__iexact='Admin'
-    )
-    
-    count = 0
-    for user_target in user_targets:
-        MonthlyTarget.objects.update_or_create(
-            user=user_target.user,
-            month=current_month,
-            year=current_year,
-            defaults={'target_amount': user_target.target}
-        )
-        count += 1
-    
-    return f"Recalculated monthly targets for {count} users for {current_month}/{current_year}"
-
-
 def create_monthly_targets_for_all_users(month=None, year=None, default_target=Decimal('0.00'), **kwargs):
     """
     Create MonthlyTarget for all users using their UserTarget value.
@@ -277,3 +207,132 @@ def create_monthly_targets_for_all_users(month=None, year=None, default_target=D
     
     print(f"\n=== Summary ===\n{summary}")
     return stats
+
+
+from datetime import datetime
+from decimal import Decimal
+from django.contrib.auth import get_user_model
+from django.db import transaction
+
+User = get_user_model()
+
+def create_targets_for_financial_and_physical_year(
+    start_financial_year=None,
+    end_financial_year=None,
+    start_physical_year=None,
+    end_physical_year=None,
+    default_target=Decimal("0.00"),
+    **kwargs
+):
+    """
+    Create MonthlyTarget records for all active users for distinct
+    financial years (Apr–Mar) and physical years (Jan–Dec).
+    Avoids duplicate months between FY and PY.
+    """
+    today = datetime.now()
+    current_year = today.year
+    current_month = today.month
+    current_fy = current_year if current_month >= 4 else current_year - 1
+
+    # Default values
+    start_fy = start_financial_year or current_fy
+    end_fy = end_financial_year or current_fy
+    start_py = start_physical_year or current_year
+    end_py = end_physical_year or current_year
+
+    users = User.objects.filter(is_active=True).exclude(groups__name__iexact="Admin").distinct()
+
+    stats = dict(
+        total_users=0,
+        user_targets_created=0,
+        monthly_targets_created=0,
+        monthly_targets_existed=0,
+        errors=[]
+    )
+
+    # --- Month-Year generation helpers ---
+    def generate_fy_months(fy):
+        """Return list of (month, year) for a given FY e.g. 2024–25"""
+        months = [(m, fy) for m in range(4, 13)]  # Apr–Dec of start year
+        months += [(m, fy + 1) for m in range(1, 4)]  # Jan–Mar of next year
+        return months
+
+    def generate_py_months(py):
+        """Return list of (month, year) for a given PY (Jan–Dec)"""
+        return [(m, py) for m in range(1, 13)]
+
+    # --- Build distinct (month, year) list ---
+    fy_months = {m_y for fy in range(start_fy, end_fy + 1) for m_y in generate_fy_months(fy)}
+    py_months = {m_y for py in range(start_py, end_py + 1) for m_y in generate_py_months(py)}
+
+    all_months = sorted(fy_months.union(py_months), key=lambda x: (x[1], x[0]))
+
+    print(f"Processing {len(all_months)} distinct months for FY {start_fy}-{end_fy+1} and PY {start_py}-{end_py}")
+
+    # --- Process users ---
+    for user in users:
+        try:
+            stats["total_users"] += 1
+            user_target, created = UserTarget.objects.get_or_create(
+                user=user, defaults={"target": default_target}
+            )
+            if created:
+                stats["user_targets_created"] += 1
+
+            with transaction.atomic():
+                for month, year in all_months:
+                    _, mt_created = MonthlyTarget.objects.get_or_create(
+                        user=user,
+                        month=month,
+                        year=year,
+                        defaults={"target_amount": user_target.target},
+                    )
+                    if mt_created:
+                        stats["monthly_targets_created"] += 1
+                    else:
+                        stats["monthly_targets_existed"] += 1
+        except Exception as e:
+            stats["errors"].append(f"{user.username}: {e}")
+
+    print(
+        f"Users: {stats['total_users']} | "
+        f"UserTargets Created: {stats['user_targets_created']} | "
+        f"Monthly Created: {stats['monthly_targets_created']} | "
+        f"Existed: {stats['monthly_targets_existed']} | "
+        f"Errors: {len(stats['errors'])}"
+    )
+    return stats
+
+
+
+def create_targets_from_start_to_current(
+    start_financial_year=None,
+    start_physical_year=None,
+    default_target=Decimal("0.00"),
+    **kwargs
+):
+    today = datetime.now()
+    current_year = today.year
+    current_month = today.month
+    
+    # Determine current financial year (Apr-Mar cycle)
+    current_fy = current_year if current_month >= 4 else current_year - 1
+    
+    # Determine start years based on parameters or current year
+    actual_start_fy = start_financial_year if start_financial_year is not None else current_fy
+    actual_start_py = start_physical_year if start_physical_year is not None else current_year
+    
+    print(f"📅 Date Analysis: {today.strftime('%Y-%m-%d')}")
+    print(f"📅 Current Financial Year: {current_fy} (FY {current_fy}-{current_fy+1})")
+    print(f"📅 Current Physical Year: {current_year}")
+    print(f"🎯 Creating targets from FY {actual_start_fy} to FY {current_fy}")
+    print(f"🎯 Creating targets from PY {actual_start_py} to PY {current_year}")
+    
+    return create_targets_for_financial_and_physical_year(
+        start_financial_year=actual_start_fy,
+        end_financial_year=current_fy,
+        start_physical_year=actual_start_py,
+        end_physical_year=current_year,
+        default_target=default_target,
+        **kwargs,
+    )
