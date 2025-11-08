@@ -4,12 +4,16 @@ from django_filters import rest_framework as filters
 from django.contrib.auth.models import User, Group
 from accounts.filters.users_filter import UserFilter
 from lead.custom_pagination import Paginator
-from ..serializers.user_serializer import UserSerializer
+from ..serializers.user_serializer import (
+    UserListSerializer,
+    UserCreateSerializer,
+    UserUpdateSerializer,
+    UserDeleteSerializer
+)
 
 # ViewSet for Users for Lead
 class AllUsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     from rest_framework import filters as drf_filters
     filter_backends = (filters.DjangoFilterBackend, drf_filters.SearchFilter)
     filterset_class = UserFilter
@@ -17,12 +21,24 @@ class AllUsersViewSet(viewsets.ModelViewSet):
     pagination_class = Paginator
     http_method_names = ['get', 'post', 'patch', 'delete']
 
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return UserListSerializer
+        elif self.action == 'create':
+            return UserCreateSerializer
+        elif self.action in ['update', 'partial_update']:
+            return UserUpdateSerializer
+        elif self.action == 'destroy':
+            return UserDeleteSerializer
+        return UserListSerializer  # default to list serializer
+
     def partial_update(self, request, *args, **kwargs):
         """
         Override PATCH method to update both User and Employee fields.
         
         Accepts:
         - first_name, last_name, email, username (User fields)
+        - groups (list of group objects with id and name)
         - phone_number, country_code_id, department_id, designation_id, 
           gender, blood_group, address, joined_on, profile_photo (Employee fields)
         """
@@ -36,6 +52,10 @@ class AllUsersViewSet(viewsets.ModelViewSet):
         for field in user_fields:
             if field in data:
                 setattr(user, field, data[field])
+
+        # Handle groups update
+        if 'groups' in data:
+            user.groups.set(data['groups'])
         
         # Handle is_active field separately with proper boolean conversion
         if 'is_active' in data:
@@ -90,7 +110,7 @@ class AllUsersViewSet(viewsets.ModelViewSet):
 
 class UsersForLeadViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserListSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
     pagination_class = Paginator
@@ -105,7 +125,7 @@ class UsersForLeadViewSet(viewsets.ReadOnlyModelViewSet):
 # ViewSet for Lead Owner based on BDM group
 class GetLeadOwnerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserListSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
     pagination_class = Paginator
@@ -118,7 +138,7 @@ class GetLeadOwnerViewSet(viewsets.ReadOnlyModelViewSet):
 
 class GetTaskAssignedToUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserListSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
     pagination_class = Paginator
@@ -131,7 +151,7 @@ class GetTaskAssignedToUserViewSet(viewsets.ReadOnlyModelViewSet):
     
 class GetBdeUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserListSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
     pagination_class = Paginator
@@ -143,7 +163,7 @@ class GetBdeUserViewSet(viewsets.ReadOnlyModelViewSet):
     
 class GetDmUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserListSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
     pagination_class = Paginator
@@ -155,7 +175,7 @@ class GetDmUserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class GetOwnerUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserListSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserFilter
     pagination_class = Paginator
