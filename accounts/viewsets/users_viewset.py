@@ -10,8 +10,10 @@ from ..serializers.user_serializer import UserSerializer
 class AllUsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
+    from rest_framework import filters as drf_filters
+    filter_backends = (filters.DjangoFilterBackend, drf_filters.SearchFilter)
     filterset_class = UserFilter
+    search_fields = ['first_name', 'last_name', 'username']
     pagination_class = Paginator
     http_method_names = ['get', 'post', 'patch', 'delete']
 
