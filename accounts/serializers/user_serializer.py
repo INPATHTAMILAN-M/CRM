@@ -28,8 +28,9 @@ class UserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_active', 
-                 'full_name', 'groups', 'phone_number', 'monthly_target']
+        exclude = ['password','user_permissions','is_superuser','last_login','is_staff']
+        # fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_active', 
+        #          'full_name', 'groups', 'phone_number', 'monthly_target']
 
 class UserCreateSerializer(serializers.ModelSerializer):
     """Serializer for POST requests"""
