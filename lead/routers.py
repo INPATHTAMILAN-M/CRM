@@ -44,7 +44,7 @@ from lead.viewsets.task_conversation_log_viewset import TaskConversationLogViewS
 from lead.viewsets.task_viewset import CalanderTaskViewSet, TaskViewSet
 from lead.viewsets.vertical_viewset import VerticalViewSet
 from accounts.viewsets.annual_target_analytics_viewset import AnnualTargetAnalyticsViewSet
-
+from accounts.viewsets.group_viewset import GroupViewSet
 
 
 # Create a router and register the LeadViewSet
@@ -86,7 +86,7 @@ router.register(r'dm_graph_counts', LeadCountViewSet, basename='dm_graph_counts'
 router.register(r'opportunity-name', OpportunityNameViewSet, basename='opportunity-name')
 router.register(r'task-conversation', TaskConversationLogViewSet, basename='task-conversation')
 router.register(r'notifications', NotificationViewSet, basename='notification')
-
+router.register(r'groups', GroupViewSet, basename='groups')
 # in accounts
 router.register(r'salutations', SalutationViewSet)
 router.register(r'monthly-targets', MonthlyTargetViewSet, basename='monthly_targets')
