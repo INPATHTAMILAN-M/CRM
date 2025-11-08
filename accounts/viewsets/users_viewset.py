@@ -29,12 +29,18 @@ class AllUsersViewSet(viewsets.ModelViewSet):
         user = self.get_object()
         data = request.data
         
-        # Update User model fields
+        # Update User model fields     
         user_fields = ['first_name', 'last_name', 'email', 'username']
         for field in user_fields:
             if field in data:
                 setattr(user, field, data[field])
         
+        # Handle is_active field separately with proper boolean conversion
+        if 'is_active' in data:
+            is_active_value = data['is_active']
+            if isinstance(is_active_value, str):
+                is_active_value = is_active_value.lower() == 'true'
+            setattr(user, 'is_active', bool(is_active_value))
         try:
             user.full_clean()
             user.save()
