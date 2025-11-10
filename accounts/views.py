@@ -79,7 +79,7 @@ class UserProfileView(APIView):
             "designation": employee.designation.designation if employee.designation else None,
             "department_id": employee.department.id if employee.department else None,
             "department": employee.department.department if employee.department else None,
-            "joined_on": employee.joined_on,
+            "joined_on": user.date_joined,
             "gender": employee.gender,
             "blood_group": employee.blood_group,
             "address": employee.address,
