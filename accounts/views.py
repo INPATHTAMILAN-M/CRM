@@ -68,7 +68,7 @@ class UserProfileView(APIView):
 
         # Check if the user has an associated employee
         try:
-            employee = user.employee  # Get the related Employee object
+            employee = user.userprofile
         except employee.DoesNotExist:
             raise NotFound("User does not have associated employee data.")
         
