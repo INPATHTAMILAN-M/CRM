@@ -69,7 +69,8 @@ class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
                 result[entry['opportunity_status__name']] = {
                     "id": entry["opportunity_status__id"],
                     "today": entry["today_count"],
-                    "this_month": entry["this_month_count"]
+                    # "this_month": entry["this_month_count"],
+                    "total_count": queryset.exclude(opportunity_status=None).filter(opportunity_status__id=entry["opportunity_status__id"]).count()
                 }
 
         return Response(result, status=status.HTTP_200_OK)
