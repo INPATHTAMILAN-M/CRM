@@ -46,7 +46,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
     )
     profile_photo = serializers.ImageField(write_only=True, required=False, allow_null=True)
     # address = serializers.CharField(write_only=True)
-    address = serializers.CharField(write_only=True, required=False, allow_null=True)
+    # Allow empty string and null for address so frontend can send empty values
+    address = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True)
 
     
     class Meta:
@@ -97,7 +98,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         allow_null=True
     )
     profile_photo = serializers.ImageField(write_only=True, required=False, allow_null=True)
-    address = serializers.CharField(write_only=True, required=False)
+    # Allow empty string on update as well
+    address = serializers.CharField(write_only=True, required=False, allow_blank=True)
     
     class Meta:
         model = User
