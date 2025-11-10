@@ -45,7 +45,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         allow_null=True
     )
     profile_photo = serializers.ImageField(write_only=True, required=False, allow_null=True)
-    address = serializers.CharField(write_only=True)
+    # address = serializers.CharField(write_only=True)
+    address = serializers.CharField(write_only=True, required=False, allow_null=True)
 
     
     class Meta:
