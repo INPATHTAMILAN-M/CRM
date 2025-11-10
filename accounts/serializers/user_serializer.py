@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from lead.models import UserProfile, Department, Designation
 from accounts.models import UserTarget, Country
@@ -6,7 +6,7 @@ from accounts.models import UserTarget, Country
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ['id', 'name', 'permissions']
+        fields = ['id', 'name']
 
 class UserTargetListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,7 +23,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'id', 'country_code', 'phone_number', 'department', 
-            'designation', 'joined_on', 'profile_photo', 'gender', 
+            'designation', 'profile_photo', 'gender', 
             'blood_group', 'address', 'is_active'
         ]
 
@@ -57,7 +57,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
         required=False, 
         allow_null=True
     )
-    joined_on = serializers.DateField(write_only=True)
     profile_photo = serializers.ImageField(write_only=True, required=False, allow_null=True)
     gender = serializers.ChoiceField(
         choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Others')], 
@@ -76,7 +75,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'username', 'email', 'password', 'first_name', 'last_name', 'groups', 'is_active',
             # UserProfile fields
             'country_code', 'phone_number', 'department', 'designation', 
-            'joined_on', 'profile_photo', 'gender', 'blood_group', 'address'
+            'profile_photo', 'gender', 'blood_group', 'address'
         ]
         extra_kwargs = {'password': {'write_only': True}}
 
@@ -88,7 +87,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'phone_number': validated_data.pop('phone_number'),
             'department': validated_data.pop('department', None),
             'designation': validated_data.pop('designation', None),
-            'joined_on': validated_data.pop('joined_on'),
             'profile_photo': validated_data.pop('profile_photo', None),
             'gender': validated_data.pop('gender'),
             'blood_group': validated_data.pop('blood_group'),
@@ -133,7 +131,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         required=False, 
         allow_null=True
     )
-    joined_on = serializers.DateField(write_only=True, required=False)
     profile_photo = serializers.ImageField(write_only=True, required=False, allow_null=True)
     gender = serializers.ChoiceField(
         choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Others')], 
@@ -154,14 +151,14 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'first_name', 'last_name', 'email', 'groups', 'is_active',
             # UserProfile fields
             'country_code', 'phone_number', 'department', 'designation', 
-            'joined_on', 'profile_photo', 'gender', 'blood_group', 'address'
+            'profile_photo', 'gender', 'blood_group', 'address'
         ]
     
     def update(self, instance, validated_data):
         """Update user and their profile"""
         # Extract profile data
         profile_fields = ['country_code', 'phone_number', 'department', 'designation', 
-                         'joined_on', 'profile_photo', 'gender', 'blood_group', 'address']
+                         'profile_photo', 'gender', 'blood_group', 'address']
         profile_data = {key: validated_data.pop(key) for key in profile_fields if key in validated_data}
         
         # Extract groups
