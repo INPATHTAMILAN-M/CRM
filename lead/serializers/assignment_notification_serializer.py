@@ -4,7 +4,7 @@ from django.db.models import Q
 from ..models import Task, Contact, Log, Task_Assignment, Lead, TaskConversationLog
 from django.utils import timezone
 from lead.serializers.log_serializer import LogStageSerializer
-from ..models import Lead,Employee,Contact, Log,Opportunity, Opportunity_Status, Opportunity_Name
+from ..models import Lead,UserProfile,Contact, Log,Opportunity, Opportunity_Status, Opportunity_Name
 from accounts.models import (
     City, Focus_Segment,Market_Segment,
     Country, Stage,State,Tag,Vertical,
@@ -111,12 +111,12 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ['id','tag']
 
-class EmpSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='user.id',read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
-        model = Employee
+        model = UserProfile
         fields = ['id', 'username']
         
 class LeadSourceSerializer(serializers.ModelSerializer):

@@ -32,81 +32,36 @@ class AllUsersViewSet(viewsets.ModelViewSet):
             return UserDeleteSerializer
         return UserListSerializer  # default to list serializer
 
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new user with their profile.
+        
+        All UserProfile fields are now handled by the serializer automatically.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        
+        # Return the created user with full details
+        headers = self.get_success_headers(serializer.data)
+        user = serializer.instance
+        response_serializer = UserListSerializer(user)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     def partial_update(self, request, *args, **kwargs):
         """
-        Override PATCH method to update both User and Employee fields.
+        Update user and their profile.
         
-        Accepts:
-        - first_name, last_name, email, username (User fields)
-        - groups (list of group objects with id and name)
-        - phone_number, country_code_id, department_id, designation_id, 
-          gender, blood_group, address, joined_on, profile_photo (Employee fields)
+        The serializer now handles both User and UserProfile updates automatically.
         """
-        from lead.models import Employee
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         
-        user = self.get_object()
-        data = request.data
-        
-        # Update User model fields     
-        user_fields = ['first_name', 'last_name', 'email', 'username']
-        for field in user_fields:
-            if field in data:
-                setattr(user, field, data[field])
-
-        # Handle groups update
-        if 'groups' in data:
-            user.groups.set(data['groups'])
-        
-        # Handle is_active field separately with proper boolean conversion
-        if 'is_active' in data:
-            is_active_value = data['is_active']
-            if isinstance(is_active_value, str):
-                is_active_value = is_active_value.lower() == 'true'
-            setattr(user, 'is_active', bool(is_active_value))
-        try:
-            user.full_clean()
-            user.save()
-        except Exception as e:
-            return Response(
-                {'error': f'User update failed: {str(e)}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Update Employee model fields if they exist in request
-        employee_fields = [
-            'phone_number', 'country_code_id', 'department_id', 
-            'designation_id', 'gender', 'blood_group', 'address', 'joined_on'
-        ]
-        
-        if any(field in data for field in employee_fields) or 'profile_photo' in request.FILES:
-            try:
-                employee = user.employee
-                
-                for field in employee_fields:
-                    if field in data:
-                        setattr(employee, field, data[field])
-                
-                # Handle profile photo separately if provided
-                if 'profile_photo' in request.FILES:
-                    employee.profile_photo = request.FILES['profile_photo']
-                
-                employee.full_clean()
-                employee.save()
-                
-            except Employee.DoesNotExist:
-                return Response(
-                    {'error': 'Employee profile not found for this user.'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            except Exception as e:
-                return Response(
-                    {'error': f'Employee update failed: {str(e)}'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        
-        # Return updated user data
-        serializer = self.get_serializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Return updated user with full details
+        response_serializer = UserListSerializer(instance)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 class UsersForLeadViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()

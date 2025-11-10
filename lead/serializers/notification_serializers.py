@@ -1,14 +1,12 @@
 from rest_framework import serializers
 from lead.models import Notification,Task 
-
-from lead.serializers.log_serializer import LogStageSerializer
-from ..models import Lead,Employee,Contact, Log,Opportunity, Opportunity_Status, Opportunity_Name, Task_Assignment, TaskConversationLog
-from accounts.models import (
-    City, Focus_Segment,Market_Segment,
-    Country, Stage,State,Tag,Vertical,
-    Lead_Source, Lead_Source_From
+from ..models import (
+    Lead,Contact,Opportunity, Opportunity_Name, 
+    TaskConversationLog
 )
-from ..models import Lead_Status, Department, Contact_Status, Opportunity_Name
+from accounts.models import Stage
+
+from ..models import Lead_Status,Opportunity_Name
 from django.contrib.auth.models import User
 
 class LeadContactSerializer(serializers.ModelSerializer):
@@ -77,7 +75,6 @@ class LeadSerializer(serializers.ModelSerializer):
         return representation
 
 
-
 class TaskListSerializer(serializers.ModelSerializer):
     contact = ContactSerializer()
 
@@ -140,6 +137,7 @@ class NotificationListSerializer(serializers.ModelSerializer):
     receiver = UserSerializer()
     contact = ContactSerializer()
     assigned_by = UserSerializer()
+
     class Meta:
         model = Notification
         fields = '__all__'
@@ -148,6 +146,7 @@ class NotificationListSerializer(serializers.ModelSerializer):
 class NotificationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['lead','task','opportunity','conversation','receiver', 'assigned_by','message', 'type']
+        fields = ['lead','task','opportunity','conversation','receiver', 
+                  'assigned_by','message', 'type']
 
 

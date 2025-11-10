@@ -4,7 +4,7 @@ from .models import *
 admin.site.register(Lead_Status)
 admin.site.register(Department)
 admin.site.register(Designation)
-admin.site.register(Employee)
+admin.site.register(UserProfile)
 admin.site.register(Lead)
 admin.site.register(Contact)
 admin.site.register(Lead_Assignment)
