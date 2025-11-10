@@ -30,6 +30,7 @@ class OpportunityFilter(django_filters.FilterSet):
     bdm = django_filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
     bde = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
     
+    assigned_leads =  django_filters.BooleanFilter(method='filter_assigned_leads', label="Assigned Leads")
     role_asssigned = django_filters.ModelChoiceFilter(queryset=User.objects.all(),method='filter_role_assigned', label="BDM Assigned")
 
     month = django_filters.BooleanFilter(method='filter_this_month', label="This Month")
@@ -56,6 +57,11 @@ class OpportunityFilter(django_filters.FilterSet):
             'opp_status'
         ]
 
+
+    def filter_assigned_leads(self, queryset, name, value):
+        if value:
+            return queryset.filter(lead__assigned_to__isnull=False)
+        return queryset
 
     def filter_to_date(self, queryset, name, value):
         if not value:
