@@ -4,7 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-import openpyxl
+from django.db.models import F, Case, When, Value, DateTimeField
+from django.db.models.functions import Greatest
 from django.core.exceptions import ObjectDoesNotExist
 from accounts.models import Lead_Source_From 
 from lead.custom_pagination import Paginator
@@ -21,7 +22,11 @@ import pandas as pd
 from ..serializers.lead_import_serializer import LeadImportSerializer
 
 class ContactViewSet(viewsets.ModelViewSet):
-    queryset = Contact.objects.filter(is_active=True).order_by( '-updated_on','-created_on')
+    queryset = (
+        Contact.objects.filter(is_active=True)
+        .annotate(latest_activity=Greatest('created_on', 'updated_on'))
+        .order_by('-latest_activity')
+    )
     permission_classes = [IsAuthenticated]
     pagination_class = Paginator
     filter_backends = [DjangoFilterBackend]
