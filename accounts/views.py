@@ -55,13 +55,9 @@ class UserProfileView(APIView):
         # Default values in case the employee or related data is missing
         employee_data = {
             "phone_number": None,
-            "designation_id": None,
-            "designation": None,
             "department_id": None,
             "department": None,
             "joined_on": None,
-            "gender": None,
-            "blood_group": None,
             "address": None,
             "profile_photo": None,
         }
@@ -75,13 +71,9 @@ class UserProfileView(APIView):
         # Update the employee data if the Employee object exists
         employee_data.update({
             "phone_number": employee.phone_number,
-            "designation_id": employee.designation.id if employee.designation else None,
-            "designation": employee.designation.designation if employee.designation else None,
             "department_id": employee.department.id if employee.department else None,
             "department": employee.department.department if employee.department else None,
             "joined_on": user.date_joined,
-            "gender": employee.gender,
-            "blood_group": employee.blood_group,
             "address": employee.address,
             "profile_photo": employee.profile_photo.url if employee.profile_photo else None,
         })
