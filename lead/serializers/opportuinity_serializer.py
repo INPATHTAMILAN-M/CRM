@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.db import transaction
+from django.core.files.base import File
 
 from lead.models import (
     Contact, Department, Lead_Assignment, Lead_Status, Notification, 
@@ -148,70 +149,57 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
         model = Opportunity
         fields = "__all__"
 
+    def make_serializable(self, value):
+        """Convert values to JSON-safe format."""
+        if hasattr(value, 'id'):  # Model FK (like lead, stage)
+            return value.id
+        elif isinstance(value, (datetime.date, datetime.datetime)):
+            return str(value)
+        elif isinstance(value, File) or isinstance(value, memoryview):  # FileField
+            return value.name if value else None
+        elif isinstance(value, bool):
+            return value
+        elif isinstance(value, (int, float, str)) or value is None:
+            return value
+        else:
+            return str(value)
+
     def update(self, instance, validated_data):
-        print("Received validated_data:", validated_data)  # Debugging
+        print("Received validated_data:", validated_data)
+        request_user = self.context['request'].user
+        old_values = {}
+        new_values = {}
 
-        old_stage = instance.stage
-        new_stage = validated_data.get('stage', old_stage)
+        # ✅ Loop through all validated fields (skip file)
+        for field, new_value in validated_data.items():
+            if field == "file":  # ❌ skip logging for file
+                continue
 
-        old_opportunity_status = instance.opportunity_status
-        new_opportunity_status = validated_data.get('opportunity_status', old_opportunity_status)
+            old_value = getattr(instance, field, None)
+            if old_value != new_value:
+                old_values[field] = self.make_serializable(old_value)
+                new_values[field] = self.make_serializable(new_value)
 
         with transaction.atomic():
-            # ✅ Update instance fields from validated_data
+            # ✅ Apply all updates
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
-
-            # ✅ Save instance after updating fields
             instance.save()
 
-            # ✅ If stage changes, update probability and create Opportunity_Stage
-            if old_stage != new_stage:
-                instance.probability_in_percentage = new_stage.probability
-                instance.save()  # <-- Ensure this is saved immediately
-                Opportunity_Stage.objects.create(
-                    opportunity=instance,
-                    stage=new_stage,
-                    moved_by=self.context['request'].user
-                )
-
-            # ✅ If opportunity_status changes, log it and update lead status
-            if old_opportunity_status != new_opportunity_status:
-                instance.status_date = datetime.date.today()
-                instance.save()  # <-- Ensure this is saved immediately
-                assigned_users = Lead_Assignment.objects.filter(lead=instance.lead).values_list('assigned_to', flat=True).distinct()
-                print("assigned_users",assigned_users)
-
-                # Use a transaction to ensure notifications are created atomically
-                with transaction.atomic():
-                    for user_id in assigned_users:
-                        Notification.objects.create(
-                            opportunity=instance,
-                            receiver_id=user_id,
-                            message=f"{self.context['request'].user.first_name} {self.context['request'].user.last_name} changed the status of this Opportunity: '{instance.name.name}'.",
-                            assigned_by=self.context['request'].user,
-                            type="Opportunity"
-                        )
-
+            # ✅ Log only if something changed
+            if old_values:
                 Log.objects.create(
                     contact=instance.primary_contact,
-                    opportunity_status=instance.opportunity_status,
                     opportunity=instance,
-                    log_stage=Log_Stage.objects.first(),
-                    created_by=self.context['request'].user
+                    opportunity_status=instance.opportunity_status,
+                    log_stage=Log_Stage.objects.first(),  # Default stage
+                    created_by=request_user,
+                    old_value=old_values,
+                    new_value=new_values
+                    
                 )
 
-                # Update lead status if this is the latest opportunity
-                if instance.lead:
-                    lead_opportunities = instance.lead.opportunities_leads.order_by('id')
-                    first_opportunity = lead_opportunities.first()
-
-                    if first_opportunity == instance:  
-                        instance.lead.lead_status = new_opportunity_status
-                        instance.lead.save()
-
-            return instance
-
+        return instance
 
 class OpportunityCreateSerializer(serializers.ModelSerializer):
     class Meta:

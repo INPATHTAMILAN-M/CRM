@@ -23,7 +23,7 @@ from ..filters.opportunity_filter import OpportunityFilter
 
 
 class OpportunityViewset(viewsets.ModelViewSet):
-    queryset = Opportunity.objects.all().order_by('-id').exclude(opportunity_status=None)
+    queryset = Opportunity.objects.all().order_by('-id')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = OpportunityFilter

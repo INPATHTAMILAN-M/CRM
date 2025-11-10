@@ -183,7 +183,10 @@ class Log(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    
+    old_value = models.JSONField(null=True, blank=True)
+    new_value = models.JSONField(null=True, blank=True)
+
+
     LOG_TYPE_CHOICES = [
         ('Call', 'Call'),
         ('Meeting', 'Meeting'),
