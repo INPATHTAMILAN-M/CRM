@@ -39,29 +39,19 @@ class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Get today's date
         today = timezone.now().date()
-        now = timezone.now()
-
-        # Debugging: Print counts for verification
-        print("Filtered Total (This Month):", queryset.filter(
-            
-            Q(lead__created_on__year=now.year, lead__created_on__month=now.month) |
-            Q(status_date__year=now.year, status_date__month=now.month)
-        ).count())
 
         # Aggregate opportunity status counts
         opportunity_status_counts = (
             queryset.exclude(opportunity_status=None)
             .values('opportunity_status__id', 'opportunity_status__name')
             .annotate(
-                today_count=Count('id', filter=Q(lead__created_on=today) | Q(status_date=today)),
-                this_month_count=Count('id', filter=Q(lead__created_on__year=now.year, lead__created_on__month=now.month) |
-                                       Q(status_date__year=now.year, status_date__month=now.month))
+                today_count=Count('id', filter=Q(lead__created_on=today) | Q(status_date=today))
             )
         )
 
         # Fetch all possible statuses
         opportunity_statuses = Lead_Status.objects.values('id', 'name')
-        result = {status["name"]: {"id": status["id"], "today": 0, "this_month": 0} for status in opportunity_statuses}
+        result = {status["name"]: {"id": status["id"], "today": 0, "total_count": 0} for status in opportunity_statuses}
 
         # Fill result with aggregated counts
         for entry in opportunity_status_counts:
@@ -69,7 +59,6 @@ class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
                 result[entry['opportunity_status__name']] = {
                     "id": entry["opportunity_status__id"],
                     "today": entry["today_count"],
-                    # "this_month": entry["this_month_count"],
                     "total_count": queryset.exclude(opportunity_status=None).filter(opportunity_status__id=entry["opportunity_status__id"]).count()
                 }
 
