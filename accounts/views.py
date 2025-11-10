@@ -33,7 +33,7 @@ class LoginView(APIView):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'is_active': user.is_active,
-            'designation': user.employee.designation.designation,
+            'designation': user.userprofile.designation.designation if hasattr(user, 'userprofile') and user.userprofile.designation else None,
             # Add any other fields you need here
         }
 

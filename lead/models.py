@@ -49,7 +49,7 @@ class Designation(models.Model):
         return self.designation
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
     country_code = models.ForeignKey(Country, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=255)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
