@@ -33,7 +33,8 @@ class LoginView(APIView):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'is_active': user.is_active,
-            'designation': user.userprofile.designation.designation if hasattr(user, 'userprofile') and user.userprofile.designation else None,
+            'designation': user.groups.first().name if user.groups.exists() else None,
+            # 'designation': user.userprofile.designation.designation if hasattr(user, 'userprofile') and user.userprofile.designation else None,
             # Add any other fields you need here
         }
 
@@ -60,6 +61,7 @@ class UserProfileView(APIView):
             "joined_on": None,
             "address": None,
             "profile_photo": None,
+            "designation": None,
         }
 
         # Check if the user has an associated employee
@@ -76,6 +78,7 @@ class UserProfileView(APIView):
             "joined_on": user.date_joined,
             "address": employee.address,
             "profile_photo": employee.profile_photo.url if employee.profile_photo else None,
+            "designation": user.groups.first().name if user.groups.exists() else None,
         })
 
         return Response({
