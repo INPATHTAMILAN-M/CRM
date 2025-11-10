@@ -50,18 +50,12 @@ class Designation(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
-    country_code = models.ForeignKey(Country, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=255)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
-    designation = models.ForeignKey(Designation, on_delete=models.CASCADE, null=True, blank=True)
     profile_photo = models.ImageField(upload_to='employee_photos', null=True, blank=True)
-    gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Others')])
-    blood_group = models.CharField(max_length=5, choices=[('A+', 'A+'), ('A-', 'A-'), ('B+', 'B+'), ('B-', 'B-'), ('O+', 'O+'), ('O-', 'O-'), ('AB+', 'AB+'), ('AB-', 'AB-')])
-    address = models.TextField()
-    is_active = models.BooleanField(default=True)
-
+    address = models.TextField(null=True, blank=True)
     def __str__(self):
-        return f' {self.user.username} - {self.designation}'
+        return f' {self.user.username} - {self.user.groups.first().name if self.user.groups.exists() else "No Group"}'
 
 class Lead(models.Model):
     name = models.CharField(max_length=255,unique=True)

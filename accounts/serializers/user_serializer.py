@@ -15,16 +15,12 @@ class UserTargetListSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """Nested serializer for UserProfile"""
-    country_code = serializers.StringRelatedField()
     department = serializers.StringRelatedField()
-    designation = serializers.StringRelatedField()
-    
     class Meta:
         model = UserProfile
         fields = [
-            'id', 'country_code', 'phone_number', 'department', 
-            'designation', 'profile_photo', 'gender', 
-            'blood_group', 'address', 'is_active'
+            'id', 'phone_number', 'department', 'profile_photo',
+            'address'
         ]
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -41,9 +37,6 @@ class UserListSerializer(serializers.ModelSerializer):
 class UserCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a user with their profile"""
     groups = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(), many=True, required=False)
-    
-    # UserProfile fields
-    country_code = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), write_only=True)
     phone_number = serializers.CharField(max_length=255, write_only=True)
     department = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.all(), 
@@ -51,31 +44,15 @@ class UserCreateSerializer(serializers.ModelSerializer):
         required=False, 
         allow_null=True
     )
-    designation = serializers.PrimaryKeyRelatedField(
-        queryset=Designation.objects.all(), 
-        write_only=True, 
-        required=False, 
-        allow_null=True
-    )
     profile_photo = serializers.ImageField(write_only=True, required=False, allow_null=True)
-    gender = serializers.ChoiceField(
-        choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Others')], 
-        write_only=True
-    )
-    blood_group = serializers.ChoiceField(
-        choices=[('A+', 'A+'), ('A-', 'A-'), ('B+', 'B+'), ('B-', 'B-'), 
-                 ('O+', 'O+'), ('O-', 'O-'), ('AB+', 'AB+'), ('AB-', 'AB-')], 
-        write_only=True
-    )
     address = serializers.CharField(write_only=True)
+
     
     class Meta:
         model = User
         fields = [
             'username', 'email', 'password', 'first_name', 'last_name', 'groups', 'is_active',
-            # UserProfile fields
-            'country_code', 'phone_number', 'department', 'designation', 
-            'profile_photo', 'gender', 'blood_group', 'address'
+            'phone_number', 'department','profile_photo', 'address'
         ]
         extra_kwargs = {'password': {'write_only': True}}
 
@@ -83,13 +60,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
         """Create user and their profile in a single transaction"""
         # Extract profile data
         profile_data = {
-            'country_code': validated_data.pop('country_code'),
             'phone_number': validated_data.pop('phone_number'),
             'department': validated_data.pop('department', None),
-            'designation': validated_data.pop('designation', None),
             'profile_photo': validated_data.pop('profile_photo', None),
-            'gender': validated_data.pop('gender'),
-            'blood_group': validated_data.pop('blood_group'),
             'address': validated_data.pop('address'),
         }
         
@@ -112,12 +85,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for PATCH requests - updates user and profile"""
     groups = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(), many=True, required=False)
     
-    # UserProfile fields (optional for update)
-    country_code = serializers.PrimaryKeyRelatedField(
-        queryset=Country.objects.all(), 
-        write_only=True, 
-        required=False
-    )
     phone_number = serializers.CharField(max_length=255, write_only=True, required=False)
     department = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.all(), 
@@ -125,40 +92,20 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         required=False, 
         allow_null=True
     )
-    designation = serializers.PrimaryKeyRelatedField(
-        queryset=Designation.objects.all(), 
-        write_only=True, 
-        required=False, 
-        allow_null=True
-    )
     profile_photo = serializers.ImageField(write_only=True, required=False, allow_null=True)
-    gender = serializers.ChoiceField(
-        choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Others')], 
-        write_only=True,
-        required=False
-    )
-    blood_group = serializers.ChoiceField(
-        choices=[('A+', 'A+'), ('A-', 'A-'), ('B+', 'B+'), ('B-', 'B-'), 
-                 ('O+', 'O+'), ('O-', 'O-'), ('AB+', 'AB+'), ('AB-', 'AB-')], 
-        write_only=True,
-        required=False
-    )
     address = serializers.CharField(write_only=True, required=False)
     
     class Meta:
         model = User
         fields = [
-            'first_name', 'last_name', 'email', 'groups', 'is_active',
-            # UserProfile fields
-            'country_code', 'phone_number', 'department', 'designation', 
-            'profile_photo', 'gender', 'blood_group', 'address'
+            'first_name', 'last_name', 'email', 'groups', 'is_active','phone_number', 
+            'department','profile_photo', 'address'
         ]
     
     def update(self, instance, validated_data):
         """Update user and their profile"""
         # Extract profile data
-        profile_fields = ['country_code', 'phone_number', 'department', 'designation', 
-                         'profile_photo', 'gender', 'blood_group', 'address']
+        profile_fields = ['phone_number', 'department', 'profile_photo', 'address']
         profile_data = {key: validated_data.pop(key) for key in profile_fields if key in validated_data}
         
         # Extract groups
