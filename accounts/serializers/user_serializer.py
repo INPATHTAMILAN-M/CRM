@@ -64,8 +64,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'phone_number': validated_data.pop('phone_number'),
             'department': validated_data.pop('department', None),
             'profile_photo': validated_data.pop('profile_photo', None),
-            'address': validated_data.pop('address'),
         }
+        # Address is optional during signup
+        address = validated_data.pop('address', None)
+        if address is not None:
+            profile_data['address'] = address
         
         # Extract groups
         groups = validated_data.pop('groups', [])
