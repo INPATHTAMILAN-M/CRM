@@ -61,7 +61,7 @@ class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Fetch all possible statuses
         opportunity_statuses = Lead_Status.objects.values('id', 'name')
-        result = {status["name"]: {"id": status["id"], "today": 0, "this_month": 0} for status in opportunity_statuses}
+        result = {status["name"]: {"id": status["id"], "today": 0, "this_month": 0, "total_count": 0} for status in opportunity_statuses}
 
         # Fill result with aggregated counts
         for entry in opportunity_status_counts:
@@ -72,6 +72,11 @@ class LeadStatusCountViewSet(viewsets.ReadOnlyModelViewSet):
                     "this_month": entry["this_month_count"],
                     "total_count": queryset.exclude(opportunity_status=None).filter(opportunity_status__id=entry["opportunity_status__id"]).count()
                 }
+        
+        # Calculate total_count for all statuses (including those not in opportunity_status_counts)
+        for status_name, status_data in result.items():
+            if "total_count" not in status_data or status_data["total_count"] == 0:
+                status_data["total_count"] = queryset.exclude(opportunity_status=None).filter(opportunity_status__id=status_data["id"]).count()
 
         return Response(result, status=status.HTTP_200_OK)
 
