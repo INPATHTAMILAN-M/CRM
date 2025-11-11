@@ -2,11 +2,12 @@ from rest_framework import serializers
 from ..models import Contact, Contact_Status, Department, Lead_Source, Lead_Source_From
 from django.core.exceptions import ObjectDoesNotExist
 
-
 class ContactImportCreateSerializer(serializers.ModelSerializer):
-    lead = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    lead = serializers.PrimaryKeyRelatedField(
+        queryset=Contact.objects.all(), required=False, allow_null=True
+    )
     name = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    company_name = serializers.CharField(required=True)  # Assume this is required
+    company_name = serializers.CharField(required=True)
     status = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     designation = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     department = serializers.CharField(required=False, allow_blank=True, allow_null=True)
@@ -19,14 +20,13 @@ class ContactImportCreateSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(required=False, default=True)
     is_archive = serializers.BooleanField(required=False, default=False)
 
-
     class Meta:
-        model = Contact  
+        model = Contact
         fields = '__all__'
 
+    # --- VALIDATIONS ---
 
     def validate_company_name(self, value):
-        """Check if the company name already exists."""
         existing_contact = Contact.objects.filter(company_name=value).first()
         if existing_contact:
             raise serializers.ValidationError({
@@ -37,10 +37,8 @@ class ContactImportCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_phone_number(self, value):
-        """Check if the phone number already exists, only if provided."""
         if not value:
-            return value  # Skip validation for None or empty values
-
+            return value
         existing_contact = Contact.objects.filter(phone_number=value).first()
         if existing_contact:
             raise serializers.ValidationError({
@@ -52,47 +50,45 @@ class ContactImportCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_status(self, value):
-        """Validate the contact status."""
-        if value:
-            try:
-                Contact_Status.objects.get(status=value, is_active=True)
-            except ObjectDoesNotExist:
-                raise serializers.ValidationError(f"Contact status '{value}' not found")
-        return value
+        if not value:
+            return None
+        try:
+            return Contact_Status.objects.get(status=value, is_active=True)
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(f"Contact status '{value}' not found")
 
     def validate_department(self, value):
-        """Validate the department."""
-        if value:
-            try:
-                Department.objects.get(department=value, is_active=True)
-            except ObjectDoesNotExist:
-                raise serializers.ValidationError(f"Department '{value}' not found")
-        return value
+        if not value:
+            return None
+        try:
+            return Department.objects.get(department=value, is_active=True)
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(f"Department '{value}' not found")
 
     def validate_lead_source(self, value):
-        """Validate the lead source."""
-        if value:
-            try:
-                Lead_Source.objects.get(source=value, is_active=True)
-            except ObjectDoesNotExist:
-                raise serializers.ValidationError(f"Lead source '{value}' not found")
-        return value
+        if not value:
+            return None
+        try:
+            return Lead_Source.objects.get(source=value, is_active=True)
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(f"Lead source '{value}' not found")
 
     def validate_lead_source_from(self, value):
-        """Validate the lead source from."""
-        if value:
-            try:
-                Lead_Source_From.objects.get(source_from=value, is_active=True)
-            except ObjectDoesNotExist:
-                raise serializers.ValidationError(f"Lead source from '{value}' not found")
-        return value
+        if not value:
+            return None
+        try:
+            return Lead_Source_From.objects.get(source_from=value, is_active=True)
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(f"Lead source from '{value}' not found")
+
+    # --- CREATE / UPDATE ---
 
     def create(self, validated_data):
         """Create the contact entry."""
         return Contact.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        """Update the contact entry (if necessary)."""
+        """Update the contact entry."""
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
