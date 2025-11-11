@@ -4,10 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models import F, Case, When, Value, DateTimeField
 from django.db.models.functions import Greatest
-from django.core.exceptions import ObjectDoesNotExist
-from accounts.models import Lead_Source_From 
 from lead.custom_pagination import Paginator
 from ..models import Contact, Opportunity
 from ..serializers.contact_serializer import *
@@ -274,4 +271,145 @@ class ImportLeadsAPIView(APIView):
                 return Response({'status': 'error', 'errors': errors}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         return Response({'status': 'success', 'message': 'File processed successfully'}, status=status.HTTP_200_OK)
+
+
+# views.py
+import pandas as pd
+from io import BytesIO
+from datetime import datetime
+from django.db import transaction
+from django.utils.dateparse import parse_date
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from lead.serializers.contact_import_serializer import BulkImportSerializer
+from accounts.models import User
+from lead.models import (
+    Lead, Contact, Lead_Status, Opportunity, Opportunity_Name,
+    Stage, Lead_Bucket, Country, Log, Log_Stage
+)
+
+
+
+class BulkImportAPIView(APIView):
+    """
+    Imports data from an Excel file and creates Lead, Contact, Opportunity, and Log entries.
+    Accepts a file via POST or uses a given path during dev.
+    """
+
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            df = pd.read_excel(file)
+        except Exception as e:
+            return Response({"error": f"Error reading Excel file: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        df.columns = df.columns.str.strip().str.lower()
+        df = df.where(pd.notnull(df), None)
+        data = df.to_dict(orient="records")
+
+        # ---- Default fallbacks ----
+        default_user = User.objects.filter(is_superuser=True).first()
+        default_stage = Stage.objects.first()
+        default_status = Lead_Status.objects.first()
+        default_bucket = Lead_Bucket.objects.first()
+        default_country = Country.objects.first()
+        default_opportunity_name = Opportunity_Name.objects.first()
+        default_log_stage = Log_Stage.objects.first()
+
+        created_records = {
+            "leads": 0,
+            "contacts": 0,
+            "opportunities": 0,
+            "logs": 0,
+        }
+
+        for index, row in enumerate(data, start=1):
+            try:
+                # ---- Parse dates safely ----
+                created_date = parse_date(str(row.get("date"))) or datetime.today().date()
+                closing_date = parse_date(str(row.get("date"))) or datetime.today().date()
+
+                # ---- Identify user ----
+                created_by_user = User.objects.filter(username=row.get("designation")).first() or default_user
+
+                # ---- LEAD ----
+                lead = Lead.objects.create(
+                    name=row.get("company_name") or f"Lead_{index}",
+                    lead_status=default_status,
+                    lead_owner=created_by_user,
+                    created_by=created_by_user,
+                    lead_type="Manual Lead",
+                    is_active=True,
+                )
+                Lead.objects.filter(pk=lead.pk).update(created_on=created_date)
+                lead.refresh_from_db()
+                created_records["leads"] += 1
+
+                # ---- CONTACT ----
+                contact = Contact.objects.create(
+                    lead=lead,
+                    company_name=row.get("company_name"),
+                    name=row.get("name"),
+                    phone_number=row.get("phone_number"),
+                    remark=row.get("remark"),
+                    created_by=created_by_user,
+                    is_primary = True,
+                    is_active=True,
+                )
+                Contact.objects.filter(pk=contact.pk).update(created_on=created_date)
+                contact.refresh_from_db()
+                created_records["contacts"] += 1
+
+                # ---- OPPORTUNITY ----
+                opportunity = Opportunity.objects.create(
+                    lead=lead,
+                    primary_contact=contact,
+                    name=default_opportunity_name,
+                    stage=default_stage,
+                    owner=created_by_user,
+                    note=row.get("remark"),
+                    opportunity_value=row.get("opportunity_value") or 0,
+                    recurring_value_per_year=row.get("recurring_value_per_year") or 0,
+                    currency_type=default_country,
+                    closing_date=closing_date,
+                    probability_in_percentage=row.get("probability_in_percentage") or 0,
+                    lead_bucket=default_bucket,
+                    created_by=created_by_user,
+                    opportunity_status=default_status,
+                    status_date=created_date,
+                    remark=row.get("remark"),
+                    is_active=True,
+                )
+                Opportunity.objects.filter(pk=opportunity.pk).update(created_on=created_date)
+                opportunity.refresh_from_db()
+                created_records["opportunities"] += 1
+
+                # ---- LOG ----
+                Log.objects.create(
+                    lead=lead,
+                    created_by=created_by_user,
+                    contact_id=contact.id,
+                    details=lead.remark or row.get("remark") or f"Imported lead {lead.name}",
+                    log_type="Call",
+                    log_stage=default_log_stage,
+                    focus_segment=getattr(lead, "focus_segment", None),
+                    created_on=created_date,
+                )
+                created_records["logs"] += 1
+
+            except Exception as e:
+                print(f"❌ Error on row {index}: {e}")
+
+        return Response(
+            {
+                "message": "Import completed successfully.",
+                "summary": created_records,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
