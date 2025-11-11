@@ -275,10 +275,8 @@ class ImportLeadsAPIView(APIView):
 
 # views.py
 import pandas as pd
-from io import BytesIO
 from datetime import datetime
 from django.db import transaction
-from django.utils.dateparse import parse_date
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -297,6 +295,19 @@ class BulkImportAPIView(APIView):
     Imports data from an Excel file and creates Lead, Contact, Opportunity, and Log entries.
     Accepts a file via POST or uses a given path during dev.
     """
+
+    def parse_excel_date(self,value):
+        """Parses Excel date strings like '03/10/2025' safely."""
+        if not value:
+            return datetime.today().date()
+        try:
+            # pandas can handle DD/MM/YYYY, timestamps, and Excel serials
+            parsed = pd.to_datetime(value, errors='coerce', dayfirst=True)
+            if pd.isna(parsed):
+                return datetime.today().date()
+            return parsed.date()
+        except Exception:
+            return datetime.today().date()
 
     def post(self, request):
         file = request.FILES.get("file")
@@ -331,8 +342,8 @@ class BulkImportAPIView(APIView):
         for index, row in enumerate(data, start=1):
             try:
                 # ---- Parse dates safely ----
-                created_date = parse_date(str(row.get("date")))
-                closing_date = parse_date(str(row.get("date"))) 
+                created_date = self.parse_excel_date(row.get("date"))
+                closing_date = self.parse_excel_date(row.get("date")) 
 
                 # ---- Identify user ----
                 created_by_user = User.objects.filter(username=row.get("designation")).first() or default_user
