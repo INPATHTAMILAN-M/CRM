@@ -338,6 +338,8 @@ class BulkImportAPIView(APIView):
             "opportunities": 0,
             "logs": 0,
         }
+        
+        errors = []
 
         for index, row in enumerate(data, start=1):
             try:
@@ -414,13 +416,23 @@ class BulkImportAPIView(APIView):
                 created_records["logs"] += 1
 
             except Exception as e:
-                print(f"❌ Error on row {index}: {e}")
+                errors.append({
+                    "row": index,
+                    "data": row,
+                    "error": str(e)
+                })
 
+        response_data = {
+            "message": "Import completed successfully." if not errors else "Import completed with errors.",
+            "summary": created_records,
+        }
+        
+        if errors:
+            response_data["errors"] = errors
+            response_data["total_errors"] = len(errors)
+        
         return Response(
-            {
-                "message": "Import completed successfully.",
-                "summary": created_records,
-            },
-            status=status.HTTP_201_CREATED,
+            response_data,
+            status=status.HTTP_201_CREATED if not errors else status.HTTP_207_MULTI_STATUS,
         )
 
