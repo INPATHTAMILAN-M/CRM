@@ -331,8 +331,8 @@ class BulkImportAPIView(APIView):
         for index, row in enumerate(data, start=1):
             try:
                 # ---- Parse dates safely ----
-                created_date = parse_date(str(row.get("date"))) or datetime.today().date()
-                closing_date = parse_date(str(row.get("date"))) or datetime.today().date()
+                created_date = parse_date(str(row.get("date")))
+                closing_date = parse_date(str(row.get("date"))) 
 
                 # ---- Identify user ----
                 created_by_user = User.objects.filter(username=row.get("designation")).first() or default_user
