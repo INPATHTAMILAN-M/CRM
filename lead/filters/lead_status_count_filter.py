@@ -56,6 +56,6 @@ class OpportunityStatusFilter(django_filters.FilterSet):
     def filter_search(self, queryset, name, value):
         """Search by lead name or opportunity name."""
         return queryset.filter(
-            Q(name__icontains=value) |  
+            Q(name__name__icontains=value) |  
             Q(lead__name__icontains=value)  
         )
