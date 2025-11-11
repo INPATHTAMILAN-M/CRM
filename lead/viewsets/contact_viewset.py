@@ -296,9 +296,9 @@ class BulkImportAPIView(APIView):
     Accepts a file via POST or uses a given path during dev.
     """
 
-    def parse_excel_date(self,value):
+    def parse_excel_date(self, value):
         """Parses Excel date strings like '03/10/2025' or 'DD/MM/YYYY' safely."""
-        if not value:
+        if not value or pd.isna(value):
             return datetime.today().date()
         try:
             # Explicitly specify DD/MM/YYYY format to avoid ambiguity
@@ -308,6 +308,25 @@ class BulkImportAPIView(APIView):
             return parsed.date()
         except Exception:
             return datetime.today().date()
+    
+    def clean_float(self, value):
+        """Safely convert value to float, handling NaN and None."""
+        if value is None or pd.isna(value):
+            return 0
+        try:
+            float_val = float(value)
+            # Check if it's a valid finite number
+            if not pd.isna(float_val) and float_val != float('inf') and float_val != float('-inf'):
+                return float_val
+            return 0
+        except (ValueError, TypeError):
+            return 0
+    
+    def clean_string(self, value):
+        """Safely convert value to string, handling NaN and None."""
+        if value is None or pd.isna(value):
+            return None
+        return str(value).strip() if str(value).strip() else None
 
     def post(self, request):
         file = request.FILES.get("file")
@@ -347,16 +366,28 @@ class BulkImportAPIView(APIView):
                 created_date = self.parse_excel_date(row.get("date"))
                 closing_date = self.parse_excel_date(row.get("date")) 
 
+                # ---- Clean string values ----
+                company_name = self.clean_string(row.get("company_name")) or f"Lead_{index}"
+                contact_name = self.clean_string(row.get("name"))
+                phone_number = self.clean_string(row.get("phone_number"))
+                remark = self.clean_string(row.get("remark"))
+                designation = self.clean_string(row.get("designation"))
+                
+                # ---- Clean float values ----
+                opportunity_value = self.clean_float(row.get("opportunity_value"))
+                recurring_value = self.clean_float(row.get("recurring_value_per_year"))
+                probability = self.clean_float(row.get("probability_in_percentage"))
+
                 # ---- Identify user ----
-                created_by_user = User.objects.filter(username=row.get("designation")).first() or default_user
+                created_by_user = User.objects.filter(username=designation).first() or default_user
 
                 # ---- LEAD ----
                 lead = Lead.objects.create(
-                    name=row.get("company_name") or f"Lead_{index}",
+                    name=company_name,
                     lead_status=default_status,
                     lead_owner=created_by_user,
                     created_by=created_by_user,
-                    remark=row.get("remark"),
+                    remark=remark,
                     lead_type="Manual Lead",
                     is_active=True,
                 )
@@ -367,12 +398,12 @@ class BulkImportAPIView(APIView):
                 # ---- CONTACT ----
                 contact = Contact.objects.create(
                     lead=lead,
-                    company_name=row.get("company_name"),
-                    name=row.get("name"),
-                    phone_number=row.get("phone_number"),
-                    remark=row.get("remark"),
+                    company_name=company_name,
+                    name=contact_name,
+                    phone_number=phone_number,
+                    remark=remark,
                     created_by=created_by_user,
-                    is_primary = True,
+                    is_primary=True,
                     is_active=True,
                 )
                 Contact.objects.filter(pk=contact.pk).update(created_on=created_date)
@@ -386,17 +417,17 @@ class BulkImportAPIView(APIView):
                     name=default_opportunity_name,
                     stage=default_stage,
                     owner=created_by_user,
-                    note=row.get("remark"),
-                    opportunity_value=row.get("opportunity_value") or 0,
-                    recurring_value_per_year=row.get("recurring_value_per_year") or 0,
+                    note=remark,
+                    opportunity_value=opportunity_value,
+                    recurring_value_per_year=recurring_value,
                     currency_type=default_country,
                     closing_date=closing_date,
-                    probability_in_percentage=row.get("probability_in_percentage") or 0,
+                    probability_in_percentage=probability,
                     lead_bucket=default_bucket,
                     created_by=created_by_user,
                     opportunity_status=default_status,
                     status_date=created_date,
-                    remark=row.get("remark"),
+                    remark=remark,
                     is_active=True,
                 )
                 Opportunity.objects.filter(pk=opportunity.pk).update(created_on=created_date)
@@ -408,7 +439,7 @@ class BulkImportAPIView(APIView):
                     lead=lead,
                     created_by=created_by_user,
                     contact_id=contact.id,
-                    details=lead.remark or row.get("remark") or f"Imported lead {lead.name}",
+                    details=remark or f"Imported lead {lead.name}",
                     log_type="Call",
                     log_stage=default_log_stage,
                     focus_segment=getattr(lead, "focus_segment", None),
@@ -419,7 +450,6 @@ class BulkImportAPIView(APIView):
             except Exception as e:
                 errors.append({
                     "row": index,
-                    "data": row,
                     "error": str(e)
                 })
 
