@@ -297,12 +297,12 @@ class BulkImportAPIView(APIView):
     """
 
     def parse_excel_date(self,value):
-        """Parses Excel date strings like '03/10/2025' safely."""
+        """Parses Excel date strings like '03/10/2025' or 'DD/MM/YYYY' safely."""
         if not value:
             return datetime.today().date()
         try:
-            # pandas can handle DD/MM/YYYY, timestamps, and Excel serials
-            parsed = pd.to_datetime(value, errors='coerce', dayfirst=True)
+            # Explicitly specify DD/MM/YYYY format to avoid ambiguity
+            parsed = pd.to_datetime(value, format='%d/%m/%Y', errors='coerce')
             if pd.isna(parsed):
                 return datetime.today().date()
             return parsed.date()
@@ -356,6 +356,7 @@ class BulkImportAPIView(APIView):
                     lead_status=default_status,
                     lead_owner=created_by_user,
                     created_by=created_by_user,
+                    remark=row.get("remark"),
                     lead_type="Manual Lead",
                     is_active=True,
                 )
