@@ -100,24 +100,45 @@ class ImportContactsAPIView(APIView):
                     errored_contacts.append({'company_name': None, 'error': 'Missing company_name'})
                     continue
 
-                # Extract row data into a dictionary
+                # # Extract row data into a dictionary
+                # contact_data = {
+                #     'lead': row.get('lead') if pd.notnull(row.get('lead')) else None,
+                #     'name': row.get('name') if pd.notnull(row.get('name')) else None,
+                #     'company_name': row.get('company_name') if pd.notnull(row.get('company_name')) else None,
+                #     'status': row.get('status') if pd.notnull(row.get('status')) else None,
+                #     'designation': row.get('designation') if pd.notnull(row.get('designation')) else None,
+                #     'department': row.get('department') if pd.notnull(row.get('department')) else None,
+                #     'phone_number': row.get('phone_number') if pd.notnull(row.get('phone_number')) else None,
+                #     'secondary_phone_number': row.get('secondary_phone_number') if pd.notnull(row.get('secondary_phone_number')) else None,
+                #     'email_id': row.get('email_id') if pd.notnull(row.get('email_id')) else None,
+                #     'remark': row.get('remark') if pd.notnull(row.get('remark')) else None,
+                #     'lead_source': row.get('lead_source') if pd.notnull(row.get('lead_source')) else None,
+                #     'lead_source_from': row.get('lead_source_from') if pd.notnull(row.get('lead_source_from')) else None,
+                #     'is_active': row.get('is_active') == 'TRUE' if pd.notnull(row.get('is_active')) else True,
+                #     'is_archive': row.get('is_archive') == 'TRUE' if pd.notnull(row.get('is_archive')) else False,
+                #     'created_by': request.user.id,
+                # }
+                def clean(value):
+                    return str(value).strip() if pd.notnull(value) else None
+
                 contact_data = {
-                    'lead': row.get('lead') if pd.notnull(row.get('lead')) else None,
-                    'name': row.get('name') if pd.notnull(row.get('name')) else None,
-                    'company_name': row.get('company_name') if pd.notnull(row.get('company_name')) else None,
-                    'status': row.get('status') if pd.notnull(row.get('status')) else None,
-                    'designation': row.get('designation') if pd.notnull(row.get('designation')) else None,
-                    'department': row.get('department') if pd.notnull(row.get('department')) else None,
-                    'phone_number': row.get('phone_number') if pd.notnull(row.get('phone_number')) else None,
-                    'secondary_phone_number': row.get('secondary_phone_number') if pd.notnull(row.get('secondary_phone_number')) else None,
-                    'email_id': row.get('email_id') if pd.notnull(row.get('email_id')) else None,
-                    'remark': row.get('remark') if pd.notnull(row.get('remark')) else None,
-                    'lead_source': row.get('lead_source') if pd.notnull(row.get('lead_source')) else None,
-                    'lead_source_from': row.get('lead_source_from') if pd.notnull(row.get('lead_source_from')) else None,
-                    'is_active': row.get('is_active') == 'TRUE' if pd.notnull(row.get('is_active')) else True,
-                    'is_archive': row.get('is_archive') == 'TRUE' if pd.notnull(row.get('is_archive')) else False,
+                    'lead': clean(row.get('lead')),
+                    'name': clean(row.get('name')),
+                    'company_name': clean(row.get('company_name')),
+                    'status': clean(row.get('status')),
+                    'designation': clean(row.get('designation')),
+                    'department': clean(row.get('department')),
+                    'phone_number': clean(row.get('phone_number')),
+                    'secondary_phone_number': clean(row.get('secondary_phone_number')),
+                    'email_id': clean(row.get('email_id')),
+                    'remark': clean(row.get('remark')),
+                    'lead_source': clean(row.get('lead_source')),
+                    'lead_source_from': clean(row.get('lead_source_from')),
+                    'is_active': str(row.get('is_active')).strip().lower() == 'true' if pd.notnull(row.get('is_active')) else True,
+                    'is_archive': str(row.get('is_archive')).strip().lower() == 'true' if pd.notnull(row.get('is_archive')) else False,
                     'created_by': request.user.id,
                 }
+
 
                 contacts_data.append(contact_data)
             if not contacts_data:

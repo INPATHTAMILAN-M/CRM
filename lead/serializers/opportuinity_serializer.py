@@ -140,7 +140,7 @@ class OpportunityListSerializer(serializers.ModelSerializer):
     def get_file_url(self, obj):
         if obj.file:
             file_url = obj.file.url
-            domain = "http://121.200.52.133:8000/"
+            domain = "https://suvado.com/"
             return f"{domain}{file_url}"
         return None
 
@@ -148,6 +148,8 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
         fields = "__all__"
+    
+    
 
     def make_serializable(self, value):
         """Convert values to JSON-safe format."""
