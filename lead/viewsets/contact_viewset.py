@@ -400,43 +400,33 @@ class BulkImportAPIView(APIView):
                     created_records["leads"] += 1
 
                 # ---- CONTACT ----
-                # Prefer matching by phone_number (unique), otherwise try to match by (lead + name).
+                # Prefer matching by company_name (unique), then phone_number (unique),
+                # then (lead + name). Only create when no existing contact is found.
                 contact = None
                 created_contact = False
-                if phone_number:
-                    contact, created_contact = Contact.objects.get_or_create(
+
+                if company_name:
+                    contact = Contact.objects.filter(company_name=company_name).first()
+
+                if not contact and phone_number:
+                    contact = Contact.objects.filter(phone_number=phone_number).first()
+
+                if not contact and contact_name:
+                    contact = Contact.objects.filter(lead=lead, name=contact_name).first()
+
+                if not contact:
+                    # safe create — company_name or phone_number may be None
+                    contact = Contact.objects.create(
+                        lead=lead,
+                        company_name=company_name,
+                        name=contact_name,
                         phone_number=phone_number,
-                        defaults={
-                            'lead': lead,
-                            'company_name': company_name,
-                            'name': contact_name,
-                            'remark': remark,
-                            'created_by': created_by_user,
-                            'status': default_status if not remark else None,
-                            'designation': designation,
-                            'department': None,
-                            'email_id': None,
-                            'lead_source': None,
-                            'is_active': True,
-                            'is_primary': True,
-                        }
+                        remark=remark,
+                        created_by=created_by_user,
+                        is_primary=True,
+                        is_active=True,
                     )
-                else:
-                    # fallback: try matching by lead and contact name
-                    if contact_name:
-                        contact = Contact.objects.filter(lead=lead, name=contact_name).first()
-                    if not contact:
-                        contact = Contact.objects.create(
-                            lead=lead,
-                            company_name=company_name,
-                            name=contact_name,
-                            phone_number=phone_number,
-                            remark=remark,
-                            created_by=created_by_user,
-                            is_primary=True,
-                            is_active=True,
-                        )
-                        created_contact = True
+                    created_contact = True
 
                 if created_contact:
                     Contact.objects.filter(pk=contact.pk).update(created_on=created_date)
