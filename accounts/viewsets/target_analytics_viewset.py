@@ -2,8 +2,10 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Sum
 from datetime import date
+from ..filters.target_analytics_filter import TargetAnalyticsFilter 
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_HALF_UP
 from django.contrib.auth import get_user_model
@@ -17,6 +19,8 @@ from lead.models import Opportunity, Lead
 class TargetAnalyticsViewSet(viewsets.ViewSet):
     """ViewSet for target analytics calculations."""
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TargetAnalyticsFilter
     @extend_schema(
         parameters=[
             OpenApiParameter(name='user_id', description='Filter by user id', required=False, type=OpenApiTypes.INT),
@@ -28,100 +32,14 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["get"], url_path="analytics")
     def get_analytics(self, request):
         User = get_user_model()
-        user = request.user
 
-        # --- Parse query params ---
-        team_param = request.query_params.get("team")
-        team_flag = False
-        if team_param is not None:
-            try:
-                team_flag = str(team_param).strip().lower() in ("1", "true", "yes")
-            except Exception:
-                team_flag = False
-
-        team_id = request.query_params.get("team_id")
-        user_id = request.query_params.get("user_id")
-        # --- Determine Target Users ---
-        # Role-based access rules:
-        # - admin (is_superuser): can view all users/teams; if no filters provided, return all users
-        # - BDM: can view their team (BDM + all BDEs)
-        # - BDE: can view only themselves
-        target_users = []
-
-        # helper to load user object from user_id param
-        def load_user_by_id(uid):
-            try:
-                uid = int(uid)
-            except (TypeError, ValueError):
-                return None
-            return User.objects.filter(id=uid).first()
-
-        # Detect if request.user is a BDM (has a Teams entry as bdm_user)
-        user_team = Teams.objects.filter(bdm_user=user).first()
-        is_bdm = bool(user_team)
-        is_admin = getattr(user, "is_superuser", False) or getattr(user, "is_staff", False)
-
-        # If caller is admin, allow broad access
-        if is_admin:
-            if team_flag:
-                if team_id:
-                    team = Teams.objects.filter(id=team_id).first()
-                    if not team:
-                        return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
-                    target_users = list(team.bde_user.all()) + ([team.bdm_user] if getattr(team, 'bdm_user', None) else [])
-                elif user_id:
-                    user_obj = load_user_by_id(user_id)
-                    if user_obj:
-                        # If the supplied user belongs to a team, include that team's BDEs
-                        ut = Teams.objects.filter(Q(bde_user=user_obj) | Q(bdm_user=user_obj)).first()
-                        if ut:
-                            target_users = list(ut.bde_user.all()) + ([ut.bdm_user] if getattr(ut, 'bdm_user', None) else [])
-                        else:
-                            target_users = [user_obj]
-                    else:
-                        target_users = []
-                else:
-                    # admin + team_flag but no specific team/user -> all users
-                    target_users = list(User.objects.all())
-            else:
-                if user_id:
-                    user_obj = load_user_by_id(user_id)
-                    target_users = [user_obj] if user_obj else []
-                else:
-                    # admin default -> all users
-                    target_users = list(User.objects.all())
-
-        # If caller is BDM, restrict to their team (BDM + all BDEs). If user_id provided, allow drilling into specific user
-        elif is_bdm:
-            if team_flag and team_id:
-                team = Teams.objects.filter(id=team_id).first()
-                if not team:
-                    return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
-                target_users = list(team.bde_user.all()) + ([team.bdm_user] if getattr(team, 'bdm_user', None) else [])
-            else:
-                # default to the BDM's own team
-                target_users = list(user_team.bde_user.all()) + ([user_team.bdm_user] if getattr(user_team, 'bdm_user', None) else [])
-                if user_id:
-                    # If they asked for a particular user in their team, narrow to that user
-                    user_obj = load_user_by_id(user_id)
-                    if user_obj and (user_obj in target_users):
-                        target_users = [user_obj]
-
-        # Otherwise treat as BDE or normal user: only themselves (unless admin filtered)
-        else:
-            if user_id:
-                user_obj = load_user_by_id(user_id)
-                # only allow viewing self
-                if user_obj and user_obj.id == user.id:
-                    target_users = [user_obj]
-                else:
-                    target_users = [user]
-            else:
-                target_users = [user]
-
-        # de-duplicate users
-        # ensure we have actual user instances
-        target_users = [u for i, u in enumerate(target_users) if u and u not in target_users[:i]]
+        # Use the TargetAnalyticsFilter to build the list of users this request is allowed to
+        # view. The filter enforces admin/BDM/self restrictions and supports the
+        # query params: team, team_id, user_id, company_name.
+        users_qs = User.objects.all()
+        filterset = TargetAnalyticsFilter(data=request.query_params, queryset=users_qs, request=request)
+        target_users_qs = filterset.qs.distinct()
+        target_users = list(target_users_qs)
 
         # --- Proceed with analytics ---
         today = date.today()
