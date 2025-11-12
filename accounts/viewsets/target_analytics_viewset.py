@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from accounts.models import MonthlyTarget, Teams
-from accounts.serializers.target_analytics_serializer import TargetAnalyticsSerializer
+# Serializer not used for output anymore because we return primitive types
 from lead.models import Opportunity, Lead
 
 
@@ -41,47 +41,87 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
 
         team_id = request.query_params.get("team_id")
         user_id = request.query_params.get("user_id")
-
         # --- Determine Target Users ---
-        if team_flag:
-            # Case 1: team_id given → get all BDE users of that team
-            if team_id:
-                team = Teams.objects.filter(id=team_id).first()
-                if not team:
-                    return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
-                target_users = list(team.bde_user.all())
+        # Role-based access rules:
+        # - admin (is_superuser): can view all users/teams; if no filters provided, return all users
+        # - BDM: can view their team (BDM + all BDEs)
+        # - BDE: can view only themselves
+        target_users = []
 
-            # Case 2: Only user_id given → check that user's team
-            elif user_id:
-                try:
-                    user_id = int(user_id)
-                    user_obj = User.objects.filter(id=user_id).first()
+        # helper to load user object from user_id param
+        def load_user_by_id(uid):
+            try:
+                uid = int(uid)
+            except (TypeError, ValueError):
+                return None
+            return User.objects.filter(id=uid).first()
+
+        # Detect if request.user is a BDM (has a Teams entry as bdm_user)
+        user_team = Teams.objects.filter(bdm_user=user).first()
+        is_bdm = bool(user_team)
+        is_admin = getattr(user, "is_superuser", False) or getattr(user, "is_staff", False)
+
+        # If caller is admin, allow broad access
+        if is_admin:
+            if team_flag:
+                if team_id:
+                    team = Teams.objects.filter(id=team_id).first()
+                    if not team:
+                        return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
+                    target_users = list(team.bde_user.all()) + ([team.bdm_user] if getattr(team, 'bdm_user', None) else [])
+                elif user_id:
+                    user_obj = load_user_by_id(user_id)
                     if user_obj:
-                        # Find if user belongs to any team (either as BDE or BDM)
-                        user_team = Teams.objects.filter(Q(bde_user=user_obj) | Q(bdm_user=user_obj)).first()
-                        if user_team:
-                            # Include all BDE users of that team
-                            target_users = list(user_team.bde_user.all())
+                        # If the supplied user belongs to a team, include that team's BDEs
+                        ut = Teams.objects.filter(Q(bde_user=user_obj) | Q(bdm_user=user_obj)).first()
+                        if ut:
+                            target_users = list(ut.bde_user.all()) + ([ut.bdm_user] if getattr(ut, 'bdm_user', None) else [])
                         else:
-                            # User has no team → only that user's target
                             target_users = [user_obj]
                     else:
                         target_users = []
-                except (ValueError, TypeError):
-                    target_users = []
+                else:
+                    # admin + team_flag but no specific team/user -> all users
+                    target_users = list(User.objects.all())
             else:
-                # team=true but no team_id or user_id → empty
-                target_users = []
+                if user_id:
+                    user_obj = load_user_by_id(user_id)
+                    target_users = [user_obj] if user_obj else []
+                else:
+                    # admin default -> all users
+                    target_users = list(User.objects.all())
+
+        # If caller is BDM, restrict to their team (BDM + all BDEs). If user_id provided, allow drilling into specific user
+        elif is_bdm:
+            if team_flag and team_id:
+                team = Teams.objects.filter(id=team_id).first()
+                if not team:
+                    return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
+                target_users = list(team.bde_user.all()) + ([team.bdm_user] if getattr(team, 'bdm_user', None) else [])
+            else:
+                # default to the BDM's own team
+                target_users = list(user_team.bde_user.all()) + ([user_team.bdm_user] if getattr(user_team, 'bdm_user', None) else [])
+                if user_id:
+                    # If they asked for a particular user in their team, narrow to that user
+                    user_obj = load_user_by_id(user_id)
+                    if user_obj and (user_obj in target_users):
+                        target_users = [user_obj]
+
+        # Otherwise treat as BDE or normal user: only themselves (unless admin filtered)
         else:
-            # Case 3: team flag not provided or false → use only user_id
             if user_id:
-                try:
-                    user_id = int(user_id)
-                    target_users = list(User.objects.filter(id=user_id))
-                except (ValueError, TypeError):
-                    target_users = []
+                user_obj = load_user_by_id(user_id)
+                # only allow viewing self
+                if user_obj and user_obj.id == user.id:
+                    target_users = [user_obj]
+                else:
+                    target_users = [user]
             else:
-                target_users = []
+                target_users = [user]
+
+        # de-duplicate users
+        # ensure we have actual user instances
+        target_users = [u for i, u in enumerate(target_users) if u and u not in target_users[:i]]
 
         # --- Proceed with analytics ---
         today = date.today()
@@ -179,6 +219,17 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
         physical_year_end = date(today.year, 12, 31)
 
         # --- Response ---
+        # Ensure decimals are quantized to match serializer's DecimalField
+        def quantize_decimal(value, places=2):
+            try:
+                if value is None:
+                    return Decimal("0.00")
+                dec = value if isinstance(value, Decimal) else Decimal(str(value))
+                quantize_exp = Decimal(10) ** -places
+                return dec.quantize(quantize_exp, rounding=ROUND_HALF_UP)
+            except Exception:
+                return Decimal("0.00")
+
         data = [
             {
                 "type": "prevMonth",
@@ -186,8 +237,8 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "subtitle": "Last month's performance",
                 "start_date": prev_month_start.strftime("%Y-%m-%d"),
                 "end_date": prev_month_end.strftime("%Y-%m-%d"),
-                "target": prev_target,
-                "achieved": prev_ach,
+                "target": quantize_decimal(prev_target),
+                "achieved": quantize_decimal(prev_ach),
                 "percentage": pct(prev_ach, prev_target),
                 "increase": curr_ach > prev_ach,
             },
@@ -197,8 +248,8 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "subtitle": "Ongoing month's progress",
                 "start_date": curr_month_start.strftime("%Y-%m-%d"),
                 "end_date": curr_month_end.strftime("%Y-%m-%d"),
-                "target": curr_target,
-                "achieved": curr_ach,
+                "target": quantize_decimal(curr_target),
+                "achieved": quantize_decimal(curr_ach),
                 "percentage": pct(curr_ach, curr_target),
                 "increase": curr_ach > prev_ach,
             },
@@ -208,8 +259,8 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "subtitle": "Apr - Mar financial year",
                 "start_date": fy_start.strftime("%Y-%m-%d"),
                 "end_date": fy_end.strftime("%Y-%m-%d"),
-                "target": financial_target,
-                "achieved": financial_achieved,
+                "target": quantize_decimal(financial_target),
+                "achieved": quantize_decimal(financial_achieved),
                 "percentage": pct(financial_achieved, financial_target),
                 "increase": financial_achieved > prev_financial_achieved,
             },
@@ -219,11 +270,27 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "subtitle": "Yearly summary",
                 "start_date": physical_year_start.strftime("%Y-%m-%d"),
                 "end_date": physical_year_end.strftime("%Y-%m-%d"),
-                "target": annual_target,
-                "achieved": annual_ach,
+                "target": quantize_decimal(annual_target),
+                "achieved": quantize_decimal(annual_ach),
                 "percentage": pct(annual_ach, annual_target),
                 "increase": annual_ach > last_year_ach,
             },
         ]
 
-        return Response(TargetAnalyticsSerializer(data, many=True).data)
+        # Convert Decimal values to native types (floats) to avoid DecimalField quantize errors
+        out_data = []
+        for item in data:
+            new_item = item.copy()
+            for key in ("target", "achieved"):
+                val = new_item.get(key)
+                try:
+                    if isinstance(val, Decimal):
+                        new_item[key] = float(val)
+                    else:
+                        new_item[key] = float(Decimal(str(val)))
+                except Exception:
+                    # fallback to 0.0 for any unconvertible values
+                    new_item[key] = 0.0
+            out_data.append(new_item)
+
+        return Response(out_data)
