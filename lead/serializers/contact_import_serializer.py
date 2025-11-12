@@ -93,3 +93,15 @@ class ContactImportCreateSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+
+from rest_framework import serializers
+
+class BulkImportSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+    def validate_file(self, value):
+        """Ensure it's a valid Excel file"""
+        if not value.name.endswith(('.xlsx', '.xls')):
+            raise serializers.ValidationError("Only Excel files (.xlsx, .xls) are allowed.")
+        return value
