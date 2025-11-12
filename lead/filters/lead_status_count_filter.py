@@ -30,6 +30,7 @@ class OpportunityStatusFilter(django_filters.FilterSet):
             "opportunity_status",
             "from_date",
             "to_date",
+            "name",
             "bdm",
             "bde",
             'opp_status'
