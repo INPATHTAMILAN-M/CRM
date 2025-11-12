@@ -16,7 +16,7 @@ class OpportunityStatusFilter(django_filters.FilterSet):
 
 
     role_asssigned = django_filters.ModelChoiceFilter(queryset=User.objects.all(),method='filter_role_assigned', label="BDM Assigned")
-
+    assigned_leads =  django_filters.BooleanFilter(method='filter_assigned_leads', label="Assigned Leads")
     class Meta:
         model = Opportunity
         fields = [
@@ -59,3 +59,8 @@ class OpportunityStatusFilter(django_filters.FilterSet):
             Q(name__name__icontains=value) |  
             Q(lead__name__icontains=value)  
         )
+    
+    def filter_assigned_leads(self, queryset, name, value):
+        if value:
+            return queryset.filter(lead__assigned_to__isnull=False)
+        return queryset
