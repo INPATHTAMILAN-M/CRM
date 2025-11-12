@@ -172,6 +172,8 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
 
         validated_data['updated_at'] = datetime.datetime.now()
         validated_data['updated_by'] = request_user.id
+        validated_data['updated_name'] = request_user.username
+
 
         # ✅ Loop through all validated fields (skip file)
         for field, new_value in validated_data.items():
