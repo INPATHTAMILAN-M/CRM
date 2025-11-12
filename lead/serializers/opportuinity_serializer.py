@@ -148,8 +148,6 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
         fields = "__all__"
-    
-    
 
     def make_serializable(self, value):
         """Convert values to JSON-safe format."""
@@ -179,15 +177,18 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
 
             old_value = getattr(instance, field, None)
             if old_value != new_value:
-                new_value.update({'updated_at': datetime.datetime.now()})
-                new_value.update({'updated_by': request_user.id})
+                # ✅ record for logging only
                 old_values[field] = self.make_serializable(old_value)
                 new_values[field] = self.make_serializable(new_value)
 
         with transaction.atomic():
-            # ✅ Apply all updates
+            # ✅ Apply updates to instance
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
+
+            # ✅ Set updated_at and updated_by on instance (not on new_value)
+            setattr(instance, "updated_at", datetime.datetime.now())
+            setattr(instance, "updated_by", request_user.id)
             instance.save()
 
             # ✅ Log only if something changed
@@ -200,7 +201,6 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
                     created_by=request_user,
                     old_value=old_values,
                     new_value=new_values
-                    
                 )
 
         return instance
