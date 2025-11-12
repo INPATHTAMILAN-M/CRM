@@ -382,63 +382,100 @@ class BulkImportAPIView(APIView):
                 created_by_user = User.objects.filter(username=designation).first() or default_user
 
                 # ---- LEAD ----
-                lead = Lead.objects.create(
+                # If a lead with the same name exists, use it. Otherwise create a new one.
+                lead, lead_created = Lead.objects.get_or_create(
                     name=company_name,
-                    lead_status=default_status,
-                    lead_owner=created_by_user,
-                    created_by=created_by_user,
-                    remark=remark,
-                    lead_type="Manual Lead",
-                    is_active=True,
+                    defaults={
+                        'lead_status': default_status,
+                        'lead_owner': created_by_user,
+                        'created_by': created_by_user,
+                        'remark': remark,
+                        'lead_type': "Manual Lead",
+                        'is_active': True,
+                    }
                 )
-                Lead.objects.filter(pk=lead.pk).update(created_on=created_date)
-                lead.refresh_from_db()
-                created_records["leads"] += 1
+                if lead_created:
+                    Lead.objects.filter(pk=lead.pk).update(created_on=created_date)
+                    lead.refresh_from_db()
+                    created_records["leads"] += 1
 
                 # ---- CONTACT ----
-                contact = Contact.objects.create(
-                    lead=lead,
-                    company_name=company_name,
-                    name=contact_name,
-                    phone_number=phone_number,
-                    remark=remark,
-                    created_by=created_by_user,
-                    is_primary=True,
-                    is_active=True,
-                )
-                Contact.objects.filter(pk=contact.pk).update(created_on=created_date)
-                contact.refresh_from_db()
-                created_records["contacts"] += 1
+                # Prefer matching by phone_number (unique), otherwise try to match by (lead + name).
+                contact = None
+                created_contact = False
+                if phone_number:
+                    contact, created_contact = Contact.objects.get_or_create(
+                        phone_number=phone_number,
+                        defaults={
+                            'lead': lead,
+                            'company_name': company_name,
+                            'name': contact_name,
+                            'remark': remark,
+                            'created_by': created_by_user,
+                            'status': default_status if not remark else None,
+                            'designation': designation,
+                            'department': None,
+                            'email_id': None,
+                            'lead_source': None,
+                            'is_active': True,
+                            'is_primary': True,
+                        }
+                    )
+                else:
+                    # fallback: try matching by lead and contact name
+                    if contact_name:
+                        contact = Contact.objects.filter(lead=lead, name=contact_name).first()
+                    if not contact:
+                        contact = Contact.objects.create(
+                            lead=lead,
+                            company_name=company_name,
+                            name=contact_name,
+                            phone_number=phone_number,
+                            remark=remark,
+                            created_by=created_by_user,
+                            is_primary=True,
+                            is_active=True,
+                        )
+                        created_contact = True
+
+                if created_contact:
+                    Contact.objects.filter(pk=contact.pk).update(created_on=created_date)
+                    contact.refresh_from_db()
+                    created_records["contacts"] += 1
 
                 # ---- OPPORTUNITY ----
-                opportunity = Opportunity.objects.create(
+                # Attach opportunity to the existing lead (by name) and avoid creating duplicates for same (lead, name)
+                opportunity, opportunity_created = Opportunity.objects.get_or_create(
                     lead=lead,
-                    primary_contact=contact,
                     name=default_opportunity_name,
-                    stage=default_stage,
-                    owner=created_by_user,
-                    note=remark,
-                    opportunity_value=opportunity_value,
-                    recurring_value_per_year=recurring_value,
-                    currency_type=default_country,
-                    closing_date=closing_date,
-                    probability_in_percentage=probability,
-                    lead_bucket=default_bucket,
-                    created_by=created_by_user,
-                    opportunity_status=default_status,
-                    status_date=created_date,
-                    remark=remark,
-                    is_active=True,
+                    defaults={
+                        'primary_contact': contact,
+                        'stage': default_stage,
+                        'owner': created_by_user,
+                        'note': remark,
+                        'opportunity_value': opportunity_value,
+                        'recurring_value_per_year': recurring_value,
+                        'currency_type': default_country,
+                        'closing_date': closing_date,
+                        'probability_in_percentage': probability,
+                        'lead_bucket': default_bucket,
+                        'created_by': created_by_user,
+                        'opportunity_status': default_status,
+                        'status_date': created_date,
+                        'remark': remark,
+                        'is_active': True,
+                    }
                 )
-                Opportunity.objects.filter(pk=opportunity.pk).update(created_on=created_date)
-                opportunity.refresh_from_db()
-                created_records["opportunities"] += 1
+                if opportunity_created:
+                    Opportunity.objects.filter(pk=opportunity.pk).update(created_on=created_date)
+                    opportunity.refresh_from_db()
+                    created_records["opportunities"] += 1
 
                 # ---- LOG ----
                 Log.objects.create(
                     lead=lead,
                     created_by=created_by_user,
-                    contact_id=contact.id,
+                    contact_id=contact.id if contact else None,
                     details=remark or f"Imported lead {lead.name}",
                     log_type="Call",
                     log_stage=default_log_stage,
