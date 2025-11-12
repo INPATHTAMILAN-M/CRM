@@ -17,50 +17,73 @@ from lead.models import Opportunity, Lead
 class TargetAnalyticsViewSet(viewsets.ViewSet):
     """ViewSet for target analytics calculations."""
     permission_classes = [IsAuthenticated]
-
     @extend_schema(
         parameters=[
             OpenApiParameter(name='user_id', description='Filter by user id', required=False, type=OpenApiTypes.INT),
             OpenApiParameter(name='team_id', description='Filter by team id', required=False, type=OpenApiTypes.INT),
             OpenApiParameter(name='company_name', description='Filter by company name (lead name)', required=False, type=OpenApiTypes.STR),
+            OpenApiParameter(name='team', description='If true (with team_id): return BDE users of the given team; if true (with only user_id): return that user’s team BDEs; if false: only that user', required=False, type=OpenApiTypes.BOOL),
         ]
     )
     @action(detail=False, methods=["get"], url_path="analytics")
     def get_analytics(self, request):
         User = get_user_model()
         user = request.user
-        is_admin = user.groups.filter(name__iexact="admin").exists()
+
+        # --- Parse query params ---
+        team_param = request.query_params.get("team")
+        team_flag = False
+        if team_param is not None:
+            try:
+                team_flag = str(team_param).strip().lower() in ("1", "true", "yes")
+            except Exception:
+                team_flag = False
+
+        team_id = request.query_params.get("team_id")
+        user_id = request.query_params.get("user_id")
 
         # --- Determine Target Users ---
-        if is_admin:
-            user_id = request.query_params.get("user_id")
-            company_name = request.query_params.get("company_name")
-            team_id = request.query_params.get("team_id")
-
-            if user_id:
-                target_users = User.objects.filter(id=user_id)
-            elif team_id:
+        if team_flag:
+            # Case 1: team_id given → get all BDE users of that team
+            if team_id:
                 team = Teams.objects.filter(id=team_id).first()
                 if not team:
                     return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
-                target_users = [team.bdm_user, *team.bde_user.all()]
-            elif company_name:
-                leads = Lead.objects.filter(name__icontains=company_name)
-                user_ids = {l.created_by_id for l in leads if l.created_by_id} | {
-                    l.assigned_to_id for l in leads if l.assigned_to_id
-                }
-                target_users = User.objects.filter(id__in=user_ids)
+                target_users = list(team.bde_user.all())
+
+            # Case 2: Only user_id given → check that user's team
+            elif user_id:
+                try:
+                    user_id = int(user_id)
+                    user_obj = User.objects.filter(id=user_id).first()
+                    if user_obj:
+                        # Find if user belongs to any team (either as BDE or BDM)
+                        user_team = Teams.objects.filter(Q(bde_user=user_obj) | Q(bdm_user=user_obj)).first()
+                        if user_team:
+                            # Include all BDE users of that team
+                            target_users = list(user_team.bde_user.all())
+                        else:
+                            # User has no team → only that user's target
+                            target_users = [user_obj]
+                    else:
+                        target_users = []
+                except (ValueError, TypeError):
+                    target_users = []
             else:
-                target_users = User.objects.filter(is_active=True).exclude(groups__name__iexact="admin")
+                # team=true but no team_id or user_id → empty
+                target_users = []
         else:
-            user_id = request.query_params.get("user_id")
+            # Case 3: team flag not provided or false → use only user_id
             if user_id:
-                user = User.objects.filter(id=user_id).first()
-            target_users = [user]
+                try:
+                    user_id = int(user_id)
+                    target_users = list(User.objects.filter(id=user_id))
+                except (ValueError, TypeError):
+                    target_users = []
+            else:
+                target_users = []
 
-        if not target_users:
-            return Response({"error": "No matching users found."}, status=status.HTTP_404_NOT_FOUND)
-
+        # --- Proceed with analytics ---
         today = date.today()
         prev_date, next_date = today - relativedelta(months=1), today + relativedelta(months=1)
 
@@ -80,13 +103,11 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                     qs = qs.filter(closing_date__month=month)
                 if year:
                     qs = qs.filter(closing_date__year=year)
-                # Define filters with weights
                 filters_with_weights = [
-                    (Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 1),   # both roles → full
-                    (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user), 0.5), # only creator → half
-                    (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5), # only assigned → half
+                    (Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 1),
+                    (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user), 0.5),
+                    (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5),
                 ]
-
                 for condition, weight in filters_with_weights:
                     value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
                     total_value += Decimal(value) * Decimal(weight)
@@ -123,18 +144,17 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             return total
 
         # --- Calculate Values ---
-
         prev_target = get_target(prev_date.month, prev_date.year)
         curr_target = get_target(today.month, today.year)
         next_target = get_target(next_date.month, next_date.year)
 
-        # Financial year calculations (Apr - Mar)
+        # Financial Year (Apr - Mar)
         fy_start_year = today.year if today.month >= 4 else today.year - 1
         fy_start = date(fy_start_year, 4, 1)
         fy_end = date(fy_start_year + 1, 3, 31)
         financial_target = sum_targets_for_range(fy_start, fy_end)
         financial_achieved = sum_achieved_for_range(fy_start, fy_end)
-        # previous financial year for comparison
+
         prev_fy_start = date(fy_start_year - 1, 4, 1)
         prev_fy_end = date(fy_start_year, 3, 31)
         prev_financial_achieved = sum_achieved_for_range(prev_fy_start, prev_fy_end)
@@ -151,13 +171,10 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             or Decimal("0.00")
         )
 
-        # Calculate date ranges for each period
         prev_month_start = prev_date.replace(day=1)
         prev_month_end = today.replace(day=1) - relativedelta(days=1)
-        
         curr_month_start = today.replace(day=1)
         curr_month_end = (today.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
-        
         physical_year_start = date(today.year, 1, 1)
         physical_year_end = date(today.year, 12, 31)
 
@@ -172,7 +189,7 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "target": prev_target,
                 "achieved": prev_ach,
                 "percentage": pct(prev_ach, prev_target),
-                "increase": curr_ach > prev_ach,  # Compare current vs previous achievement
+                "increase": curr_ach > prev_ach,
             },
             {
                 "type": "currentMonth",
@@ -183,7 +200,7 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 "target": curr_target,
                 "achieved": curr_ach,
                 "percentage": pct(curr_ach, curr_target),
-                "increase": curr_ach > prev_ach,  # Compare current vs previous achievement
+                "increase": curr_ach > prev_ach,
             },
             {
                 "type": "financialYear",
