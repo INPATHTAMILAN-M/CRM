@@ -179,6 +179,8 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
 
             old_value = getattr(instance, field, None)
             if old_value != new_value:
+                new_value.update({'updated_at': datetime.datetime.now()})
+                new_value.update({'updated_by': request_user.id})
                 old_values[field] = self.make_serializable(old_value)
                 new_values[field] = self.make_serializable(new_value)
 
