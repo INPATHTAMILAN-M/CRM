@@ -40,6 +40,50 @@ class ContactListSerializer(serializers.ModelSerializer):
         model = Contact
         fields = '__all__'
 
+    def get_display_date(self, obj):
+        """Return the preferred date according to rules:
+        - If updated_on exists and is strictly greater than created_on -> updated_on
+        - Else -> created_on
+        If both are equal or updated_on missing, created_on is returned.
+        """
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+
+        if updated and created:
+            try:
+                if updated > created:
+                    return updated
+            except Exception:
+                # In case of mixed types or timezone issues, fall back to created
+                return created
+        # If updated missing or not greater, return created (or updated if created missing)
+        return created or updated
+
+    def get_display_date_source(self, obj):
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+        if updated and created:
+            try:
+                if updated > created:
+                    return 'updated_on'
+            except Exception:
+                return 'created_on'
+        return 'created_on' if created else ('updated_on' if updated else None)
+
+    def to_representation(self, obj):
+        """Inject display_date and display_date_source into the serialized output.
+
+        This avoids needing to enumerate every model field while still returning
+        the additional computed fields requested.
+        """
+        ret = super().to_representation(obj)
+        display_date = self.get_display_date(obj)
+        # DRF will handle datetime conversion for model fields, but since we're
+        # injecting here, convert to ISO string for consistency.
+        ret['display_date'] = display_date.isoformat() if display_date is not None else None
+        ret['display_date_source'] = self.get_display_date_source(obj)
+        return ret
+
 class ContactDetailSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
     status = ContactStatusSerializer()
@@ -50,6 +94,37 @@ class ContactDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = '__all__'
+
+    # Provide same display logic in the detail serializer so single-object responses
+    # follow the same rule as list responses.
+    def get_display_date(self, obj):
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+        if updated and created:
+            try:
+                if updated > created:
+                    return updated
+            except Exception:
+                return created
+        return created or updated
+
+    def get_display_date_source(self, obj):
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+        if updated and created:
+            try:
+                if updated > created:
+                    return 'updated_on'
+            except Exception:
+                return 'created_on'
+        return 'created_on' if created else ('updated_on' if updated else None)
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        display_date = self.get_display_date(obj)
+        ret['display_date'] = display_date.isoformat() if display_date is not None else None
+        ret['display_date_source'] = self.get_display_date_source(obj)
+        return ret
 
 class ContactCreateSerializer(serializers.ModelSerializer):
     class Meta:
