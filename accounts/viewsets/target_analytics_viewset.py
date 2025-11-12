@@ -1,26 +1,21 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Sum
-from datetime import date
-from ..filters.target_analytics_filter import TargetAnalyticsFilter 
+from datetime import date 
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_HALF_UP
-from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
-
+from django.contrib.auth import get_user_model
 from accounts.models import MonthlyTarget, Teams
-# Serializer not used for output anymore because we return primitive types
 from lead.models import Opportunity, Lead
 
 
 class TargetAnalyticsViewSet(viewsets.ViewSet):
     """ViewSet for target analytics calculations."""
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = TargetAnalyticsFilter
     @extend_schema(
         parameters=[
             OpenApiParameter(name='user_id', description='Filter by user id', required=False, type=OpenApiTypes.INT),
@@ -31,15 +26,6 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
     )
     @action(detail=False, methods=["get"], url_path="analytics")
     def get_analytics(self, request):
-        User = get_user_model()
-
-        # Use the TargetAnalyticsFilter to build the list of users this request is allowed to
-        # view. The filter enforces admin/BDM/self restrictions and supports the
-        # query params: team, team_id, user_id, company_name.
-        users_qs = User.objects.all()
-        filterset = TargetAnalyticsFilter(data=request.query_params, queryset=users_qs, request=request)
-        target_users_qs = filterset.qs.distinct()
-        target_users = list(target_users_qs)
 
         # --- Proceed with analytics ---
         today = date.today()
@@ -101,6 +87,46 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 total += get_value(Opportunity, target_users, month=m, year=y)
             return total
 
+        # --- Determine target users based on team filter ---
+        team_flag_raw = request.query_params.get("team")
+        team_flag = team_flag_raw and team_flag_raw.lower() in ("true", "1", "yes")
+
+        requester = request.user
+        User = get_user_model()
+        
+        # Check groups case-insensitively and allow superuser as admin
+        all_groups = list(requester.groups.values_list('name', flat=True))
+        group_names_lower = [g.lower() for g in all_groups]
+        
+        is_admin = 'admin' in group_names_lower 
+        is_bdm = 'bdm' in group_names_lower
+        is_bde = 'bde' in group_names_lower
+        
+        # Debug: log user groups for troubleshooting
+        print(f"DEBUG: user={requester.username}, groups={all_groups}, is_admin={is_admin}, is_bdm={is_bdm}, is_bde={is_bde}")
+        
+        target_users = []
+
+        if team_flag:
+            # team=True: filter based on role
+            if is_admin:
+                # Admin: all users EXCEPT the requesting admin
+                target_users = list(User.objects.exclude(id=requester.id))
+            elif is_bdm:
+                # BDM: all team members (BDEs) under this BDM
+                user_team = Teams.objects.filter(bdm_user=requester).first()
+                if user_team:
+                    target_users = list(user_team.bde_user.all())
+                else:
+                    target_users = []
+            else:
+                # Others (e.g., BDE): only their own data
+                target_users = [requester]
+        else:
+            # team=False: everyone gets only their own data
+            target_users = [requester]
+        
+        print(f"DEBUG: target_users count={len(target_users)}")    
         # --- Calculate Values ---
         prev_target = get_target(prev_date.month, prev_date.year)
         curr_target = get_target(today.month, today.year)
@@ -195,7 +221,7 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             },
         ]
 
-        # Convert Decimal values to native types (floats) to avoid DecimalField quantize errors
+        # Convert Decimal values to strings (preserve exactness) instead of floats
         out_data = []
         for item in data:
             new_item = item.copy()
@@ -203,12 +229,13 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 val = new_item.get(key)
                 try:
                     if isinstance(val, Decimal):
-                        new_item[key] = float(val)
+                        # Format as string with 2 decimal places
+                        new_item[key] = str(val.quantize(Decimal('0.00'), rounding=ROUND_HALF_UP))
                     else:
-                        new_item[key] = float(Decimal(str(val)))
+                        new_item[key] = str(Decimal(str(val)).quantize(Decimal('0.00'), rounding=ROUND_HALF_UP))
                 except Exception:
-                    # fallback to 0.0 for any unconvertible values
-                    new_item[key] = 0.0
+                    # fallback to "0.00" for any unconvertible values
+                    new_item[key] = "0.00"
             out_data.append(new_item)
 
         return Response(out_data)
