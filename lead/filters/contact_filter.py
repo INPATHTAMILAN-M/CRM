@@ -95,6 +95,6 @@ class ContactFilter(django_filters.FilterSet):
 
         # --- Case 3: Regular user (BDE etc.) ---
         return queryset.filter(
-            Q(lead__assigned_to=user.id) |
-            Q(lead__created_by=user.id)
+            Q(assigned_to=user.id) |
+            Q(created_by=user.id)
         )
