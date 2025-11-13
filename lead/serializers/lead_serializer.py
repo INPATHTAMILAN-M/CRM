@@ -229,6 +229,13 @@ class LeadSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer(read_only=True)  # Nested serializer for Department
     last_log_follow_up = serializers.SerializerMethodField()
     logs = LogSerializer(many=True, read_only=True)
+    # Display date rules:
+    # - If updated_on is missing -> show created_on
+    # - If updated_on < created_on -> show updated_on first then created_on
+    # - If updated_on == created_on -> show created_on
+    # - Else -> show created_on then updated_on
+    display_date = serializers.SerializerMethodField()
+    dates_ordered = serializers.SerializerMethodField()
     
     class Meta:
         model = Lead
@@ -255,6 +262,63 @@ class LeadSerializer(serializers.ModelSerializer):
             'id': obj.created_by.id,
             'username': obj.created_by.username
         }
+
+    def _fmt(self, dt):
+        """Format datetime to ISO string or return None."""
+        if not dt:
+            return None
+        try:
+            return dt.isoformat()
+        except Exception:
+            return str(dt)
+
+    def get_display_date(self, obj):
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+
+        # No dates
+        if not created and not updated:
+            return None
+
+        # If updated missing -> show created
+        if not updated:
+            return self._fmt(created)
+
+        # Both present: compare
+        try:
+            if updated < created:
+                return self._fmt(updated)
+            if updated == created:
+                return self._fmt(created)
+            # updated > created
+            return self._fmt(created)
+        except Exception:
+            # Fallback: prefer created if available
+            return self._fmt(created) or self._fmt(updated)
+
+    def get_dates_ordered(self, obj):
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+
+        # Neither date
+        if not created and not updated:
+            return []
+
+        # Only created
+        if created and not updated:
+            return [self._fmt(created)]
+
+        # Both present
+        try:
+            if updated < created:
+                return [self._fmt(updated), self._fmt(created)]
+            if updated == created:
+                return [self._fmt(created)]
+            # updated > created
+            return [self._fmt(created), self._fmt(updated)]
+        except Exception:
+            # Fallback ordering
+            return [x for x in [self._fmt(created), self._fmt(updated)] if x]
         
     def to_representation(self, instance):
         # Get the basic representation first
