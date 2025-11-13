@@ -11,7 +11,7 @@ from accounts.models import (
     Contact_Status, Lead_Source, 
     Stage, Country, User
 )
-import datetime
+from datetime import datetime,date
 from django.db import transaction
 from lead.serializers.lead_serializer import LogSerializer
 
@@ -114,51 +114,54 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
             return f"{domain}{file_url}"
         return None
 
-    # def get_display_date(self, obj):
-    #     """Return the preferred date according to rules:
-    #     - If updated_on exists and is strictly greater than created_on -> updated_on
-    #     - Else -> created_on
-    #     If both are equal or updated_on missing, created_on is returned.
-    #     """
-    #     created = getattr(obj, 'created_on', None)
-    #     updated = getattr(obj, 'updated_on', None)
+    def get_display_date(self, obj):
+        """Return the preferred date according to rules:
+        - If updated_on exists and is strictly greater than created_on -> updated_on
+        - Else -> created_on
+        If both are equal or updated_on missing, created_on is returned.
+        """
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
 
-    #     if updated and created:
-    #         try:
-    #             if updated > created:
-    #                 return updated
-    #         except Exception:
-    #             return created
-    #     return created or updated
+        if updated and created:
+            try:
+                if updated > created:
+                    return updated
+            except Exception:
+                return created
+        return created or updated
 
-    # def get_display_date_source(self, obj):
-    #     created = getattr(obj, 'created_on', None)
-    #     updated = getattr(obj, 'updated_on', None)
-    #     if updated and created:
-    #         try:
-    #             if updated > created:
-    #                 return 'updated_on'
-    #         except Exception:
-    #             return 'created_on'
-    #     return 'created_on' if created else ('updated_on' if updated else None)
+    def get_display_date_source(self, obj):
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+        if updated and created:
+            try:
+                if updated > created:
+                    return 'updated_on'
+            except Exception:
+                return 'created_on'
+        return 'created_on' if created else ('updated_on' if updated else None)
     
-    # def to_representation(self, instance):
-    #     # Get the basic representation first
-    #     representation = super().to_representation(instance)
-    #     representation['logs'] = LogSerializer(instance.log_set.all(), many=True).data
-    #     # Inject display_date and display_date_source
-    #     display_date = self.get_display_date(instance)
-    #     if display_date is not None:
-    #         if isinstance(display_date, datetime.datetime):
-    #             representation['display_date'] = display_date.isoformat()
-    #         elif isinstance(display_date, datetime.date):
-    #             representation['display_date'] = display_date.isoformat()
-    #         else:
-    #             representation['display_date'] = str(display_date)
-    #     else:
-    #         representation['display_date'] = None
-    #     representation['display_date_source'] = self.get_display_date_source(instance)
-    #     return representation
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+
+        # ✅ Fix: Coerce datetime values to date for DateFields
+        for field_name, field_value in ret.items():
+            if isinstance(field_value, datetime):
+                ret[field_name] = field_value.date().isoformat()
+
+        # ✅ Add display date logic
+        display_date = self.get_display_date(obj)
+        if display_date is not None:
+            if isinstance(display_date, datetime):
+                display_date = display_date.date()
+            ret['display_date'] = display_date.isoformat()
+        else:
+            ret['display_date'] = None
+
+        ret['display_date_source'] = self.get_display_date_source(obj)
+        return ret
+
     
 class OpportunityListSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
@@ -184,49 +187,53 @@ class OpportunityListSerializer(serializers.ModelSerializer):
             return f"{domain}{file_url}"
         return None
 
-    # def get_display_date(self, obj):
-    #     """Return the preferred date according to rules:
-    #     - If updated_on exists and is strictly greater than created_on -> updated_on
-    #     - Else -> created_on
-    #     If both are equal or updated_on missing, created_on is returned.
-    #     """
-    #     created = getattr(obj, 'created_on', None)
-    #     updated = getattr(obj, 'updated_on', None)
+    def get_display_date(self, obj):
+        """Return the preferred date according to rules:
+        - If updated_on exists and is strictly greater than created_on -> updated_on
+        - Else -> created_on
+        If both are equal or updated_on missing, created_on is returned.
+        """
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
 
-    #     if updated and created:
-    #         try:
-    #             if updated > created:
-    #                 return updated
-    #         except Exception:
-    #             return created
-    #     return created or updated
+        if updated and created:
+            try:
+                if updated > created:
+                    return updated
+            except Exception:
+                return created
+        return created or updated
 
-    # def get_display_date_source(self, obj):
-    #     created = getattr(obj, 'created_on', None)
-    #     updated = getattr(obj, 'updated_on', None)
-    #     if updated and created:
-    #         try:
-    #             if updated > created:
-    #                 return 'updated_on'
-    #         except Exception:
-    #             return 'created_on'
-    #     return 'created_on' if created else ('updated_on' if updated else None)
+    def get_display_date_source(self, obj):
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+        if updated and created:
+            try:
+                if updated > created:
+                    return 'updated_on'
+            except Exception:
+                return 'created_on'
+        return 'created_on' if created else ('updated_on' if updated else None)
 
-    # def to_representation(self, obj):
-    #     """Inject display_date and display_date_source into the serialized output."""
-    #     ret = super().to_representation(obj)
-    #     display_date = self.get_display_date(obj)
-    #     if display_date is not None:
-    #         if isinstance(display_date, datetime.datetime):
-    #             ret['display_date'] = display_date.isoformat()
-    #         elif isinstance(display_date, datetime.date):
-    #             ret['display_date'] = display_date.isoformat()
-    #         else:
-    #             ret['display_date'] = str(display_date)
-    #     else:
-    #         ret['display_date'] = None
-    #     ret['display_date_source'] = self.get_display_date_source(obj)
-    #     return ret
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+
+        # Fix: Coerce datetime values to date for DateFields
+        for field_name, field_value in ret.items():
+            if isinstance(field_value, datetime):
+                ret[field_name] = field_value.date().isoformat()
+
+        # Add display date logic
+        display_date = self.get_display_date(obj)
+        if display_date is not None:
+            if isinstance(display_date, datetime):
+                display_date = display_date.date()
+            ret['display_date'] = display_date.isoformat()
+        else:
+            ret['display_date'] = None
+
+        ret['display_date_source'] = self.get_display_date_source(obj)
+        return ret
 
 class OpportunityUpdateSerializer(serializers.ModelSerializer):
     class Meta:

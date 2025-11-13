@@ -144,7 +144,7 @@ class Opportunity(models.Model):
     opportunity_value = models.FloatField(null=True, blank=True)
     recurring_value_per_year = models.FloatField(null=True, blank=True)
     currency_type = models.ForeignKey(Country, on_delete=models.CASCADE,null=True, blank=True)
-    closing_date = models.DateField()
+    closing_date = models.DateField(null=True, blank=True)
     probability_in_percentage = models.FloatField()
     lead_bucket = models.ForeignKey(Lead_Bucket, null=True, blank=True, on_delete=models.SET_NULL)
     file = models.FileField(upload_to='opportunity_files', null=True, blank=True)
