@@ -1,5 +1,7 @@
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
+
+from accounts.models import Teams
 from ..models import Task, TaskConversationLog
 from django.utils import timezone
 from django.db.models import Q
@@ -12,6 +14,7 @@ class TaskFilter(filters.FilterSet):
     from_date = filters.DateFilter(field_name='task_date_time', lookup_expr='gte', label='From Date')
     to_date = filters.DateFilter(field_name='task_date_time', lookup_expr='lte', label='To Date', required=False)
     assigned_to_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_to', method='filter_assigned_to_me')
+    assigned_to = filters.NumberFilter(field_name='task_task_assignments__assigned_to', label='Assigned To User ID')
     assigned_by_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_by', method='filter_assigned_by_me')
     
     has_reply = filters.BooleanFilter(field_name='task_conversation_logs__task', method='filter_has_reply')
