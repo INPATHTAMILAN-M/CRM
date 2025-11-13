@@ -27,7 +27,7 @@ class OpportunityViewset(viewsets.ModelViewSet):
             When(updated_on__gt=F('created_on'), then=F('updated_on')),
             default=F('created_on')
         )
-    ).order_by('-most_recent_date', '-id')
+    ).order_by('-most_recent_date')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = OpportunityFilter
