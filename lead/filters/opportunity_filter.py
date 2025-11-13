@@ -22,8 +22,8 @@ class OpportunityFilter(django_filters.FilterSet):
 
     assigned_to = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__assigned_to')
     lead_source = django_filters.ModelChoiceFilter(queryset=Lead_Source.objects.all(), field_name='lead__lead_source')
-    from_date = django_filters.DateTimeFilter(method='filter_from_date', label='From Date')
-    to_date = django_filters.DateTimeFilter(method='filter_to_date', label='To Date', required=False)
+    from_date = django_filters.DateFilter(method='filter_from_date', label='From Date')
+    to_date = django_filters.DateFilter(method='filter_to_date', label='To Date', required=False)
     lead_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all(), field_name='lead__lead_status')
     opp_status = django_filters.CharFilter(field_name='opportunity_status__name', lookup_expr='exact')
     opportunity_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
@@ -74,11 +74,6 @@ class OpportunityFilter(django_filters.FilterSet):
         if value:
             return queryset.filter(lead__assigned_to__isnull=False)
         return queryset
-
-    def filter_to_date(self, queryset, name, value):
-        if not value:
-            value = timezone.now().date()  
-        return queryset.filter(lead__created_on__lte=value)
     
     def filter_bdm(self, queryset, name, value):
         if value:  
