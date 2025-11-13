@@ -254,11 +254,6 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
         old_values = {}
         new_values = {}
 
-        validated_data['updated_at'] = datetime.datetime.now()
-        validated_data['updated_by'] = request_user.id
-        validated_data['updated_by_name'] = request_user.username
-
-
         # ✅ Loop through all validated fields (skip file)
         for field, new_value in validated_data.items():
             if field == "file":  # ❌ skip logging for file
@@ -275,9 +270,7 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
 
-            # ✅ Set updated_at and updated_by on instance (not on new_value)
-            setattr(instance, "updated_at", datetime.datetime.now())
-            setattr(instance, "updated_by", request_user.id)
+            # updated_on will be set automatically by auto_now=True
             instance.save()
 
             # ✅ Log only if something changed
