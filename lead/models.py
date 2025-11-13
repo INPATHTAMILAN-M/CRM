@@ -154,8 +154,8 @@ class Opportunity(models.Model):
     remark = models.TextField(null=True, blank=True)
     opportunity_keyword = models.TextField(null=True, blank=True)
     # Use DateTimeField so created/updated timestamps include time information
-    created_on = models.DateTimeField(auto_now_add=True)
-    updated_on = models.DateTimeField(auto_now=True)
+    created_on = models.DateField(auto_now_add=True)
+    updated_on = models.DateField(auto_now=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
