@@ -2,7 +2,6 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters import rest_framework as filters
-from django.contrib.auth.models import Group
 from accounts.models import MonthlyTarget
 from accounts.serializers.monthly_target_serializer import (
     MonthlyTargetSerializer, MonthlyTargetCreateSerializer

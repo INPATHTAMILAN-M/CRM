@@ -27,6 +27,8 @@ class ContactFilter(django_filters.FilterSet):
     assigned_to_by_contact = django_filters.ModelMultipleChoiceFilter(queryset=User.objects.all(), field_name='assigned_to', label="Assigned To Filter")
     
     team = django_filters.BooleanFilter(method='filter_team', label="Team Filter")
+
+    search = django_filters.CharFilter(method='filter_by_all_fields', label="Search Filter")
     
     
     class Meta:
