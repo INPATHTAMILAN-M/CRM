@@ -74,11 +74,6 @@ class OpportunityFilter(django_filters.FilterSet):
         if value:
             return queryset.filter(lead__assigned_to__isnull=False)
         return queryset
-
-    def filter_to_date(self, queryset, name, value):
-        if not value:
-            value = timezone.now().date()  
-        return queryset.filter(lead__created_on__lte=value)
     
     def filter_bdm(self, queryset, name, value):
         if value:  
