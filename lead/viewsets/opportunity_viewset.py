@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models import Q
+from django.db.models import Q, Case, When, F
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -15,15 +15,19 @@ from ..serializers.opportuinity_serializer import (
     OpportunityUpdateSerializer,
     StageUpdateSerializer,
 )
-from accounts.models import Teams
-from ..models import Opportunity_Status, Opportunity
+from ..models import Opportunity
 from rest_framework import serializers
 
 from ..filters.opportunity_filter import OpportunityFilter
 
 
 class OpportunityViewset(viewsets.ModelViewSet):
-    queryset = Opportunity.objects.all().order_by('-id')
+    queryset = Opportunity.objects.annotate(
+        most_recent_date=Case(
+            When(updated_on__gt=F('created_on'), then=F('updated_on')),
+            default=F('created_on')
+        )
+    ).order_by('-most_recent_date', '-id')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = OpportunityFilter
