@@ -24,8 +24,8 @@ from ..filters.opportunity_filter import OpportunityFilter
 class OpportunityViewset(viewsets.ModelViewSet):
     queryset = Opportunity.objects.annotate(
         most_recent_date=Case(
-            When(updated_on__gt=F('created_on'), then=F('updated_on')),
-            default=F('created_on')
+            When(updated_on__gt=F('lead__created_on'), then=F('lead__updated_on')),
+            default=F('lead__created_on')
         )
     ).order_by('-most_recent_date')
     permission_classes = [IsAuthenticated]
