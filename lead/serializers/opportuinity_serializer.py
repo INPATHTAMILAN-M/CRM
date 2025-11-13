@@ -113,11 +113,43 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
             domain = "https://suvado.com"
             return f"{domain}{file_url}"
         return None
+
+    def get_display_date(self, obj):
+        """Return the preferred date according to rules:
+        - If updated_on exists and is strictly greater than created_on -> updated_on
+        - Else -> created_on
+        If both are equal or updated_on missing, created_on is returned.
+        """
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+
+        if updated and created:
+            try:
+                if updated > created:
+                    return updated
+            except Exception:
+                return created
+        return created or updated
+
+    def get_display_date_source(self, obj):
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+        if updated and created:
+            try:
+                if updated > created:
+                    return 'updated_on'
+            except Exception:
+                return 'created_on'
+        return 'created_on' if created else ('updated_on' if updated else None)
     
     def to_representation(self, instance):
         # Get the basic representation first
         representation = super().to_representation(instance)
-        representation['logs'] = LogSerializer(instance.log_set.all(), many=True).data 
+        representation['logs'] = LogSerializer(instance.log_set.all(), many=True).data
+        # Inject display_date and display_date_source
+        display_date = self.get_display_date(instance)
+        representation['display_date'] = display_date.isoformat() if display_date is not None else None
+        representation['display_date_source'] = self.get_display_date_source(instance)
         return representation
     
 class OpportunityListSerializer(serializers.ModelSerializer):
@@ -143,6 +175,42 @@ class OpportunityListSerializer(serializers.ModelSerializer):
             domain = "https://suvado.com/"
             return f"{domain}{file_url}"
         return None
+
+    def get_display_date(self, obj):
+        """Return the preferred date according to rules:
+        - If updated_on exists and is strictly greater than created_on -> updated_on
+        - Else -> created_on
+        If both are equal or updated_on missing, created_on is returned.
+        """
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+
+        if updated and created:
+            try:
+                if updated > created:
+                    return updated
+            except Exception:
+                return created
+        return created or updated
+
+    def get_display_date_source(self, obj):
+        created = getattr(obj, 'created_on', None)
+        updated = getattr(obj, 'updated_on', None)
+        if updated and created:
+            try:
+                if updated > created:
+                    return 'updated_on'
+            except Exception:
+                return 'created_on'
+        return 'created_on' if created else ('updated_on' if updated else None)
+
+    def to_representation(self, obj):
+        """Inject display_date and display_date_source into the serialized output."""
+        ret = super().to_representation(obj)
+        display_date = self.get_display_date(obj)
+        ret['display_date'] = display_date.isoformat() if display_date is not None else None
+        ret['display_date_source'] = self.get_display_date_source(obj)
+        return ret
 
 class OpportunityUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -243,13 +311,17 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             # Create the Opportunity instance
             opportunity = Opportunity.objects.create(**validated_data)
-            Log.objects.create(
-                contact = opportunity.primary_contact,
-                opportunity = opportunity,
-                opportunity_status = opportunity.opportunity_status,
-                log_stage = Log_Stage.objects.all().first(),
-                created_by=self.context['request'].user  # The user creating the opportunity
-            )
+            
+            # Only create a Log if primary_contact exists (contact is required)
+            if opportunity.primary_contact:
+                Log.objects.create(
+                    contact=opportunity.primary_contact,
+                    opportunity=opportunity,
+                    opportunity_status=opportunity.opportunity_status,
+                    log_stage=Log_Stage.objects.all().first(),
+                    created_by=self.context['request'].user  # The user creating the opportunity
+                )
+            
             assigned_users = Lead_Assignment.objects.filter(lead=opportunity.lead).values_list('assigned_to', flat=True).distinct()
             print("assigned_users",assigned_users)
 
@@ -263,13 +335,15 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
                         assigned_by=self.context['request'].user,
                         type="Opportunity"
                     )
-            # Create the Opportunity_Stage record linked to the new Opportunity
-            opportunity_stage = Opportunity_Stage(
-                opportunity=opportunity,
-                stage=stage,
-                moved_by=self.context['request'].user 
-            )
-            opportunity_stage.save() 
+                # Create the Opportunity_Stage record linked to the new Opportunity
+                # Only create if stage is provided (stage is required in Opportunity_Stage model)
+                if stage:
+                    opportunity_stage = Opportunity_Stage(
+                        opportunity=opportunity,
+                        stage=stage,
+                        moved_by=self.context['request'].user 
+                    )
+                    opportunity_stage.save()
 
             return opportunity
         

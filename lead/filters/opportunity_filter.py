@@ -1,6 +1,6 @@
 import django_filters
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, CharField
 
 from accounts.models import Teams
 from ..models import Opportunity, Lead, Contact, Country, Lead_Source, Lead_Status, Opportunity_Status
@@ -22,8 +22,8 @@ class OpportunityFilter(django_filters.FilterSet):
 
     assigned_to = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__assigned_to')
     lead_source = django_filters.ModelChoiceFilter(queryset=Lead_Source.objects.all(), field_name='lead__lead_source')
-    from_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='gte', label='From Date')
-    to_date = django_filters.DateFilter(field_name='lead__created_on', lookup_expr='lte', label='To Date', required=False)
+    from_date = django_filters.DateTimeFilter(method='filter_from_date', label='From Date')
+    to_date = django_filters.DateTimeFilter(method='filter_to_date', label='To Date', required=False)
     lead_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all(), field_name='lead__lead_status')
     opp_status = django_filters.CharFilter(field_name='opportunity_status__name', lookup_expr='exact')
     opportunity_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
@@ -39,6 +39,14 @@ class OpportunityFilter(django_filters.FilterSet):
     today = django_filters.BooleanFilter(method='filter_today', label="Today")
 
     team = django_filters.BooleanFilter(method='filter_team', label="Team Filter")
+    
+    # Filter for display_date_source: 
+    # true = show updated_on (where updated_on > created_on)
+    # false = show created_on (where updated_on <= created_on or NULL)
+    display_date_source = django_filters.BooleanFilter(
+        method='filter_display_date_source',
+        label="Show Updated Dates"
+    )
 
 
     class Meta:
@@ -165,4 +173,55 @@ class OpportunityFilter(django_filters.FilterSet):
             Q(lead__created_by=user.id)
         )
 
-    
+    def filter_display_date_source(self, queryset, name, value):
+        """
+        Filter opportunities by which date is displayed (boolean).
+        - True: show updated_on (where updated_on > created_on)
+        - False: show created_on (where updated_on <= created_on or updated_on is NULL)
+        - None/default: show created_on (default behavior)
+        """
+        from django.db import models
+        if value is True:
+            # Show only opportunities where updated_on is greater than created_on
+            return queryset.exclude(
+                Q(updated_on__isnull=True) | Q(updated_on__lte=models.F('created_on'))
+            )
+        elif value is False:
+            # Show only opportunities where updated_on is NULL or <= created_on
+            return queryset.filter(
+                Q(updated_on__isnull=True) | Q(updated_on__lte=models.F('created_on'))
+            )
+        # Default: return all (which will show created_on in serializer)
+        return queryset
+
+    def filter_from_date(self, queryset, name, value):
+        """
+        Filter opportunities by from_date, comparing against the most recent date 
+        (updated_on if it exists and is greater, else created_on).
+        """
+        from django.db.models import Case, When, F
+        if value:
+            # Get most recent date using Case/When: if updated_on > created_on use updated_on, else created_on
+            queryset = queryset.annotate(
+                display_date=Case(
+                    When(updated_on__isnull=False, updated_on__gt=F('created_on'), then=F('updated_on')),
+                    default=F('created_on')
+                )
+            ).filter(display_date__gte=value)
+        return queryset
+
+    def filter_to_date(self, queryset, name, value):
+        """
+        Filter opportunities by to_date, comparing against the most recent date 
+        (updated_on if it exists and is greater, else created_on).
+        """
+        from django.db.models import Case, When, F
+        if value:
+            # Get most recent date using Case/When: if updated_on > created_on use updated_on, else created_on
+            queryset = queryset.annotate(
+                display_date=Case(
+                    When(updated_on__isnull=False, updated_on__gt=F('created_on'), then=F('updated_on')),
+                    default=F('created_on')
+                )
+            ).filter(display_date__lte=value)
+        return queryset
