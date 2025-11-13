@@ -83,14 +83,14 @@ class ContactFilter(django_filters.FilterSet):
                 team_member_ids = list(user_team.bde_user.values_list("id", flat=True))
 
                 return queryset.filter(
-                    Q(lead__assigned_to__in=team_member_ids) |
-                    Q(lead__created_by__in=team_member_ids)
+                    Q(assigned_to__in=team_member_ids) |
+                    Q(created_by__in=team_member_ids)
                 )
 
             # When ?team=false → only show own records
             return queryset.filter(
-                Q(lead__assigned_to=user.id) |
-                Q(lead__created_by=user.id)
+                Q(assigned_to=user.id) |
+                Q(created_by=user.id)
             )
 
         # --- Case 3: Regular user (BDE etc.) ---
