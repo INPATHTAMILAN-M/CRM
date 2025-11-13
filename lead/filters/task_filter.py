@@ -14,7 +14,7 @@ class TaskFilter(filters.FilterSet):
     from_date = filters.DateFilter(field_name='task_date_time', lookup_expr='gte', label='From Date')
     to_date = filters.DateFilter(field_name='task_date_time', lookup_expr='lte', label='To Date', required=False)
     assigned_to_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_to', method='filter_assigned_to_me')
-    assigned_to = filters.NumberFilter(field_name='task_task_assignments__assigned_to', method='filter_assigned_to_me', label='Assigned To User ID')
+    assigned_to = filters.NumberFilter(field_name='task_task_assignments__assigned_to',method='filter_assigned_to',label='Assigned To User ID')
     assigned_by_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_by', method='filter_assigned_by_me')
     
     has_reply = filters.BooleanFilter(field_name='task_conversation_logs__task', method='filter_has_reply')
@@ -45,6 +45,14 @@ class TaskFilter(filters.FilterSet):
             ).distinct()
         
         return queryset 
+    
+    def filter_assigned_to(self, queryset, name, value):
+        if value:
+            return queryset.filter(
+                Q(task_task_assignments__assigned_to_id=value)
+                & ~Q(task_task_assignments__assigned_by_id=value)
+            ).distinct()
+        return queryset
 
     def filter_assigned_by_me(self, queryset, name, value):
         # Get logged-in user
