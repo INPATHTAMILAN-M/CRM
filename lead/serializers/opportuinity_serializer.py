@@ -148,7 +148,15 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
         representation['logs'] = LogSerializer(instance.log_set.all(), many=True).data
         # Inject display_date and display_date_source
         display_date = self.get_display_date(instance)
-        representation['display_date'] = display_date.isoformat() if display_date is not None else None
+        if display_date is not None:
+            if isinstance(display_date, datetime.datetime):
+                representation['display_date'] = display_date.isoformat()
+            elif isinstance(display_date, datetime.date):
+                representation['display_date'] = display_date.isoformat()
+            else:
+                representation['display_date'] = str(display_date)
+        else:
+            representation['display_date'] = None
         representation['display_date_source'] = self.get_display_date_source(instance)
         return representation
     
@@ -208,7 +216,15 @@ class OpportunityListSerializer(serializers.ModelSerializer):
         """Inject display_date and display_date_source into the serialized output."""
         ret = super().to_representation(obj)
         display_date = self.get_display_date(obj)
-        ret['display_date'] = display_date.isoformat() if display_date is not None else None
+        if display_date is not None:
+            if isinstance(display_date, datetime.datetime):
+                ret['display_date'] = display_date.isoformat()
+            elif isinstance(display_date, datetime.date):
+                ret['display_date'] = display_date.isoformat()
+            else:
+                ret['display_date'] = str(display_date)
+        else:
+            ret['display_date'] = None
         ret['display_date_source'] = self.get_display_date_source(obj)
         return ret
 
