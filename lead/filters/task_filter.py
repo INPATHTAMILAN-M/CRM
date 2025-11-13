@@ -79,7 +79,7 @@ class TaskFilter(filters.FilterSet):
         # --- Case 1: Admin ---
         # Admins can see all except their own created records
         if is_admin:
-            return queryset.exclude(created_by=user)
+            return queryset.exclude(task_task_assignments=user)
 
         # --- Case 2: BDM ---
         # BDM can see their team's leads when team=true, else their own
