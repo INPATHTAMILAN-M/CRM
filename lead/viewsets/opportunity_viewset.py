@@ -22,12 +22,9 @@ from ..filters.opportunity_filter import OpportunityFilter
 
 
 class OpportunityViewset(viewsets.ModelViewSet):
-    queryset = Opportunity.objects.annotate(
-        most_recent_date=Case(
-            When(updated_on__gt=F('lead__created_on'), then=F('lead__updated_on')),
-            default=F('lead__created_on')
-        )
-    ).order_by('-most_recent_date')
+    queryset = Opportunity.objects.select_related(
+        'lead', 'owner', 'created_by', 'stage', 'primary_contact', 'currency_type', 'opportunity_status'
+    ).prefetch_related('log_set').order_by('-created_on')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = OpportunityFilter

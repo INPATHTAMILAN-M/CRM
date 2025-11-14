@@ -47,6 +47,8 @@ class OpportunityFilter(django_filters.FilterSet):
         method='filter_display_date_source',
         label="Show Updated Dates"
     )
+    
+    user_id = django_filters.NumberFilter(method='filter_by_user_id', label="Filter by User ID (created_by or assigned_to)")
 
 
     class Meta:
@@ -187,6 +189,18 @@ class OpportunityFilter(django_filters.FilterSet):
                 Q(updated_on__isnull=True) | Q(updated_on__lte=models.F('created_on'))
             )
         # Default: return all (which will show created_on in serializer)
+        return queryset
+    
+    def filter_by_user_id(self, queryset, name, value):
+        """
+        Filter opportunities by user_id where:
+        - Match created_by user ID, OR
+        - Match assigned_to user ID (via lead__assigned_to)
+        """
+        if value:
+            return queryset.filter(
+                Q(created_by__id=value) | Q(lead__assigned_to__id=value)
+            )
         return queryset
 
     def filter_from_date(self, queryset, name, value):

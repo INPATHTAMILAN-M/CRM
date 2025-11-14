@@ -63,7 +63,7 @@ class Lead(models.Model):
     lead_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE, null=True, blank=True)
     lead_owner = models.ForeignKey(User, related_name='leads_owned', on_delete=models.CASCADE)
     created_by = models.ForeignKey(User, related_name='leads_created', on_delete=models.CASCADE)
-    created_on = models.DateField(auto_now_add=True)
+    created_on = models.DateTimeField(auto_now_add=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE,null=True, blank=True)
     state = models.ForeignKey(State, on_delete=models.CASCADE,null=True, blank=True)
     company_website = models.CharField(max_length=255, null=True, blank=True)
@@ -121,7 +121,7 @@ class Lead_Assignment(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
     assigned_to = models.ForeignKey(User, related_name='assigned_leads', on_delete=models.CASCADE)
     assigned_by = models.ForeignKey(User, related_name='assigned_by_leads', on_delete=models.CASCADE)
-    assigned_on = models.DateField(auto_now_add=True)
+    assigned_on = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -155,8 +155,8 @@ class Opportunity(models.Model):
     remark = models.TextField(null=True, blank=True)
     opportunity_keyword = models.TextField(null=True, blank=True)
     # Use DateTimeField so created/updated timestamps include time information
-    created_on = models.DateField(auto_now_add=True)
-    updated_on = models.DateField(auto_now=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -184,7 +184,7 @@ class Log(models.Model):
     file = models.FileField(upload_to='logs_files', null=True, blank=True)
     opportunity_status = models.ForeignKey(Lead_Status, on_delete=models.CASCADE,null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    created_on = models.DateField(auto_now_add=True)
+    created_on = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     old_value = models.JSONField(null=True, blank=True)
     new_value = models.JSONField(null=True, blank=True)
@@ -205,7 +205,7 @@ class Task(models.Model):
     task_date_time = models.DateTimeField(null=True, blank=True)
     task_detail = models.TextField(null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    created_on = models.DateField(auto_now_add=True)
+    created_on = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     task_creation_type = models.CharField(max_length=10, choices=[('Manual', 'Manual'), 
                                                                   ('Automatic', 'Automatic')])
@@ -243,7 +243,7 @@ class Task_Assignment(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='task_task_assignments')
     assigned_to = models.ForeignKey(User, related_name='task_assignments', on_delete=models.CASCADE)
     assigned_by = models.ForeignKey(User, related_name='assigned_tasks', on_delete=models.CASCADE)
-    assigned_on = models.DateField(auto_now_add=True)
+    assigned_on = models.DateTimeField(auto_now_add=True)
     assignment_note = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
@@ -254,7 +254,7 @@ class Note(models.Model):
     opportunity = models.ForeignKey(Opportunity, related_name='notes', on_delete=models.CASCADE)
     note = models.TextField(null=True, blank=True)
     note_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    note_on = models.DateField(auto_now_add=True)
+    note_on = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'Note for {self.opportunity.name}'
