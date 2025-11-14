@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models.functions import Greatest
+from django.db.models.functions import Greatest,Coalesce
 from lead.custom_pagination import Paginator
 from ..models import Contact, Opportunity
 from ..serializers.contact_serializer import *
@@ -28,7 +28,10 @@ class ContactViewSet(viewsets.ModelViewSet):
         return (
             Contact.objects.filter(is_active=True)
             .annotate(
-                latest_activity=Greatest('created_on', 'updated_on')
+                latest_activity=Greatest(
+                    Coalesce('updated_on', 'created_on'),
+                    Coalesce('created_on', 'updated_on')
+                )
             )
             .order_by('-latest_activity')
         )
