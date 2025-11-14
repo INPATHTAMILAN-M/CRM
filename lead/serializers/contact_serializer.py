@@ -40,33 +40,6 @@ class ContactListSerializer(serializers.ModelSerializer):
         model = Contact
         fields = '__all__'
 
-    def get_display_date(self, obj):
-        created = getattr(obj, 'created_on', None)
-        updated = getattr(obj, 'updated_on', None)
-        if created and updated:
-            try:
-                return updated if updated > created else created
-            except (TypeError, ValueError):
-                return created
-        return created or updated
-
-    def get_display_date_source(self, obj):
-        created = getattr(obj, 'created_on', None)
-        updated = getattr(obj, 'updated_on', None)
-        if created and updated:
-            try:
-                return 'updated_on' if updated > created else 'created_on'
-            except (TypeError, ValueError):
-                return 'created_on'
-        return 'created_on' if created else ('updated_on' if updated else None)
-
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        display_date = self.get_display_date(obj)
-        ret['display_date'] = display_date.isoformat() if display_date else None
-        ret['display_date_source'] = self.get_display_date_source(obj)
-        return ret
-
 
 class ContactDetailSerializer(serializers.ModelSerializer):
     lead = LeadSerializer()
