@@ -165,7 +165,7 @@ class OpportunityFilter(django_filters.FilterSet):
         """
         if value:
             return queryset.filter(
-                Q(created_by__id=value) | Q(lead__assigned_to__id=value)
+                Q(lead__created_by__id=value) | Q(lead__assigned_to__id=value)
             )
         return queryset
 
