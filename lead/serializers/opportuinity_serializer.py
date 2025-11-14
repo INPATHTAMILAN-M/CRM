@@ -216,6 +216,11 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
 
             # ✅ Log only if something changed
             if old_values:
+                # Add update metadata to new_values
+                new_values["updated_at"] = timezone.now().isoformat()
+                new_values["updated_by"] = request_user.id
+                new_values["updated_by_name"] = request_user.get_full_name() or request_user.username
+                
                 Log.objects.create(
                     contact=instance.primary_contact,
                     opportunity=instance,
