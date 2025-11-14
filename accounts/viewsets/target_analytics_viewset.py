@@ -87,44 +87,41 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 total += get_value(Opportunity, target_users, month=m, year=y)
             return total
 
-        # --- Determine target users based on team filter ---
-        team_flag_raw = request.query_params.get("team")
-        team_flag = team_flag_raw and team_flag_raw.lower() in ("true", "1", "yes")
+        team_flag = str(request.query_params.get("team", "")).lower() in ("true", "1", "yes")
+        user_id = request.query_params.get("user_id")
 
         requester = request.user
         User = get_user_model()
-        
-        # Check groups case-insensitively and allow superuser as admin
-        all_groups = list(requester.groups.values_list('name', flat=True))
-        group_names_lower = [g.lower() for g in all_groups]
-        
-        is_admin = 'admin' in group_names_lower 
-        is_bdm = 'bdm' in group_names_lower
-        is_bde = 'bde' in group_names_lower
-        
-        # Debug: log user groups for troubleshooting
-        print(f"DEBUG: user={requester.username}, groups={all_groups}, is_admin={is_admin}, is_bdm={is_bdm}, is_bde={is_bde}")
-        
+
+        # Normalize roles
+        groups = {g.lower() for g in requester.groups.values_list('name', flat=True)}
+        is_admin = "admin" in groups
+        is_bdm = "bdm" in groups
+        is_bde = "bde" in groups   # optional in case needed for later
+
         target_users = []
 
-        if team_flag:
-            # team=True: filter based on role
-            if is_admin:
-                # Admin: all users EXCEPT the requesting admin
-                target_users = list(User.objects.exclude(id=requester.id))
-            elif is_bdm:
-                # BDM: all team members (BDEs) under this BDM
-                user_team = Teams.objects.filter(bdm_user=requester).first()
-                if user_team:
-                    target_users = list(user_team.bde_user.all())
-                else:
-                    target_users = []
-            else:
-                # Others (e.g., BDE): only their own data
-                target_users = [requester]
-        else:
-            # team=False: everyone gets only their own data
+        if not team_flag:
             target_users = [requester]
+        else:
+            if is_admin:
+                # Admin → All users except themselves
+                target_users = list(User.objects.exclude(id=requester.id))
+
+            elif is_bdm:
+                # BDM → All BDEs under their team
+                team = Teams.objects.filter(bdm_user=requester).first()
+                target_users = list(team.bde_user.all()) if team else []
+
+            else:
+                # Others (BDE/normal users) → Only themselves
+                target_users = [requester]
+
+        if user_id:
+            user_id = int(user_id)
+            target_users = [u for u in target_users if u.id == user_id]
+
+        target_users = target_users
         
         print(f"DEBUG: target_users count={len(target_users)}")    
         # --- Calculate Values ---
