@@ -43,42 +43,22 @@ class ContactListSerializer(serializers.ModelSerializer):
     def get_display_date(self, obj):
         created = getattr(obj, 'created_on', None)
         updated = getattr(obj, 'updated_on', None)
-
         if created and updated:
             try:
-                if updated > created:
-                    return updated
-                elif updated == created:
-                    return created
-                else:  # updated < created
-                    return created
-            except Exception:
+                return updated if updated > created else created
+            except (TypeError, ValueError):
                 return created
-        elif created:
-            return created
-        elif updated:
-            return updated
-        return None
+        return created or updated
 
     def get_display_date_source(self, obj):
         created = getattr(obj, 'created_on', None)
         updated = getattr(obj, 'updated_on', None)
-
         if created and updated:
             try:
-                if updated > created:
-                    return 'updated_on'
-                elif updated == created:
-                    return 'created_on'
-                else:
-                    return 'created_on'
-            except Exception:
+                return 'updated_on' if updated > created else 'created_on'
+            except (TypeError, ValueError):
                 return 'created_on'
-        elif created:
-            return 'created_on'
-        elif updated:
-            return 'updated_on'
-        return None
+        return 'created_on' if created else ('updated_on' if updated else None)
 
     def to_representation(self, obj):
         ret = super().to_representation(obj)
