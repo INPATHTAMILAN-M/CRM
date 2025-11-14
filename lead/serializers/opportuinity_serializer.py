@@ -11,7 +11,8 @@ from accounts.models import (
     Contact_Status, Lead_Source, 
     Stage, Country, User
 )
-from datetime import datetime,date
+import datetime                                  
+from datetime import date
 from django.db import transaction
 from lead.serializers.lead_serializer import LogSerializer
 
@@ -163,7 +164,7 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
         return ret
 
     
-class OpportunityListSerializer(serializers.ModelSerializer):
+class  OpportunityListSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer(read_only=True)
     lead = LeadSerializer(read_only=True)
     currency_type= CurrencySerializer(read_only=True)
@@ -245,8 +246,8 @@ class OpportunityUpdateSerializer(serializers.ModelSerializer):
         if hasattr(value, 'id'):  # Model FK (like lead, stage)
             return value.id
         elif isinstance(value, (datetime.date, datetime.datetime)):
-            return str(value)
-        elif isinstance(value, File) or isinstance(value, memoryview):  # FileField
+            return value.isoformat()  # Better than str()
+        elif isinstance(value, File) or isinstance(value, memoryview):
             return value.name if value else None
         elif isinstance(value, bool):
             return value
