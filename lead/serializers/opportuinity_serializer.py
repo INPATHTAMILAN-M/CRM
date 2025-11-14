@@ -143,18 +143,39 @@ class OpportunityDetailSerializer(serializers.ModelSerializer):
                 return 'created_on'
         return 'created_on' if created else ('updated_on' if updated else None)
     
+    # def to_representation(self, obj):
+    #     ret = super().to_representation(obj)
+
+    #     # ✅ Fix: Coerce datetime values to date for DateFields
+    #     for field_name, field_value in ret.items():
+    #         if isinstance(field_value, datetime):
+    #             ret[field_name] = field_value.date().isoformat()
+
+    #     # ✅ Add display date logic
+    #     display_date = self.get_display_date(obj)
+    #     if display_date is not None:
+    #         if isinstance(display_date, datetime):
+    #             display_date = display_date.date()
+    #         ret['display_date'] = display_date.isoformat()
+    #     else:
+    #         ret['display_date'] = None
+
+    #     ret['display_date_source'] = self.get_display_date_source(obj)
+    #     return ret
     def to_representation(self, obj):
         ret = super().to_representation(obj)
 
-        # ✅ Fix: Coerce datetime values to date for DateFields
+        # Use correct type checks
         for field_name, field_value in ret.items():
-            if isinstance(field_value, datetime):
+            if isinstance(field_value, datetime.datetime):
                 ret[field_name] = field_value.date().isoformat()
+            elif isinstance(field_value, datetime.date):
+                ret[field_name] = field_value.isoformat()
 
-        # ✅ Add display date logic
+        # Add display date logic
         display_date = self.get_display_date(obj)
         if display_date is not None:
-            if isinstance(display_date, datetime):
+            if isinstance(display_date, datetime.datetime):
                 display_date = display_date.date()
             ret['display_date'] = display_date.isoformat()
         else:
