@@ -19,15 +19,19 @@ import pandas as pd
 from ..serializers.lead_import_serializer import LeadImportSerializer
 
 class ContactViewSet(viewsets.ModelViewSet):
-    queryset = (
-        Contact.objects.filter(is_active=True)
-        .annotate(latest_activity=Greatest('created_on', 'updated_on'))
-        .order_by('-latest_activity')
-    )
     permission_classes = [IsAuthenticated]
     pagination_class = Paginator
     filter_backends = [DjangoFilterBackend]
     filterset_class = ContactFilter
+
+    def get_queryset(self):
+        return (
+            Contact.objects.filter(is_active=True)
+            .annotate(
+                latest_activity=Greatest('created_on', 'updated_on')
+            )
+            .order_by('-latest_activity')
+        )
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -37,21 +41,14 @@ class ContactViewSet(viewsets.ModelViewSet):
         if self.action in ['update', 'partial_update']:
             return ContactUpdateSerializer
         return ContactDetailSerializer
-    
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     if user:
-    #         return Contact.objects.filter(created_by=user)
-    #     else:
-    #         return Contact.objects.none()
-        
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.is_active = False
-        instance.save()
+        instance.save(update_fields=['is_active'])
         return Response({"message": "deactivated successfully."}, status=status.HTTP_200_OK)
 
 from rest_framework.views import APIView
