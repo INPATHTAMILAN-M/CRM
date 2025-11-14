@@ -94,7 +94,7 @@ class TaskFilter(filters.FilterSet):
 
                 return queryset.filter(
                     Q(task_task_assignments__assigned_to__in=team_member_ids) |
-                    Q(created_by=team_member_ids)
+                    Q(created_by__in=team_member_ids)
                 )
 
             # When ?team=false → only show own records
