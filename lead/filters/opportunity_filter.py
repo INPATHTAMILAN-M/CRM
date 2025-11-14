@@ -1,6 +1,6 @@
 import django_filters
 from django.contrib.auth.models import User
-from django.db.models import Q, Case, When, Value, CharField
+from django.db.models import Q
 
 from accounts.models import Teams
 from ..models import Opportunity, Lead, Contact, Country, Lead_Source, Lead_Status, Opportunity_Status
@@ -28,26 +28,13 @@ class OpportunityFilter(django_filters.FilterSet):
     opp_status = django_filters.CharFilter(field_name='opportunity_status__name', lookup_expr='exact')
     opportunity_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
     created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__created_by')    
-    
     bdm = django_filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
     bde = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
-    
     assigned_leads =  django_filters.BooleanFilter(method='filter_assigned_leads', label="Assigned Leads")
     role_asssigned = django_filters.ModelChoiceFilter(queryset=User.objects.all(),method='filter_role_assigned', label="BDM Assigned")
-
     month = django_filters.BooleanFilter(method='filter_this_month', label="This Month")
     today = django_filters.BooleanFilter(method='filter_today', label="Today")
-
     team = django_filters.BooleanFilter(method='filter_team', label="Team Filter")
-    
-    # Filter for display_date_source: 
-    # true = show updated_on (where updated_on > created_on)
-    # false = show created_on (where updated_on <= created_on or NULL)
-    display_date_source = django_filters.BooleanFilter(
-        method='filter_display_date_source',
-        label="Show Updated Dates"
-    )
-    
     user_id = django_filters.NumberFilter(method='filter_by_user_id', label="Filter by User ID (created_by or assigned_to)")
 
 
@@ -169,27 +156,6 @@ class OpportunityFilter(django_filters.FilterSet):
             Q(lead__assigned_to=user.id) |
             Q(lead__created_by=user.id)
         )
-
-    def filter_display_date_source(self, queryset, name, value):
-        """
-        Filter opportunities by which date is displayed (boolean).
-        - True: show updated_on (where updated_on > created_on)
-        - False: show created_on (where updated_on <= created_on or updated_on is NULL)
-        - None/default: show created_on (default behavior)
-        """
-        from django.db import models
-        if value is True:
-            # Show only opportunities where updated_on is greater than created_on
-            return queryset.exclude(
-                Q(updated_on__isnull=True) | Q(updated_on__lte=models.F('created_on'))
-            )
-        elif value is False:
-            # Show only opportunities where updated_on is NULL or <= created_on
-            return queryset.filter(
-                Q(updated_on__isnull=True) | Q(updated_on__lte=models.F('created_on'))
-            )
-        # Default: return all (which will show created_on in serializer)
-        return queryset
     
     def filter_by_user_id(self, queryset, name, value):
         """

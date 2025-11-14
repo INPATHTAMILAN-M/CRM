@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Q, Case, When, F
+from django.db.models.functions import Greatest,Coalesce
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -30,6 +31,21 @@ class OpportunityViewset(viewsets.ModelViewSet):
     filterset_class = OpportunityFilter
     pagination_class = Paginator
 
+    def get_queryset(self):
+        queryset = self.queryset.filter(is_active=True)
+        
+        if self.request.query_params.get('display_date_source'):
+            queryset = queryset.annotate(
+                latest_activity=Greatest(
+                    Coalesce('updated_on', 'created_on'),
+                    Coalesce('created_on', 'updated_on')
+                )
+            ).order_by('-latest_activity')
+        else:
+            queryset = queryset.order_by('-created_on')
+        
+        return queryset
+
     def get_serializer_class(self):
         if self.action == 'create':
             return OpportunityCreateSerializer
@@ -42,7 +58,6 @@ class OpportunityViewset(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return response
-    
 
     def perform_create(self, serializer):
         self.send_lead_owner_email(serializer.instance)
