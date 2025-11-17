@@ -95,7 +95,7 @@ class TaskFilter(filters.FilterSet):
                 team_member_ids = list(user_team.bde_user.values_list("id", flat=True))
 
                 return queryset.filter(
-                    Q(task_task_assignments__assigned_to__in=team_member_ids) |
+                    # Q(task_task_assignments__assigned_to__in=team_member_ids) |
                     Q(created_by__in=team_member_ids)
                 )
 
