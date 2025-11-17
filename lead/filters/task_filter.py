@@ -94,20 +94,24 @@ class TaskFilter(filters.FilterSet):
             if str(value).lower() == "true":
                 team_member_ids = list(user_team.bde_user.values_list("id", flat=True))
 
-                return queryset.filter(
-                    # Q(task_task_assignments__assigned_to__in=team_member_ids) |
-                    Q(created_by__in=team_member_ids)
-                )
+                print("Team Member IDs:", team_member_ids)  # Debugging line
+
+                print("user ID:", user.id)  # Debugging line
+
+                print("Original Queryset Count:", queryset.count())  # Debugging line
+                print("Filtered Queryset Count:", queryset.filter(created_by__in=team_member_ids).count())  # Debugging line
+                print("Filtered Queryset SQL:", queryset.filter(created_by=11).count())  # Debugging line
+                return queryset.filter(created_by__in=team_member_ids)
 
             # When ?team=false → only show own records
             return queryset.filter(
-                Q(lead__assigned_to=user.id) |
+                Q(task_task_assignments__assigned_to=user.id) |
                 Q(created_by=user.id)
             )
 
         # --- Case 3: Regular user (BDE etc.) ---
         return queryset.filter(
-            Q(lead__assigned_to=user.id) |
+            Q(task_task_assignments__assigned_to=user.id) |
             Q(created_by=user.id)
         )
 
