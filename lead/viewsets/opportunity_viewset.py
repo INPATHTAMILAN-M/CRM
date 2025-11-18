@@ -31,20 +31,20 @@ class OpportunityViewset(viewsets.ModelViewSet):
     filterset_class = OpportunityFilter
     pagination_class = Paginator
 
-    def get_queryset(self):
-        queryset = self.queryset.filter(is_active=True)
+    # def get_queryset(self):
+    #     queryset = self.queryset.filter(is_active=True)
         
-        if self.request.query_params.get('display_date_source'):
-            queryset = queryset.annotate(
-                latest_activity=Greatest(
-                    Coalesce('updated_on', 'created_on'),
-                    Coalesce('created_on', 'updated_on')
-                )
-            ).order_by('-latest_activity')
-        else:
-            queryset = queryset.order_by('-created_on')
+    #     if self.request.query_params.get('display_date_source'):
+    #         queryset = queryset.annotate(
+    #             latest_activity=Greatest(
+    #                 Coalesce('updated_on', 'created_on'),
+    #                 Coalesce('created_on', 'updated_on')
+    #             )
+    #         ).order_by('-latest_activity')
+    #     else:
+    #         queryset = queryset.order_by('-created_on')
         
-        return queryset
+    #     return queryset
 
     def get_serializer_class(self):
         if self.action == 'create':
