@@ -28,6 +28,7 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
         user_id = request.query_params.get("user_id")
         team_id = request.query_params.get("team_id")
         company_name = request.query_params.get("company_name")
+        team_flag = request.query_params.get("team", "").lower() == "true"
 
         # Admin can query any user, team, or company
         if is_admin:
@@ -50,6 +51,15 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
             return User.objects.filter(is_active=True).exclude(groups__name__iexact="admin")
 
         # Non-admin (BDM/BDE): can only query their own data or their team's data
+        
+        # Handle team=true: return BDM's team members (excluding BDM themselves)
+        if team_flag:
+            bdm_team = Teams.objects.filter(bdm_user=user).first()
+            if bdm_team:
+                # Return only the BDE team members, not the BDM
+                return list(bdm_team.bde_user.all())
+            return User.objects.none()
+
         # If user_id is provided, check if it's their own or a team member
         if user_id:
             target_user = User.objects.filter(id=user_id).first()
