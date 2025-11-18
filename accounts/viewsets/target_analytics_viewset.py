@@ -38,54 +38,24 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             achieved, target = Decimal(str(achieved)), Decimal(str(target))
             return int(((achieved / target) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
-        # def get_value(model, users, month=None, year=None):
-        #     total_value = Decimal("0.00")
+        def get_value(model, users, month=None, year=None):
+            total_value = Decimal("0.00")
 
-        #     for target_user in users:
-        #         qs = model.objects.filter(opportunity_status=34, is_active=True)
-        #         if month:
-        #             qs = qs.filter(closing_date__month=month)
-        #         if year:
-        #             qs = qs.filter(closing_date__year=year)
-        #         filters_with_weights = [
-        #             (Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 1),
-        #             (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user), 0.5),
-        #             (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5),
-        #         ]
-        #         for condition, weight in filters_with_weights:
-        #             value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
-        #             total_value += Decimal(value) * Decimal(weight)
-        #     return total_value
-        def get_value(users, month=None, year=None):
-            if not users:
-                return Decimal('0.00')
-
-            qs = Opportunity.objects.filter(
-                opportunity_status=34,
-                is_active=True,
-                lead__isnull=False  # safety
-            )
-
-            if month:
-                qs = qs.filter(closing_date__month=month)
-            if year:
-                qs = qs.filter(closing_date__year=year)
-
-            # Case expression to assign weight
-            from django.db.models import Case, When, Value, DecimalField, F
-
-            weighted_value = (
-                Case(
-                    When(lead__created_by__in=users, lead__assigned_to__in=users, then=F('opportunity_value') * Value(1.0)),
-                    When(lead__created_by__in=users, then=F('opportunity_value') * Value(0.5)),
-                    When(lead__assigned_to__in=users, then=F('opportunity_value') * Value(0.5)),
-                    default=Value(0),
-                    output_field=DecimalField(max_digits=15, decimal_places=2)
-                )
-            )
-
-            total_value = qs.aggregate(total_achieved=Sum(weighted_value))['total_achieved'] or Decimal('0.00')
-            return total_value       
+            for target_user in users:
+                qs = model.objects.filter(opportunity_status=34, is_active=True)
+                if month:
+                    qs = qs.filter(closing_date__month=month)
+                if year:
+                    qs = qs.filter(closing_date__year=year)
+                filters_with_weights = [
+                    (Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 1),
+                    (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user), 0.5),
+                    (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5),
+                ]
+                for condition, weight in filters_with_weights:
+                    value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
+                    total_value += Decimal(value) * Decimal(weight)
+            return total_value
 
         def get_target(month, year):
             return (
