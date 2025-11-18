@@ -23,30 +23,81 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
     def _get_target_users(self, request):
         User = get_user_model()
         user = request.user
-        if not user.groups.filter(name__iexact="admin").exists():
-            return [user]
+        is_admin = user.groups.filter(name__iexact="admin").exists()
 
         user_id = request.query_params.get("user_id")
         team_id = request.query_params.get("team_id")
         company_name = request.query_params.get("company_name")
 
-        if user_id:
-            return User.objects.filter(id=user_id)
+        # Admin can query any user, team, or company
+        if is_admin:
+            if user_id:
+                return User.objects.filter(id=user_id)
 
+            if team_id:
+                team = Teams.objects.filter(id=team_id).first()
+                if not team:
+                    return None
+                return [team.bdm_user, *team.bde_user.all()]
+
+            if company_name:
+                leads = Lead.objects.filter(name__icontains=company_name)
+                user_ids = {l.created_by_id for l in leads if l.created_by_id} | {
+                    l.assigned_to_id for l in leads if l.assigned_to_id
+                }
+                return User.objects.filter(id__in=user_ids)
+
+            return User.objects.filter(is_active=True).exclude(groups__name__iexact="admin")
+
+        # Non-admin (BDM/BDE): can only query their own data or their team's data
+        # If user_id is provided, check if it's their own or a team member
+        if user_id:
+            target_user = User.objects.filter(id=user_id).first()
+            if not target_user:
+                return User.objects.none()
+
+            # Allow if it's their own id or they're a BDM with the target user in their team
+            if target_user.id == user.id:
+                return [target_user]
+
+            # Check if user is a BDM and target_user is in their team
+            bdm_team = Teams.objects.filter(bdm_user=user).first()
+            if bdm_team and target_user in bdm_team.bde_user.all():
+                return [target_user]
+
+            # Not allowed
+            return User.objects.none()
+
+        # If team_id is provided, allow BDM to query their own team
         if team_id:
             team = Teams.objects.filter(id=team_id).first()
             if not team:
                 return None
-            return [team.bdm_user, *team.bde_user.all()]
 
+            # Allow if user is the BDM or a member of this team
+            if team.bdm_user.id == user.id:
+                return [team.bdm_user, *team.bde_user.all()]
+
+            if team.bde_user.filter(id=user.id).exists():
+                return [team.bdm_user, *team.bde_user.all()]
+
+            # Not allowed
+            return User.objects.none()
+
+        # If company_name is provided, only allow if user created/assigned to those leads
         if company_name:
-            leads = Lead.objects.filter(name__icontains=company_name)
+            leads = Lead.objects.filter(
+                name__icontains=company_name
+            ).filter(
+                Q(created_by=user) | Q(assigned_to=user)
+            )
             user_ids = {l.created_by_id for l in leads if l.created_by_id} | {
                 l.assigned_to_id for l in leads if l.assigned_to_id
             }
-            return User.objects.filter(id__in=user_ids)
+            return User.objects.filter(id__in=user_ids) if user_ids else User.objects.none()
 
-        return User.objects.filter(is_active=True).exclude(groups__name__iexact="admin")
+        # Default: return own user
+        return [user]
 
     def _sum_targets(self, users, start, end):
         months = []

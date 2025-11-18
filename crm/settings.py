@@ -132,18 +132,26 @@ WSGI_APPLICATION = 'crm.wsgi.application'
 
 
 DATABASES = {
+      "default": {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'crm',
+        'USER': 'root',
+        'PASSWORD':'hariharan@512',
+        'HOST': 'localhost',
+        'PORT': '3306'
+    },
     # "default": {
     #     "ENGINE": "django.db.backends.sqlite3",
     #     "NAME": BASE_DIR / "mydatabase",
     # },
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'crm',
-        'USER': 'root',
-        'PASSWORD':'root',
-        'HOST': 'localhost',
-        'PORT': '3306'
-    }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'crm',
+    #     'USER': 'root',
+    #     'PASSWORD':'root',
+    #     'HOST': 'localhost',
+    #     'PORT': '3306'
+    # }
 }
 
 # Password validation
