@@ -51,7 +51,7 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                     (Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 1),
                     (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user), 0.5),
                     (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5),
-                    (Q(created_by=target_user) & Q(lead__assigned_to__isnull=True), 1),
+                    (Q(lead__created_by=target_user) & Q(lead__assigned_to__isnull=True), 1),
                 ]
                 for condition, weight in filters_with_weights:
                     value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
