@@ -38,6 +38,25 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             achieved, target = Decimal(str(achieved)), Decimal(str(target))
             return int(((achieved / target) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
+        # def get_value(model, users, month=None, year=None):
+        #     total_value = Decimal("0.00")
+
+        #     for target_user in users:
+        #         qs = model.objects.filter(opportunity_status=34, is_active=True)
+        #         if month:
+        #             qs = qs.filter(closing_date__month=month)
+        #         if year:
+        #             qs = qs.filter(closing_date__year=year)
+        #         filters_with_weights = [
+        #             (Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 1),
+        #             (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user), 0.5),
+        #             (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5),
+        #             (Q(lead__created_by=target_user) & Q(lead__assigned_to__isnull=True), 1),
+        #         ]
+        #         for condition, weight in filters_with_weights:
+        #             value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
+        #             total_value += Decimal(value) * Decimal(weight)
+        #     return total_value
         def get_value(model, users, month=None, year=None):
             total_value = Decimal("0.00")
 
@@ -47,17 +66,21 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                     qs = qs.filter(closing_date__month=month)
                 if year:
                     qs = qs.filter(closing_date__year=year)
+                # Make conditions mutually exclusive to avoid double counting.
+                # 1) both roles -> full credit
+                # 2) created_by and assigned_to is NULL -> full credit
+                # 3) created_by and assigned_to present but assigned_to != user -> half credit
+                # 4) assigned_to == user but created_by != user -> half credit
                 filters_with_weights = [
                     (Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 1),
-                    (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user), 0.5),
-                    (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5),
                     (Q(lead__created_by=target_user) & Q(lead__assigned_to__isnull=True), 1),
+                    (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user) & Q(lead__assigned_to__isnull=False), 0.5),
+                    (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5),
                 ]
                 for condition, weight in filters_with_weights:
                     value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
                     total_value += Decimal(value) * Decimal(weight)
             return total_value
-
         def get_target(month, year):
             return (
                 MonthlyTarget.objects.filter(user__in=target_users, month=month, year=year)
