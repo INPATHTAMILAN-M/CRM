@@ -58,6 +58,26 @@ class ContactCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         exclude = ('created_by',)
+    
+    def validate_company_name(self, value):
+        existing = Contact.objects.filter(company_name=value).first()
+        if existing:
+            creator = existing.created_by.username if existing.created_by else "Unknown"
+
+            raise serializers.ValidationError(
+                f"Company name already exists. Created by: {creator}"
+            )
+        return value
+
+    def validate_phone_number(self, value):
+        existing = Contact.objects.filter(phone_number=value).first()
+        if existing:
+            creator = existing.created_by.username if existing.created_by else "Unknown"
+
+            raise serializers.ValidationError(
+                f"Phone number already exists. Created by: {creator}"
+            )
+        return value
         
 
 class ContactUpdateSerializer(serializers.ModelSerializer):
