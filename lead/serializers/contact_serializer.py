@@ -58,7 +58,11 @@ class ContactCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         exclude = ('created_by',)
-    
+
+        extra_kwargs = {
+                'company_name': {'validators': []},
+                'phone_number': {'validators': []},
+            }
     def validate_company_name(self, value):
         existing = Contact.objects.filter(company_name=value).first()
         if existing:
