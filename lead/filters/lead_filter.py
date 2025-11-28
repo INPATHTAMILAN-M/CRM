@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from ..models import Lead, Lead_Status
 from accounts.models import Lead_Source
+import django_filters
 
 class LeadFilter(filters.FilterSet):
     search = filters.CharFilter(method='filter_search', label="Search") 
@@ -16,7 +17,7 @@ class LeadFilter(filters.FilterSet):
     created_by = filters.ModelChoiceFilter(queryset=User.objects.all())
     bdm = filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
     bde = filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
-
+    user_id = django_filters.NumberFilter(method='filter_by_user_id', label="Filter by User ID (created_by or assigned_to)")
     def filter_to_date(self, queryset, name, value):
         """If no 'to_date' is provided, defaults to today."""
         if not value:
@@ -66,3 +67,14 @@ class LeadFilter(filters.FilterSet):
             Q(name__icontains=value)
            
         )
+    def filter_by_user_id(self, queryset, name, value):
+        """
+        Filter opportunities by user_id where:
+        - Match created_by user ID, OR
+        - Match assigned_to user ID (via lead__assigned_to)
+        """
+        if value:
+            return queryset.filter(
+                Q(created_by__id=value) | Q(assigned_to__id=value)
+            )
+        return queryset
