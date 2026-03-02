@@ -17,7 +17,9 @@ class LogFilter(django_filters.FilterSet):
         
     def filter_by_opportunity(self, queryset, name, value):
         if value:
-            # Filter logs by the given opportunity
-            return queryset.filter(opportunity=value)
+            # Filter logs by the given opportunity ID (matching lead_id or contact's lead_id)
+            return queryset.filter(
+                Q(lead_id=value) | Q(contact__lead_id=value)
+            )
         
         return queryset
