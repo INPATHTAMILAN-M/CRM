@@ -30,18 +30,30 @@ class LogViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         lead_id = request.query_params.get('lead')
+        contact_id = request.query_params.get('contact') or request.query_params.get('contant')
 
-        log_items = self.get_serializer(queryset, many=True).data
+        if request.query_params.get('contant') and not request.query_params.get('contact'):
+            queryset = queryset.filter(contact_id=contact_id)
 
-        if not lead_id:
+        should_merge_content_logs = bool(lead_id or contact_id)
+
+        if not should_merge_content_logs:
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
-            return Response(log_items)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
 
-        content_logs = ContentLog.objects.filter(lead_id=lead_id).order_by('-created_date')
-        content_log_items = ContentLogSerializer(content_logs, many=True).data
+        log_items = self.get_serializer(queryset, many=True).data
+
+        content_logs = ContentLog.objects.all()
+        if lead_id:
+            content_logs = content_logs.filter(lead_id=lead_id)
+        if contact_id:
+            content_logs = content_logs.filter(contact_id=contact_id)
+
+        content_log_items = ContentLogSerializer(content_logs.order_by('-created_date'), many=True).data
 
         for item in log_items:
             item['log_source'] = 'log'
