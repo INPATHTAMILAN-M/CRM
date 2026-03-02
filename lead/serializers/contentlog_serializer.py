@@ -53,6 +53,7 @@ class ContentLogSerializer(serializers.ModelSerializer):
     status = ContactStatusDetailSerializer(read_only=True)
     lead_source = LeadSourceDetailSerializer(read_only=True)
     lead_source_from = LeadSourceFromDetailSerializer(read_only=True)
+    assigned_to = UserSerializer(read_only=True)
 
     class Meta:
         model = ContentLog
