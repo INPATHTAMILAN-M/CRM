@@ -9,12 +9,14 @@ class LogFilter(django_filters.FilterSet):
     opportunity = django_filters.ModelChoiceFilter(queryset=Opportunity.objects.all())
     log_stage = django_filters.ModelChoiceFilter(queryset=Log_Stage.objects.all())
     log_type = django_filters.ChoiceFilter(choices=Log.LOG_TYPE_CHOICES, null_label='All', label='Log Type')
-    include_opportunity = django_filters.ModelChoiceFilter(queryset=Lead.objects.all(), method='filter_by_lead_and_opportunity')
+    # include_opportunity = django_filters.NumberFilter(method='filter_by_lead_and_opportunity')
 
+    include_opportunity = django_filters.ModelChoiceFilter(queryset=Lead.objects.all(), method='filter_by_lead_and_opportunity')
     class Meta:
         model = Log
         fields = ['contact', 'lead', 'opportunity', 'log_stage','log_type']
         
+
     def filter_by_lead_and_opportunity(self, queryset, name, value):
         if value:
             # Get the lead instance

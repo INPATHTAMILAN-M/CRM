@@ -194,6 +194,7 @@ class Log(models.Model):
         ('Call', 'Call'),
         ('Meeting', 'Meeting'),
         ('Email', 'Email'),
+        ('Contact', 'Contact'),
     ]
     log_type= models.CharField(max_length=20, choices=LOG_TYPE_CHOICES, null=True, blank=True)
 
