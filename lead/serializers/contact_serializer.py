@@ -124,42 +124,23 @@ class ContactUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.updated_on = timezone.now()
-        
-        # Fields to ignore in change detection (auto-managed fields)
         ignore_fields = {'created_on', 'updated_on', 'created_by'}
-        
-        # Check if any field has actually changed
-        has_changes = False
-        changes_list = []
-        
+
+        def get_comparable_value(value):
+            if value is None:
+                return None
+            if hasattr(value, 'pk'):
+                return value.pk
+            return value
+
+        changed_fields = []
         for field_name, new_value in validated_data.items():
-            # Skip auto-managed fields
             if field_name in ignore_fields:
                 continue
-            
+
             current_value = getattr(instance, field_name)
-            
-            # Normalize values for comparison
-            def get_comparable_value(value):
-                if value is None:
-                    return None
-                if hasattr(value, 'pk'):
-                    return value.pk
-                return value
-            
-            current_comparable = get_comparable_value(current_value)
-            new_comparable = get_comparable_value(new_value)
-            
-            # Compare the normalized values
-            if current_comparable != new_comparable:
-                has_changes = True
-                changes_list.append(f"{field_name}: {current_comparable} -> {new_comparable}")
-        
-        # Debug: Print what changed
-        if changes_list:
-            print(f"DEBUG: Changes detected: {changes_list}")
-        else:
-            print(f"DEBUG: No changes detected")
+            if get_comparable_value(current_value) != get_comparable_value(new_value):
+                changed_fields.append(field_name)
         
         if assigned_to := validated_data.get('assigned_to'):
             instance.assigned_to = assigned_to
@@ -172,33 +153,39 @@ class ContactUpdateSerializer(serializers.ModelSerializer):
             )
 
         updated_contact = super().update(instance, validated_data)
-        
-        # Create ContentLog only if there are actual changes
-        if has_changes:
-            print(f"DEBUG: Creating ContentLog because changes were detected")
-            ContentLog.objects.create(
-                contact=updated_contact,
-                created_by=self.context['request'].user,
-                description=f"Contact updated for {updated_contact.company_name}",
-                proposal='Contact',
-                lead=updated_contact.lead,
-                company_name=updated_contact.company_name,
-                contact_name=updated_contact.name,
-                phone_number=updated_contact.phone_number,
-                secondary_phone_number=updated_contact.secondary_phone_number,
-                email_id=updated_contact.email_id,
-                designation=updated_contact.designation,
-                department=updated_contact.department,
-                remark=updated_contact.remark,
-                status=updated_contact.status,
-                lead_source=updated_contact.lead_source,
-                lead_source_from=updated_contact.lead_source_from,
-                source_from=updated_contact.source_from,
-                assigned_to=updated_contact.assigned_to,
-                is_primary=updated_contact.is_primary,
-                is_archive=updated_contact.is_archive
-            )
-        else:
-            print(f"DEBUG: NOT creating ContentLog - no changes detected")
+
+        if changed_fields:
+            field_mapping = {
+                'lead': 'lead',
+                'company_name': 'company_name',
+                'name': 'contact_name',
+                'phone_number': 'phone_number',
+                'secondary_phone_number': 'secondary_phone_number',
+                'email_id': 'email_id',
+                'designation': 'designation',
+                'department': 'department',
+                'remark': 'remark',
+                'status': 'status',
+                'lead_source': 'lead_source',
+                'lead_source_from': 'lead_source_from',
+                'source_from': 'source_from',
+                'assigned_to': 'assigned_to',
+                'is_primary': 'is_primary',
+                'is_archive': 'is_archive',
+            }
+
+            log_data = {
+                'contact': updated_contact,
+                'created_by': self.context['request'].user,
+                'description': f"Contact updated fields: {', '.join(changed_fields)}",
+                'proposal': 'Contact',
+            }
+
+            for contact_field in changed_fields:
+                content_log_field = field_mapping.get(contact_field)
+                if content_log_field:
+                    log_data[content_log_field] = getattr(updated_contact, contact_field)
+
+            ContentLog.objects.create(**log_data)
         
         return updated_contact

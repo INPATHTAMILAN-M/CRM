@@ -3,8 +3,9 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from ..custom_pagination import Paginator
-from ..models import Log
+from ..models import ContentLog, Log
 from ..serializers.log_serializer import *
+from ..serializers.contentlog_serializer import ContentLogSerializer
 from ..filters import log_filter
 from rest_framework import status
 from rest_framework.response import Response
@@ -25,6 +26,42 @@ class LogViewSet(viewsets.ModelViewSet):
         if self.action in ['update', 'partial_update']:
             return LogUpdateSerializer
         return LogListSerializer    
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        lead_id = request.query_params.get('lead')
+
+        log_items = self.get_serializer(queryset, many=True).data
+
+        if not lead_id:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            return Response(log_items)
+
+        content_logs = ContentLog.objects.filter(lead_id=lead_id).order_by('-created_date')
+        content_log_items = ContentLogSerializer(content_logs, many=True).data
+
+        for item in log_items:
+            item['log_source'] = 'log'
+            item['log_timestamp'] = item.get('created_on')
+
+        for item in content_log_items:
+            item['log_source'] = 'content_log'
+            item['log_timestamp'] = item.get('created_date')
+
+        merged_items = sorted(
+            [*log_items, *content_log_items],
+            key=lambda item: item.get('log_timestamp') or '',
+            reverse=True,
+        )
+
+        page = self.paginate_queryset(merged_items)
+        if page is not None:
+            return self.get_paginated_response(page)
+
+        return Response(merged_items)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

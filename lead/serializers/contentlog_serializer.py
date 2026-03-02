@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import ContentLog
+from ..models import ContentLog, Lead, Department, Contact_Status, Lead_Source, Lead_Source_From
 from django.contrib.auth.models import User
 
 
@@ -9,8 +9,43 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'first_name', 'last_name', 'email']
 
 
+class LeadDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
+        fields = '__all__'
+
+
+class DepartmentDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = '__all__'
+
+
+class ContactStatusDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact_Status
+        fields = '__all__'
+
+
+class LeadSourceDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Source
+        fields = '__all__'
+
+
+class LeadSourceFromDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead_Source_From
+        fields = '__all__'
+
+
 class ContentLogSerializer(serializers.ModelSerializer):
     created_by = UserSerializer(read_only=True)
+    lead = LeadDetailSerializer(read_only=True)
+    department = DepartmentDetailSerializer(read_only=True)
+    status = ContactStatusDetailSerializer(read_only=True)
+    lead_source = LeadSourceDetailSerializer(read_only=True)
+    lead_source_from = LeadSourceFromDetailSerializer(read_only=True)
 
     class Meta:
         model = ContentLog

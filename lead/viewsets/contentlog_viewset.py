@@ -14,7 +14,15 @@ class ContentLogViewSet(viewsets.ModelViewSet):
     filterset_fields = ['contact', 'created_by', 'proposal']
 
     def get_queryset(self):
-        return ContentLog.objects.all().select_related('contact', 'created_by')
+        return ContentLog.objects.all().select_related(
+            'contact',
+            'created_by',
+            'lead',
+            'department',
+            'status',
+            'lead_source',
+            'lead_source_from',
+        )
 
     def get_serializer_class(self):
         if self.action == 'create':
