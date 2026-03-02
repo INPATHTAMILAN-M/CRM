@@ -61,10 +61,13 @@ class LogViewSet(viewsets.ModelViewSet):
         if request.query_params.get('contant') and not request.query_params.get('contact'):
             log_queryset = log_queryset.filter(contact_id=contact_id)
 
+        # When lead is filtered, return only content logs
+        # When contact or include_opportunity is filtered, merge both
         # Don't merge content logs if a specific log_type (non-contact) filter is applied
         has_log_type_filter = bool(request.query_params.get('log_type')) and not is_contact_log_type
+        only_lead_filter = bool(lead_id) and not contact_id and not include_opportunity_key_present
         should_merge_content_logs = bool(
-            (lead_id or contact_id or include_opportunity_key_present or is_contact_log_type)
+            (contact_id or include_opportunity_key_present or is_contact_log_type)
             and not has_log_type_filter
         )
 
@@ -75,6 +78,20 @@ class LogViewSet(viewsets.ModelViewSet):
                 return self.get_paginated_response(serializer.data)
             serializer = self.get_serializer(log_queryset, many=True)
             return Response(serializer.data)
+
+        # When only lead filter is applied, return only content logs
+        if only_lead_filter:
+            content_logs = ContentLog.objects.filter(lead_id=lead_id).order_by('-created_date')
+            content_log_items = ContentLogSerializer(content_logs, many=True).data
+            
+            for item in content_log_items:
+                item['log_source'] = 'content_log'
+                item['log_timestamp'] = item.get('created_date')
+            
+            page = self.paginate_queryset(content_log_items)
+            if page is not None:
+                return self.get_paginated_response(page)
+            return Response(content_log_items)
 
         log_items = self.get_serializer(log_queryset, many=True).data
 
