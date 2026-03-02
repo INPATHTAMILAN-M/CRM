@@ -52,12 +52,11 @@ class LogViewSet(viewsets.ModelViewSet):
         log_type_param = (request.query_params.get('log_type') or '').strip().lower()
         is_contact_log_type = log_type_param in {'contact', 'content', 'contentlog'}
 
-        allowed_log_types = {'call', 'meeting', 'email'}
 
         log_queryset = Log.objects.none() if is_contact_log_type else self.filter_queryset(self.get_queryset())
 
-        if log_type_param in allowed_log_types:
-            log_queryset = log_queryset.filter(log_type__iexact=log_type_param)
+        # if log_type_param in allowed_log_types:
+        #     log_queryset = log_queryset.filter(log_type__iexact=log_type_param)
 
         if request.query_params.get('contant') and not request.query_params.get('contact'):
             log_queryset = log_queryset.filter(contact_id=contact_id)
@@ -89,7 +88,7 @@ class LogViewSet(viewsets.ModelViewSet):
             content_logs = content_logs.filter(lead_id=lead_id)
         if contact_id:
             content_logs = content_logs.filter(contact_id=contact_id)
-        if include_opportunity_value and not is_contact_log_type:
+        if include_opportunity_value:
             content_logs = content_logs.filter(
                 Q(lead_id=include_opportunity_value) | Q(contact__lead_id=include_opportunity_value)
             )
