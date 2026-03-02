@@ -282,3 +282,44 @@ class Notification(models.Model):
     is_read=models.BooleanField(default=False)
     type = models.CharField(max_length=20,null=True, blank=True)
 
+
+class ContentLog(models.Model):
+    PROPOSAL_CHOICES = [
+        ('draft', 'Draft'),
+        ('sent', 'Sent'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+        ('Contact', 'Contact'),
+    ]
+    
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE, related_name='content_logs')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_content_logs')
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+    description = models.TextField(null=True, blank=True)
+    proposal = models.CharField(max_length=20, choices=PROPOSAL_CHOICES, default='draft')
+    
+    # Contact fields snapshot
+    lead = models.ForeignKey(Lead, on_delete=models.SET_NULL, null=True, blank=True)
+    company_name = models.CharField(max_length=255, null=True, blank=True)
+    contact_name = models.CharField(max_length=255, null=True, blank=True)
+    phone_number = models.CharField(max_length=25, null=True, blank=True)
+    secondary_phone_number = models.CharField(max_length=25, null=True, blank=True)
+    email_id = models.EmailField(max_length=255, null=True, blank=True)
+    designation = models.CharField(max_length=255, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
+    remark = models.TextField(null=True, blank=True)
+    status = models.ForeignKey(Contact_Status, on_delete=models.SET_NULL, null=True, blank=True)
+    lead_source = models.ForeignKey(Lead_Source, on_delete=models.SET_NULL, null=True, blank=True)
+    lead_source_from = models.ForeignKey(Lead_Source_From, on_delete=models.SET_NULL, null=True, blank=True)
+    source_from = models.TextField(null=True, blank=True)
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_content_logs')
+    is_primary = models.BooleanField(default=False)
+    is_archive = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"ContentLog for {self.company_name} - {self.proposal}"
+    
+    class Meta:
+        ordering = ['-created_date']
+

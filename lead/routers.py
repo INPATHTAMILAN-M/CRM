@@ -18,6 +18,7 @@ from accounts.viewsets.users_viewset import (
 
 from lead.viewsets.contact_status_viewset import ContactStatusViewSet
 from lead.viewsets.contact_viewset import ContactViewSet
+from lead.viewsets.contentlog_viewset import ContentLogViewSet
 from lead.viewsets.country_viewset import CountryViewSet
 from lead.viewsets.dashboard_count_viewset import LeadStatusCountViewSet
 from lead.viewsets.department_viewset import DepartmentViewSet
@@ -66,6 +67,7 @@ router.register(r'get_owner_user', GetOwnerUserViewSet, basename='get_owner_user
 router.register(r'get_dm_user', GetDmUserViewSet, basename='get_dm_user')
 router.register(r'focuse_segmant', FocusSegmentViewSet, basename='focuse_segmant')
 router.register(r'contacts', ContactViewSet, basename='contact')
+router.register(r'content-logs', ContentLogViewSet, basename='content-logs')
 router.register(r'market_segments', MarketSegmentViewSet, basename='market_segments')
 router.register(r'tags', TagViewSet, basename='tags')
 router.register(r'countries', CountryViewSet, basename='countries')
