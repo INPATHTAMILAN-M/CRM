@@ -79,7 +79,9 @@ class LogViewSet(viewsets.ModelViewSet):
 
         content_logs = ContentLog.objects.all()
         if lead_id:
-            content_logs = content_logs.filter(lead_id=lead_id)
+            content_logs = content_logs.filter(
+                Q(lead_id=lead_id) | Q(contact__lead_id=lead_id)
+            )
         if contact_id:
             content_logs = content_logs.filter(contact_id=contact_id)
         if include_opportunity_value:
