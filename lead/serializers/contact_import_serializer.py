@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from ..models import Contact, Contact_Status, Department, Lead_Source, Lead_Source_From
+from ..models import Contact, Contact_Status, Department, Lead_Source, Lead_Source_From, ContentLog, Lead
 from django.core.exceptions import ObjectDoesNotExist
+import pandas as pd
 
 class ContactImportCreateSerializer(serializers.ModelSerializer):
     lead = serializers.PrimaryKeyRelatedField(
@@ -84,8 +85,33 @@ class ContactImportCreateSerializer(serializers.ModelSerializer):
     # --- CREATE / UPDATE ---
 
     def create(self, validated_data):
-        """Create the contact entry."""
-        return Contact.objects.create(**validated_data)
+        """Create the contact entry and log."""
+        contact = Contact.objects.create(**validated_data)
+        
+        # Create ContentLog entry
+        ContentLog.objects.create(
+            contact=contact,
+            created_by=contact.created_by,
+            description=f"Contact created via Import for {contact.company_name}",
+            proposal='Contact',
+            lead=contact.lead,
+            company_name=contact.company_name,
+            contact_name=contact.name,
+            phone_number=contact.phone_number,
+            secondary_phone_number=contact.secondary_phone_number,
+            email_id=contact.email_id,
+            designation=contact.designation,
+            department=contact.department,
+            remark=contact.remark,
+            status=contact.status,
+            lead_source=contact.lead_source,
+            lead_source_from=contact.lead_source_from,
+            source_from=contact.source_from,
+            assigned_to=contact.assigned_to,
+            is_primary=contact.is_primary,
+            is_archive=contact.is_archive
+        )
+        return contact
 
     def update(self, instance, validated_data):
         """Update the contact entry."""
