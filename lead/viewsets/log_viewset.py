@@ -61,11 +61,6 @@ class LogViewSet(viewsets.ModelViewSet):
         if request.query_params.get('contant') and not request.query_params.get('contact'):
             log_queryset = log_queryset.filter(contact_id=contact_id)
 
-        if include_opportunity_value and not is_contact_log_type:
-            log_queryset = log_queryset.filter(
-                Q(lead_id=include_opportunity_value) | Q(opportunity__lead_id=include_opportunity_value)
-            )
-
         should_merge_content_logs = bool(
             lead_id
             or contact_id
