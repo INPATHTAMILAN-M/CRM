@@ -9,7 +9,7 @@ class LogFilter(django_filters.FilterSet):
     opportunity = django_filters.ModelChoiceFilter(queryset=Opportunity.objects.all())
     log_stage = django_filters.ModelChoiceFilter(queryset=Log_Stage.objects.all())
     log_type = django_filters.ChoiceFilter(choices=Log.LOG_TYPE_CHOICES, null_label='All', label='Log Type')
-    include_opportunity = django_filters.ModelChoiceFilter(queryset=Opportunity.objects.all(), method='filter_by_opportunity')
+    include_opportunity = django_filters.NumberFilter(method='filter_by_opportunity')
 
     class Meta:
         model = Log
