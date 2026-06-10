@@ -1,6 +1,5 @@
 from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Max, Q
 from ..models import Task, Task_Assignment
@@ -8,9 +7,9 @@ from ..serializers.task_serializers import *
 from ..custom_pagination import Paginator
 from ..serializers.log_serializer import *
 from ..filters.task_filter import TaskFilter
-from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status
+from ..google_calendar import create_or_update_google_event, delete_google_event
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.filter(is_active=True)
@@ -50,8 +49,26 @@ class TaskViewSet(viewsets.ModelViewSet):
             self.create_log_entry(serializer.validated_data)
             return  # Exit early, don't create a task
 
-        # Proceed with the creation of the task if 'task_date_time' is provided
-        serializer.save(created_by=self.request.user)
+        task = serializer.save(created_by=self.request.user)
+        if task and task.task_date_time:
+            try:
+                create_or_update_google_event(task)
+            except Exception:
+                pass
+
+    def perform_update(self, serializer):
+        task = serializer.save()
+        if task.task_date_time and task.is_active and not task.deleted:
+            try:
+                create_or_update_google_event(task)
+            except Exception:
+                pass
+        else:
+            try:
+                delete_google_event(task)
+            except Exception:
+                pass
+        return task
 
     def create_log_entry(self, validated_data):
         # Create a log entry instead of a task
@@ -68,7 +85,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         log = Log.objects.create(**log_data)
         return log
     
-
     def create(self, request, *args, **kwargs):
         # Validate data before creating
         serializer = self.get_serializer(data=request.data)
@@ -84,22 +100,35 @@ class TaskViewSet(viewsets.ModelViewSet):
         else:
             return Response({"detail": "Task date and time missing, a log was created instead."}, status=status.HTTP_200_OK)
 
+    def _parse_bool(self, value):
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.lower() in ['true', '1', 'yes']
+        return False
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        is_active = request.data.get('is_active',False)
+        is_active = self._parse_bool(request.data.get('is_active', False))
         instance.is_active = is_active
+        instance.deleted = not is_active
         instance.save()
 
-        if is_active == 'True':
-            return Response(
-                {"detail": "Activated Successfully."},
-                status=status.HTTP_200_OK
-            )
-        else:
+        if not is_active:
+            try:
+                delete_google_event(instance)
+            except Exception:
+                pass
+
             return Response(
                 {"detail": "Deactivated Successfully."},
                 status=status.HTTP_200_OK
             )
+
+        return Response(
+            {"detail": "Activated Successfully."},
+            status=status.HTTP_200_OK
+        )
     
 class CalanderTaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

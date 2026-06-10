@@ -3,6 +3,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q, Sum
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +11,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from accounts.models import MonthlyTarget, Teams
+from accounts.models import UserActiveHistory
 from lead.models import Opportunity, Lead
 
 
@@ -47,6 +49,9 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
                     l.assigned_to_id for l in leads if l.assigned_to_id
                 }
                 return User.objects.filter(id__in=user_ids)
+
+            if team_flag:
+                return User.objects.exclude(id=user.id)
 
             return User.objects.filter(is_active=True).exclude(groups__name__iexact="admin")
 
@@ -124,7 +129,7 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
         )["total"]
         return Decimal(total or 0)
 
-    def _sum_achieved(self, users, start, end):
+    def _sum_achieved(self, users, start, end): 
         qs = Opportunity.objects.filter(
             opportunity_status=34,
             is_active=True,
@@ -144,6 +149,116 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
                 value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
                 total += Decimal(value) * Decimal(weight)
 
+        return total
+    
+    def _month_year_gte(self, month, year, start_month, start_year):
+        return year > start_year or (year == start_year and month >= start_month)
+
+    def _month_year_lte(self, month, year, end_month, end_year):
+        return year < end_year or (year == end_year and month <= end_month)
+
+    def _month_year_in_range(self, month, year, start, end=None, inclusive_end=True):
+        if not self._month_year_gte(month, year, start.month, start.year):
+            return False
+        if end is None:
+            return True
+        if inclusive_end:
+            return self._month_year_lte(month, year, end.month, end.year)
+        return year < end.year or (year == end.year and month < end.month)
+
+    def _month_year_allowed(self, user, month, year):
+        histories = list(UserActiveHistory.objects.filter(user=user).order_by('changed_at'))
+
+        # If there are history changes within the requested month, use the
+        # latest change in that month to determine active state for that
+        # month (handles deactivate->reactivate within same month).
+        month_histories = [h for h in histories if h.changed_at.year == year and h.changed_at.month == month]
+        if month_histories:
+            return bool(month_histories[-1].is_active)
+
+        if not histories:
+            # If there's no recorded history, rely on the current `is_active` flag.
+            # - active users: allow months
+            # - inactive users: allow months up to now (safe backward-compat)
+            if user.is_active:
+                return True
+            now = timezone.now()
+            return self._month_year_lte(month, year, now.month, now.year)
+
+        active_start = None
+
+        # If first history is inactive, assume user was active from date_joined until then
+        if histories and not histories[0].is_active and user.date_joined:
+            active_start = user.date_joined
+            if self._month_year_in_range(month, year, active_start, histories[0].changed_at, inclusive_end=False):
+                return True
+            active_start = None
+
+        for h in histories:
+            if h.is_active:
+                if active_start is None:
+                    active_start = h.changed_at
+                    if h == histories[0] and user.date_joined and user.date_joined < active_start:
+                        active_start = user.date_joined
+            else:
+                if active_start is not None:
+                    if self._month_year_in_range(month, year, active_start, h.changed_at, inclusive_end=False):
+                        return True
+                    active_start = None
+
+        if active_start is not None:
+            if user.is_active:
+                return self._month_year_in_range(month, year, active_start)
+            return self._month_year_in_range(month, year, active_start, timezone.now(), inclusive_end=False)
+
+        if user.is_active:
+            return self._month_year_in_range(month, year, timezone.now())
+
+        return False
+
+    def _sum_targets(self, users, start, end):
+        total = Decimal("0.00")
+        cur = start.replace(day=1)
+        while cur <= end:
+            for u in users:
+                if not self._month_year_allowed(u, cur.month, cur.year):
+                    continue
+                value = MonthlyTarget.objects.filter(
+                    user=u,
+                    month=cur.month,
+                    year=cur.year,
+                ).aggregate(total=Sum("target_amount"))["total"]
+                total += Decimal(value or 0)
+            cur = (cur + relativedelta(months=1)).replace(day=1)
+        return total
+
+    def _sum_achieved(self, users, start, end):
+        total = Decimal("0.00")
+        cur = start.replace(day=1)
+        while cur <= end:
+            month_start = cur
+            month_end = (cur + relativedelta(months=1)) - relativedelta(days=1)
+            for u in users:
+                if not self._month_year_allowed(u, cur.month, cur.year):
+                    continue
+
+                qs = Opportunity.objects.filter(
+                    opportunity_status=34,
+                    is_active=True,
+                    closing_date__range=(month_start, month_end),
+                )
+
+                filters_with_weights = [
+                    (Q(lead__created_by=u) & Q(lead__assigned_to=u), 1),
+                    (Q(lead__created_by=u) & Q(lead__assigned_to__isnull=True), 1),
+                    (Q(lead__created_by=u) & ~Q(lead__assigned_to=u) & Q(lead__assigned_to__isnull=False), 0.5),
+                    (~Q(lead__created_by=u) & Q(lead__assigned_to=u), 0.5),
+                ]
+
+                for condition, weight in filters_with_weights:
+                    value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
+                    total += Decimal(value) * Decimal(weight)
+            cur = (cur + relativedelta(months=1)).replace(day=1)
         return total
 
     def _get_ranges(self, year_type, year):

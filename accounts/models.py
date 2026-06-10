@@ -153,10 +153,33 @@ class MonthlyTarget(models.Model):
     month = models.IntegerField()  # 1-12
     year = models.IntegerField()
     target_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    original_target_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         unique_together = ('user', 'month', 'year')
 
+    def save(self, *args, **kwargs):
+        if self.original_target_amount is None:
+            self.original_target_amount = self.target_amount
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.user.username} - {self.month}/{self.year} - {self.target_amount}"
+
+
+class UserActiveHistory(models.Model):
+    """Simple audit of a user's active/inactive changes.
+
+    Records when a user's `is_active` flag changed so we can determine
+    which months the user was active.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='active_history')
+    is_active = models.BooleanField()
+    changed_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ['-changed_at']
+
+    def __str__(self):
+        return f"{self.user.username} -> {'active' if self.is_active else 'inactive'} @ {self.changed_at.isoformat()}"

@@ -9,7 +9,7 @@ from lead.serializers.state_serializer import CreateStateSerializer, GetStateSer
 
 
 class StateViewSet(viewsets.ModelViewSet):
-    queryset = State.objects.all().order_by('-id')
+    queryset = State.objects.all().order_by('state_name')
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = StateFilter
     pagination_class = Paginator

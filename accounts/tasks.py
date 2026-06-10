@@ -109,7 +109,8 @@ def adjust_monthly_targets(*args, **kwargs):
             # User achieved less than target (shortfall)
             # Increase next month's target to compensate
             increase = difference
-            new_next_target = next_monthly_target.target_amount + increase
+            # Make adjustment relative to the user's base monthly target to avoid double-applying
+            new_next_target = (user_overall_target or Decimal('0.00')) + increase
             next_monthly_target.target_amount = new_next_target
             next_monthly_target.save()
             print(f"⬆️ SHORTFALL: Increasing next month target by {increase} to {new_next_target}")
@@ -118,10 +119,9 @@ def adjust_monthly_targets(*args, **kwargs):
             # User achieved more than target (excess)
             # Reduce next month's target as reward/adjustment
             reduction = abs(difference)
-            new_next_target = max(
-                next_monthly_target.target_amount - reduction,
-                Decimal('0.00')  # Don't go below 0
-            )
+            # Reduce relative to the user's base monthly target to avoid double-applying
+            base = (user_overall_target or Decimal('0.00'))
+            new_next_target = max(base - reduction, Decimal('0.00'))
             next_monthly_target.target_amount = new_next_target
             next_monthly_target.save()
             print(f"⬇️ EXCESS: Reducing next month target by {reduction} to {new_next_target}")

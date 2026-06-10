@@ -62,7 +62,7 @@ class TaskListSerializer(serializers.ModelSerializer):
         model = Task
         fields = ['id', 'remark', 'contact', 'log', 'task_date_time', 'task_detail', 
                   'created_by', 'created_on', 'is_active', 'task_creation_type','task_type',
-                  'reply_counts', 'has_new_message','can_reply','assignment_details','task_task_assignments']
+                  'google_event_id', 'deleted', 'reply_counts', 'has_new_message','can_reply','assignment_details','task_task_assignments']
 
     def get_assignment_details(self, obj):
         task_assignments = obj.task_task_assignments.all()
@@ -172,4 +172,4 @@ class TaskDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['id', 'contact', 'log', 'task_date_time', 'task_detail', 'created_by', 
-                  'created_on', 'is_active', 'task_type', 'remark','task_conversation_logs']
+                  'created_on', 'is_active', 'task_type', 'remark', 'google_event_id', 'deleted', 'task_conversation_logs']

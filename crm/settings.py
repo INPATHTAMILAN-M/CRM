@@ -79,7 +79,7 @@ INSTALLED_APPS = [
 
 Q_CLUSTER = {
     'name': 'DjangoQ',
-    'workers': 4,                  # keep low to save RAM
+    'workers': 2,                  # keep low to save RAM
     'recycle': 500,
     'timeout': 90,
     'retry': 120,
@@ -92,6 +92,60 @@ Q_CLUSTER = {
         'port': 6379,
         'db': 0,
     },
+    'schedule_types': {
+        'minutes': 60,
+        'repeats': -1
+    },
+    'scheduled': [
+        {
+            'name': 'Follow-up Reminders',
+            'func': 'lead.tasks.send_follow_up_reminders',
+            'schedule': 'daily',
+            'repeats': -1,
+        },
+        {
+            'name': 'Check Overdue Tasks',
+            'func': 'lead.tasks.check_overdue_tasks',
+            'schedule': '0 */2 * * *',  # Every 2 hours
+            'repeats': -1,
+        },
+        {
+            'name': 'Meeting Reminders 24hrs',
+            'func': 'lead.tasks.send_meeting_reminders_24hrs',
+            'schedule': '0 * * * *',  # Every hour
+            'repeats': -1,
+        },
+        {
+            'name': 'Meeting Reminders 1hr',
+            'func': 'lead.tasks.send_meeting_reminders_1hr',
+            'schedule': '*/30 * * * *',  # Every 30 minutes
+            'repeats': -1,
+        },
+        {
+            'name': 'Check Payment Due Reminders',
+            'func': 'lead.tasks.check_payment_due_reminders',
+            'schedule': 'daily',
+            'repeats': -1,
+        },
+        {
+            'name': 'Check High-Value Deals',
+            'func': 'lead.tasks.check_high_value_deals',
+            'schedule': '0 */6 * * *',  # Every 6 hours
+            'repeats': -1,
+        },
+        {
+            'name': 'Re-engagement Emails',
+            'func': 'lead.tasks.send_re_engagement_emails',
+            'schedule': '0 2 * * 1',  # Every Monday at 2 AM
+            'repeats': -1,
+        },
+        {
+            'name': 'Birthday Campaigns',
+            'func': 'lead.tasks.check_birthday_campaigns',
+            'schedule': 'daily',
+            'repeats': -1,
+        },
+    ]
 }
 
 MIDDLEWARE = [
@@ -220,7 +274,10 @@ from datetime import timedelta
 SIMPLE_JWT={
     'ACCESS_TOKEN_LIFETIME':timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME':timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,  
+    'ROTATE_REFRESH_TOKENS': True,
+    # Allow users with is_active=False to authenticate using JWT tokens
+    # (controls rest_framework_simplejwt behaviour)
+    'CHECK_USER_IS_ACTIVE': False,
 }
 
 
@@ -231,3 +288,13 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'marketing4repute@gmail.com' # Your email address
 EMAIL_HOST_PASSWORD = 'ewke vjvn mnrv tluc'
+
+# Frontend URL for email links
+FRONTEND_URL = 'https://brandhunt.in/'  # Update this to your frontend URL
+
+# Default from email
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+GOOGLE_SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, 'artful-hexagon-497606-e2-b3e8e23a8b14.json')
+# Calendar ID to use (use 'primary' or a calendar email)
+GOOGLE_CALENDAR_ID = 'repute.hariharan@gmail.com'

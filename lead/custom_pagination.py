@@ -29,7 +29,18 @@ class Paginator(PageNumberPagination):
     page_size_query_param = "page_size"
     max_page_size = 1000
 
+    pagination_query_param = "pagination"
+
+    def pagination_enabled(self, request):
+        pagination_param = request.query_params.get(self.pagination_query_param)
+        if pagination_param is None:
+            return True
+        return str(pagination_param).lower() not in ('0', 'false', 'no', 'n', 'off')
+
     def get_page_size(self, request):
+        if not self.pagination_enabled(request):
+            return None
+
         # Get the page_size from query parameters if available, otherwise use the default
         page_size = request.query_params.get(self.page_size_query_param)
 
@@ -42,7 +53,8 @@ class Paginator(PageNumberPagination):
             except ValueError:
                 # If page_size is not a valid integer, fall back to the default
                 return self.page_size
-        return None  # Return None if page_size is not specified, indicating no pagination
+
+        return self.page_size
 
     def paginate_queryset(self, queryset, request, view=None):
         """
@@ -51,8 +63,8 @@ class Paginator(PageNumberPagination):
         page_size = self.get_page_size(request)
 
         if page_size is None:
-            # If page_size is None, we return the entire dataset (no pagination)
-            return queryset  # No pagination, just return the full queryset
+            # If pagination is disabled, return the full queryset without paging
+            return queryset
 
         # Call the base method to perform pagination
         return super().paginate_queryset(queryset, request, view)

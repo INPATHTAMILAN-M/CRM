@@ -205,8 +205,12 @@ class Task(models.Model):
     log = models.ForeignKey(Log, on_delete=models.CASCADE, null=True, blank=True)
     task_date_time = models.DateTimeField(null=True, blank=True)
     task_detail = models.TextField(null=True, blank=True)
+    google_event_id = models.CharField(max_length=255, null=True, blank=True)
+    google_calendar_synced = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     task_creation_type = models.CharField(max_length=10, choices=[('Manual', 'Manual'), 
                                                                   ('Automatic', 'Automatic')])

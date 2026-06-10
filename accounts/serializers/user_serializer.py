@@ -105,7 +105,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'first_name', 'last_name', 'email', 'groups', 'is_active','phone_number', 
-            'department','profile_photo', 'address'
+            'department','profile_photo', 'address',"is_active"
         ]
     
     def update(self, instance, validated_data):
