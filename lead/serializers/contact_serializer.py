@@ -64,20 +64,44 @@ class ContactCreateSerializer(serializers.ModelSerializer):
                 'phone_number': {'validators': []},
             }
     def validate_company_name(self, value):
+        # Skip uniqueness validation when record is from Apollo
+        apollo = None
+        if hasattr(self, 'initial_data'):
+            apollo = self.initial_data.get('apollo')
+        is_apollo = False
+        if isinstance(apollo, bool):
+            is_apollo = apollo
+        elif apollo is not None:
+            is_apollo = str(apollo).lower() in ('true', '1', 'yes')
+
+        if is_apollo:
+            return value
+
         existing = Contact.objects.filter(company_name=value).first()
         if existing:
             creator = existing.created_by.username if existing.created_by else "Unknown"
-
             raise serializers.ValidationError(
                 f"Company name already exists. Created by: {creator}"
             )
         return value
 
     def validate_phone_number(self, value):
+        # Skip uniqueness validation when record is from Apollo
+        apollo = None
+        if hasattr(self, 'initial_data'):
+            apollo = self.initial_data.get('apollo')
+        is_apollo = False
+        if isinstance(apollo, bool):
+            is_apollo = apollo
+        elif apollo is not None:
+            is_apollo = str(apollo).lower() in ('true', '1', 'yes')
+
+        if is_apollo:
+            return value
+
         existing = Contact.objects.filter(phone_number=value).first()
         if existing:
             creator = existing.created_by.username if existing.created_by else "Unknown"
-
             raise serializers.ValidationError(
                 f"Phone number already exists. Created by: {creator}"
             )

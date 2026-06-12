@@ -29,7 +29,7 @@ class ContactFilter(django_filters.FilterSet):
     team = django_filters.BooleanFilter(method='filter_team', label="Team Filter")
 
     search = django_filters.CharFilter(method='filter_by_all_fields', label="Search Filter")
-    
+    apollo = django_filters.BooleanFilter(field_name='apollo', lookup_expr='exact', required=False)
     
     class Meta:
         model = Contact

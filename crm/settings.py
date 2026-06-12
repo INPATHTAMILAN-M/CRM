@@ -298,3 +298,5 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 GOOGLE_SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, 'artful-hexagon-497606-e2-b3e8e23a8b14.json')
 # Calendar ID to use (use 'primary' or a calendar email)
 GOOGLE_CALENDAR_ID = 'repute.hariharan@gmail.com'
+
+APOLLO_API_KEY = os.getenv("APOLLO_API_KEY", "nyJsfzSqqRRWorz93QonaA")

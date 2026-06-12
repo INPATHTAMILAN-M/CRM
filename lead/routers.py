@@ -40,6 +40,7 @@ from lead.viewsets.source_viewset import LeadSourceViewSet
 from lead.viewsets.stage_viewset import StageViewSet
 from lead.viewsets.state_viewset import StateViewSet
 from lead.viewsets.tag_viewset import TagViewSet
+from lead.viewsets.apollo_lead_viewset import ApolloLeadViewSet
 from lead.viewsets.task_assignment_viewset import TaskAssignmentViewSet
 from lead.viewsets.task_conversation_log_viewset import TaskConversationLogViewSet
 from lead.viewsets.task_viewset import CalanderTaskViewSet, TaskViewSet
@@ -89,6 +90,7 @@ router.register(r'opportunity-name', OpportunityNameViewSet, basename='opportuni
 router.register(r'task-conversation', TaskConversationLogViewSet, basename='task-conversation')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 router.register(r'groups', GroupViewSet, basename='groups')
+router.register(r'apollo-leads', ApolloLeadViewSet, basename='apollo-leads')
 # in accounts
 router.register(r'salutations', SalutationViewSet)
 router.register(r'monthly-targets', MonthlyTargetViewSet, basename='monthly_targets')

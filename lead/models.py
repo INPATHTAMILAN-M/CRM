@@ -112,7 +112,7 @@ class Contact(models.Model):
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
     is_archive = models.BooleanField(default=False)
-
+    apollo = models.BooleanField(default=False)
     
     def __str__(self):
         return self.company_name if self.company_name else "Unnamed Contact"
@@ -327,4 +327,48 @@ class ContentLog(models.Model):
     
     class Meta:
         ordering = ['-created_date']
+
+
+class ApolloLead(models.Model):
+    external_id = models.CharField(max_length=128, unique=True)
+    first_name = models.CharField(max_length=255, null=True, blank=True)
+    last_name = models.CharField(max_length=255, null=True, blank=True)
+    full_name = models.CharField(max_length=512, null=True, blank=True)
+    title = models.TextField(null=True, blank=True)
+    headline = models.TextField(null=True, blank=True)
+    linkedin_url = models.URLField(max_length=512, null=True, blank=True)
+    photo_url = models.URLField(max_length=512, null=True, blank=True)
+    twitter_url = models.URLField(max_length=512, null=True, blank=True)
+    github_url = models.URLField(max_length=512, null=True, blank=True)
+    facebook_url = models.URLField(max_length=512, null=True, blank=True)
+
+    email = models.EmailField(max_length=255, null=True, blank=True)
+    email_status = models.CharField(max_length=64, null=True, blank=True)
+
+    street_address = models.TextField(null=True, blank=True)
+    city = models.CharField(max_length=255, null=True, blank=True)
+    state = models.CharField(max_length=255, null=True, blank=True)
+    country = models.CharField(max_length=128, null=True, blank=True)
+    postal_code = models.CharField(max_length=64, null=True, blank=True)
+    formatted_address = models.TextField(null=True, blank=True)
+    time_zone = models.CharField(max_length=128, null=True, blank=True)
+
+    organization_id = models.CharField(max_length=128, null=True, blank=True)
+    organization_name = models.CharField(max_length=512, null=True, blank=True)
+    organization = models.JSONField(null=True, blank=True)
+
+    employment_history = models.JSONField(null=True, blank=True)
+    departments = models.JSONField(null=True, blank=True)
+    subdepartments = models.JSONField(null=True, blank=True)
+    seniority = models.CharField(max_length=128, null=True, blank=True)
+    functions = models.JSONField(null=True, blank=True)
+
+    raw_json = models.JSONField(null=True, blank=True)
+
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+    contact = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.full_name or self.external_id
 
