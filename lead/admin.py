@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import *
+from .models_apollo import *
 
 admin.site.register(Lead_Status)
 admin.site.register(Department)
@@ -19,3 +20,4 @@ admin.site.register(Opportunity_Name)
 admin.site.register(Notification)
 admin.site.register(ContentLog)
 admin.site.register(ApolloLead)
+admin.site.register(ApolloPagination)
