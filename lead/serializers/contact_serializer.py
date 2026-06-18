@@ -75,6 +75,9 @@ class ContactCreateSerializer(serializers.ModelSerializer):
             is_apollo = str(apollo).lower() in ('true', '1', 'yes')
 
         if is_apollo:
+            # Convert empty string to None so MySQL unique constraint allows multiple NULLs
+            if not value:
+                return None
             return value
 
         existing = Contact.objects.filter(company_name=value).first()
@@ -97,6 +100,9 @@ class ContactCreateSerializer(serializers.ModelSerializer):
             is_apollo = str(apollo).lower() in ('true', '1', 'yes')
 
         if is_apollo:
+            # Convert empty string to None so MySQL unique constraint allows multiple NULLs
+            if not value:
+                return None
             return value
 
         existing = Contact.objects.filter(phone_number=value).first()
@@ -110,6 +116,12 @@ class ContactCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Set created_by to the current user
         validated_data['created_by'] = self.context['request'].user
+        # Convert empty strings to None for unique fields so that
+        # MySQL treats them as NULL (multiple NULLs are allowed by unique constraints).
+        if not validated_data.get('phone_number'):
+            validated_data['phone_number'] = None
+        if not validated_data.get('company_name'):
+            validated_data['company_name'] = None
         
         # Create the Contact
         contact = Contact.objects.create(**validated_data)
