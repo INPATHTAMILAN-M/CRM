@@ -114,43 +114,7 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
         # Default: return own user
         return [user]
 
-    def _sum_targets(self, users, start, end):
-        months = []
-        cur = start.replace(day=1)
-        while cur <= end:
-            months.append((cur.month, cur.year))
-            cur = (cur + relativedelta(months=1)).replace(day=1)
 
-        q = Q()
-        for m, y in months:
-            q |= Q(month=m, year=y)
-        total = MonthlyTarget.objects.filter(q, user__in=users).aggregate(
-            total=Sum("target_amount")
-        )["total"]
-        return Decimal(total or 0)
-
-    def _sum_achieved(self, users, start, end): 
-        qs = Opportunity.objects.filter(
-            opportunity_status=34,
-            is_active=True,
-            closing_date__range=(start, end),
-        )
-        total = Decimal("0.00")
-
-        for u in users:
-            # Define filters with weights - same logic as target_analytics_viewset
-            filters_with_weights = [
-                (Q(lead__created_by=u) & Q(lead__assigned_to=u), 1),   # both roles → full
-                (Q(lead__created_by=u) & ~Q(lead__assigned_to=u), 0.5), # only creator → half
-                (~Q(lead__created_by=u) & Q(lead__assigned_to=u), 0.5), # only assigned → half
-            ]
-
-            for condition, weight in filters_with_weights:
-                value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
-                total += Decimal(value) * Decimal(weight)
-
-        return total
-    
     def _month_year_gte(self, month, year, start_month, start_year):
         return year > start_year or (year == start_year and month >= start_month)
 
@@ -250,8 +214,7 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
 
                 filters_with_weights = [
                     (Q(lead__created_by=u) & Q(lead__assigned_to=u), 1),
-                    (Q(lead__created_by=u) & Q(lead__assigned_to__isnull=True), 1),
-                    (Q(lead__created_by=u) & ~Q(lead__assigned_to=u) & Q(lead__assigned_to__isnull=False), 0.5),
+                    (Q(lead__created_by=u) & ~Q(lead__assigned_to=u), 0.5),
                     (~Q(lead__created_by=u) & Q(lead__assigned_to=u), 0.5),
                 ]
 
