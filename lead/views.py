@@ -192,14 +192,13 @@
 #         )
 
 
-# lead/views.py
-
 import os
 import requests
 from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db import transaction
+from decimal import Decimal
 
 # local model for storing apollo responses
 from lead.models import ApolloLead
@@ -209,7 +208,7 @@ from lead.models_apollo import ApolloPagination
 
 from django.utils import timezone
 from django.db.models import Sum, Count, Q, F
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from accounts.models import Lead_Source
 from lead.models import Lead, Opportunity, Task, Contact
@@ -467,7 +466,8 @@ def dashboard(request):
             if end_date:
                 end = datetime.fromisoformat(end_date) + timedelta(days=1)
             else:
-                end = timezone.now()
+                now_t = timezone.now()
+                end = now_t.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
         # Ensure timezone-aware datetimes for safe comparisons with `timezone.now()`
         if timezone.is_naive(start):
@@ -497,12 +497,9 @@ def dashboard(request):
 
     lead_conversion_rate = (converted_leads / total_leads * 100) if total_leads else 0
 
-    # Total actual revenue from won/converted opportunities
-    won_names = ['won', 'closed won', 'converted', 'deal won']
-    opportunities_q = Opportunity.objects.filter(created_on__gte=start, created_on__lt=end, opportunity_status__name__in=won_names)
-    if user_obj:
-        opportunities_q = opportunities_q.filter(owner=user_obj)
-    total_actual_revenue = opportunities_q.aggregate(total=Sum('opportunity_value'))['total'] or 0
+    # total_actual_revenue is computed after the per-user revenue loop below
+    # to ensure it matches the sum of per-user actual_revenue values.
+    won_ids = [34]  # 'Deal Won' status ID
 
     # Total opportunities (all statuses)
     all_opps_q = Opportunity.objects.filter(created_on__gte=start, created_on__lt=end)
@@ -511,11 +508,11 @@ def dashboard(request):
     total_opportunities = all_opps_q.count()
 
     # Converted (won) opportunities and conversion rate
-    converted_opps = all_opps_q.filter(opportunity_status__name__in=won_names).count()
+    converted_opps = all_opps_q.filter(opportunity_status_id__in=won_ids).count()
     opportunity_conversion_rate = (converted_opps / total_opportunities * 100) if total_opportunities else 0
 
     # Tasks
-    tasks_q = Task.objects.filter(deleted=False, created_on__gte=start, created_on__lt=end)
+    tasks_q = Task.objects.filter(is_active=True, deleted=False, created_on__gte=start, created_on__lt=end)
     if user_obj:
         tasks_q = tasks_q.filter(Q(created_by=user_obj) | Q(contact__assigned_to=user_obj))
     total_tasks = tasks_q.count()
@@ -535,28 +532,8 @@ def dashboard(request):
     user_targets_count = ut_q.count()
     active_targets = monthly_targets_count + user_targets_count
 
-    # Team average achievement
-    users = User.objects.all()
-    user_achievements = []
+    # Team average achievement will be calculated after building revenue_vs_user
 
-    # build months list for range (robust) and exclude future months (only up to last completed month)
-    def build_months_list(start_dt, end_dt):
-        s = start_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        last_inclusive = (end_dt - timedelta(days=1))
-        e = last_inclusive.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        months_list_local = []
-        cur = s
-        while cur <= e:
-            months_list_local.append((cur.year, cur.month))
-            cur = cur + relativedelta(months=1)
-        return months_list_local
-
-    months_list = build_months_list(start, end)
-    # exclude months strictly in the future (keep current month and all past months)
-    now = timezone.now()
-    current_month_tuple = (now.year, now.month)
-    months_list = [m for m in months_list if m <= current_month_tuple]
-    months = set(months_list)
 
     # Users to exclude from all responses
     EXCLUDED_USERNAMES = {'root', 'support@irepute.in'}
@@ -600,43 +577,7 @@ def dashboard(request):
                            request.query_params.get('preset') or
                            request.query_params.get('period'))
 
-    for u in users:
-        if u.username in EXCLUDED_USERNAMES:
-            continue
-        actual = Opportunity.objects.filter(owner=u, created_on__gte=start, created_on__lt=end, opportunity_status__name__in=won_names).aggregate(sum=Sum('opportunity_value'))['sum'] or 0
-
-        target_sum = 0
-        if has_date_filter:
-            range_cap_u = end - relativedelta(days=1)
-        else:
-            range_cap_u = timezone.now()
-
-        # Skip users whose target starts after the cap month
-        earliest_mt_u = MonthlyTarget.objects.filter(user=u).order_by('year', 'month').first()
-        user_start_u = (earliest_mt_u.year, earliest_mt_u.month) if earliest_mt_u else (u.date_joined.year, u.date_joined.month)
-        user_start_dt_u = datetime(user_start_u[0], user_start_u[1], 1, tzinfo=range_cap_u.tzinfo)
-        if user_start_dt_u > range_cap_u:
-            user_achievements.append(0.0)
-            continue
-
-        range_target = get_cumulative_target(u, start, range_cap_u)
-
-        if range_target is not None:
-            target_sum = range_target
-        if not target_sum:
-            ut = UserTarget.objects.filter(user=u, is_active=True).first()
-            if ut:
-                months_count = len(months) or 1
-                try:
-                    annual = float(ut.target)
-                    target_sum = (annual / 12.0) * months_count
-                except Exception:
-                    target_sum = 0
-
-        achievement_pct = (float(actual) / float(target_sum) * 100) if target_sum and float(target_sum) > 0 else 0
-        user_achievements.append(achievement_pct)
-
-    team_avg_achievement = (sum(user_achievements) / len(user_achievements)) if user_achievements else 0
+    # user loop removed as it is now redundant
 
     # Charts
     lead_distribution = leads_q.values(status_name=F('lead_status__name')).annotate(count=Count('id')).order_by('-count')
@@ -664,7 +605,7 @@ def dashboard(request):
     now_for_target = timezone.now()
 
     for u in users_with_targets:
-        actual = Opportunity.objects.filter(owner=u, created_on__gte=start, created_on__lt=end, opportunity_status__name__in=won_names).aggregate(sum=Sum('opportunity_value'))['sum'] or 0
+        # (actual revenue calculation moved below after determining target ranges)
 
         # Determine the user's start month for display purposes
         earliest_mt = MonthlyTarget.objects.filter(user=u).order_by('year', 'month').first()
@@ -737,6 +678,27 @@ def dashboard(request):
                 except Exception:
                     target_amount = 0
 
+        # Weighted revenue calculation — sum per-month achieved amounts
+        # using the exact same logic as MonthlyTargetSerializer.get_achieved_amount
+        # to ensure dashboard actual_revenue matches monthly-targets achieved_amount
+        actual = Decimal('0.00')
+        for r_year, r_month in range_months:
+            m_start = date(r_year, r_month, 1)
+            m_end = (m_start + relativedelta(months=1)) - relativedelta(days=1)
+            qs = Opportunity.objects.filter(
+                opportunity_status_id=34,
+                is_active=True,
+                closing_date__range=(m_start, m_end),
+            )
+            filters_with_weights = [
+                (Q(lead__created_by=u) & Q(lead__assigned_to=u), Decimal('1')),
+                (Q(lead__created_by=u) & ~Q(lead__assigned_to=u), Decimal('0.5')),
+                (~Q(lead__created_by=u) & Q(lead__assigned_to=u), Decimal('0.5')),
+            ]
+            for condition, weight in filters_with_weights:
+                val = qs.filter(condition).aggregate(total=Sum('opportunity_value'))['total'] or 0
+                actual += Decimal(str(val)) * weight
+
         achievement = (float(actual) / float(target_amount) * 100) if target_amount and float(target_amount) > 0 else 0
         revenue_vs_user.append({
             'username': display_name(u),
@@ -745,6 +707,12 @@ def dashboard(request):
             'achievement_percentage': achievement,
             'target_breakdown': breakdown,
         })
+
+    # Compute total_actual_revenue from per-user results (consistent with monthly-targets achieved_amount)
+    total_actual_revenue = sum(item['actual_revenue'] for item in revenue_vs_user)
+
+    valid_achievements = [item['achievement_percentage'] for item in revenue_vs_user if item['target_amount'] > 0]
+    team_avg_achievement = sum(valid_achievements) / len(valid_achievements) if valid_achievements else 0
 
     # Opportunity chart 1 — count and total value per status
     opp_status_qs = (
@@ -774,7 +742,7 @@ def dashboard(request):
         total = row['total']
         won_count = all_opps_q.filter(
             lead__lead_source__source=row['source_name'],
-            opportunity_status__name__in=won_names,
+            opportunity_status_id__in=won_ids,
         ).count()
         rate = (won_count / total * 100) if total else 0
         opp_conv_by_source.append({
