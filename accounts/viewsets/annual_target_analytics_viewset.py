@@ -214,7 +214,8 @@ class AnnualTargetAnalyticsViewSet(viewsets.ViewSet):
 
                 filters_with_weights = [
                     (Q(lead__created_by=u) & Q(lead__assigned_to=u), 1),
-                    (Q(lead__created_by=u) & ~Q(lead__assigned_to=u), 0.5),
+                    (Q(lead__created_by=u) & Q(lead__assigned_to__isnull=True), 1),
+                    (Q(lead__created_by=u) & ~Q(lead__assigned_to=u) & Q(lead__assigned_to__isnull=False), 0.5),
                     (~Q(lead__created_by=u) & Q(lead__assigned_to=u), 0.5),
                 ]
 

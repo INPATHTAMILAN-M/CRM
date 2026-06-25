@@ -48,10 +48,18 @@ class MonthlyTargetSerializer(serializers.ModelSerializer):
 
         total = Decimal('0.00')
 
+        # u = obj.user
+        # filters_with_weights = [
+        #     (Q(lead__created_by=u) & Q(lead__assigned_to=u), Decimal('1')),
+        #     (Q(lead__created_by=u) & Q(lead__assigned_to__isnull=True), Decimal('1')),
+        #     (Q(lead__created_by=u) & ~Q(lead__assigned_to=u) & Q(lead__assigned_to__isnull=False), Decimal('0.5')),
+        #     (~Q(lead__created_by=u) & Q(lead__assigned_to=u), Decimal('0.5')),
+        # ]
         u = obj.user
         filters_with_weights = [
             (Q(lead__created_by=u) & Q(lead__assigned_to=u), Decimal('1')),
-            (Q(lead__created_by=u) & ~Q(lead__assigned_to=u), Decimal('0.5')),
+            (Q(lead__created_by=u) & Q(lead__assigned_to__isnull=True), Decimal('1')),
+            (Q(lead__created_by=u) & ~Q(lead__assigned_to=u) & Q(lead__assigned_to__isnull=False), Decimal('0.5')),
             (~Q(lead__created_by=u) & Q(lead__assigned_to=u), Decimal('0.5')),
         ]
 
@@ -84,17 +92,20 @@ class MonthlyTargetSerializer(serializers.ModelSerializer):
             return str(Decimal(float(remaining)).quantize(Decimal('0.00')))
 
     def get_original_target_amount(self, obj):
-        # Use the user's month-1 baseline amount for all months.
-        # This ensures original_target_amount remains the same for months 1-12.
-        baseline = MonthlyTarget.objects.filter(
-            user=obj.user,
-            month=1,
-        ).order_by('year').first()
-
-        if baseline is None:
+        # Read from UserTarget.target – the user's canonical base target.
+        # Falls back to the row's own original_target_amount, then target_amount.
+        from accounts.models import UserTarget
+        try:
+            user_target = UserTarget.objects.filter(user=obj.user).first()
+            if user_target is not None:
+                val = user_target.target
+            elif obj.original_target_amount is not None:
+                val = obj.original_target_amount
+            else:
+                val = obj.target_amount
+        except Exception:
             val = obj.target_amount
-        else:
-            val = baseline.original_target_amount if baseline.original_target_amount is not None else baseline.target_amount
+
         try:
             dec = Decimal(val)
         except Exception:

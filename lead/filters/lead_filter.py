@@ -11,8 +11,10 @@ class LeadFilter(filters.FilterSet):
     search = filters.CharFilter(method='filter_search', label="Search") 
     assigned_to = filters.ModelChoiceFilter(queryset=User.objects.all())
     lead_source = filters.ModelChoiceFilter(queryset=Lead_Source.objects.all())
-    from_date = filters.DateFilter(field_name='created_on', lookup_expr='gte', label='From Date')
-    to_date = filters.DateFilter(field_name='created_on', lookup_expr='lte', label='To Date', required=False)
+    from_date = filters.DateFilter(field_name='created_on', lookup_expr='date__gte', label='From Date')
+    to_date = filters.DateFilter(field_name='created_on', lookup_expr='date__lte', label='To Date', required=False)
+    created_before = filters.DateTimeFilter(field_name='created_on', lookup_expr='lte', label='Created Before')
+    created_after = filters.DateTimeFilter(field_name='created_on', lookup_expr='gte', label='Created After')
     lead_status = filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
     created_by = filters.ModelChoiceFilter(queryset=User.objects.all())
     bdm = filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
@@ -56,6 +58,8 @@ class LeadFilter(filters.FilterSet):
             'lead_source',
             'bdm',
             'bde',
+            'created_before',
+            'created_after',
         ]
 
     def filter_search(self, queryset, name, value):

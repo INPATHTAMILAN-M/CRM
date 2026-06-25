@@ -7,6 +7,14 @@ from ..models import Opportunity, Lead, Contact, Country, Lead_Source, Lead_Stat
 from django.utils import timezone
 
 class OpportunityFilter(django_filters.FilterSet):
+    ordering = django_filters.OrderingFilter(
+        fields=(
+            ('created_on', 'created_on'),
+        ),
+        field_labels={
+            'created_on': 'Created On',
+        }
+    )
     search = django_filters.CharFilter(method='search_filter', label="Search")
     lead = django_filters.ModelChoiceFilter(queryset=Lead.objects.all())  # Filter by lead
     primary_contact = django_filters.ModelChoiceFilter(queryset=Contact.objects.all(), null_label="No Contact")  # Filter by primary contact
@@ -20,14 +28,14 @@ class OpportunityFilter(django_filters.FilterSet):
     created_on = django_filters.DateFromToRangeFilter()  # Date range filter
     is_active = django_filters.BooleanFilter()  # Boolean filter
 
-    assigned_to = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__assigned_to')
+    assigned_to = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_assigned_to')
     lead_source = django_filters.ModelChoiceFilter(queryset=Lead_Source.objects.all(), field_name='lead__lead_source')
     from_date = django_filters.DateFilter(method='filter_from_date', label='From Date')
     to_date = django_filters.DateFilter(method='filter_to_date', label='To Date', required=False)
     lead_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all(), field_name='lead__lead_status')
     opp_status = django_filters.CharFilter(field_name='opportunity_status__name', lookup_expr='exact')
     opportunity_status = django_filters.ModelChoiceFilter(queryset=Lead_Status.objects.all())
-    created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='lead__created_by')    
+    created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_created_by')    
     bdm = django_filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
     bde = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
     assigned_leads =  django_filters.BooleanFilter(method='filter_assigned_leads', label="Assigned Leads")
@@ -200,3 +208,29 @@ class OpportunityFilter(django_filters.FilterSet):
                 )
             ).filter(display_date__lte=value)
         return queryset
+
+    def filter_created_by(self, queryset, name, value):
+        if not value:
+            return queryset
+        
+        assigned_to_id = self.request.query_params.get('assigned_to')
+        if assigned_to_id:
+            try:
+                assigned_to_val = int(assigned_to_id)
+                return queryset.filter(
+                    Q(lead__created_by=value) | Q(lead__assigned_to_id=assigned_to_val)
+                ).distinct()
+            except ValueError:
+                pass
+        
+        return queryset.filter(lead__created_by=value)
+
+    def filter_assigned_to(self, queryset, name, value):
+        if not value:
+            return queryset
+        
+        created_by_id = self.request.query_params.get('created_by')
+        if created_by_id:
+            return queryset
+            
+        return queryset.filter(lead__assigned_to=value)

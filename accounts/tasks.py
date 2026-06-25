@@ -29,19 +29,25 @@ def calculate_user_achieved_amount(user, month, year):
         .aggregate(total=Sum('opportunity_value'))['total'] or 0
     )
     
-    # Half amount: only creator
+    # Full amount: creator and assignee is None
+    creator_unassigned_value = Decimal(
+        base_qs.filter(Q(lead__created_by=user) & Q(lead__assigned_to__isnull=True))
+        .aggregate(total=Sum('opportunity_value'))['total'] or 0
+    )
+    
+    # Half amount: creator and assignee is not None and not user
     only_creator_value = Decimal(
-        base_qs.filter(Q(lead__created_by=user) & ~Q(lead__assigned_to=user))
+        base_qs.filter(Q(lead__created_by=user) & ~Q(lead__assigned_to=user) & Q(lead__assigned_to__isnull=False))
         .aggregate(total=Sum('opportunity_value'))['total'] or 0
     ) / 2
     
-    # Half amount: only assignee
+    # Half amount: only assignee (creator is not user)
     only_assigned_value = Decimal(
         base_qs.filter(~Q(lead__created_by=user) & Q(lead__assigned_to=user))
         .aggregate(total=Sum('opportunity_value'))['total'] or 0
     ) / 2
     
-    return both_value + only_creator_value + only_assigned_value
+    return both_value + creator_unassigned_value + only_creator_value + only_assigned_value
 
 
 def adjust_monthly_targets(*args, **kwargs):

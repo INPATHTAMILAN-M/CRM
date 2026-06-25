@@ -11,8 +11,8 @@ class TaskFilter(filters.FilterSet):
 
     lead = filters.NumberFilter(field_name='contact__lead__id')   
     contact = filters.CharFilter(field_name='contact__name', lookup_expr='icontains', label='Contact Name') 
-    from_date = filters.DateFilter(field_name='task_date_time', lookup_expr='gte', label='From Date')
-    to_date = filters.DateFilter(field_name='task_date_time', lookup_expr='lte', label='To Date', required=False)
+    from_date = filters.DateFilter(field_name='task_date_time', lookup_expr='date__gte', label='From Date')
+    to_date = filters.DateFilter(field_name='task_date_time', lookup_expr='date__lte', label='To Date', required=False)
     assigned_to_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_to', method='filter_assigned_to_me')
     assigned_to = filters.NumberFilter(field_name='task_task_assignments__assigned_to',method='filter_assigned_to',label='Assigned To User ID')
     assigned_by_me = filters.BooleanFilter(field_name='task_task_assignments__assigned_by', method='filter_assigned_by_me')
@@ -20,6 +20,14 @@ class TaskFilter(filters.FilterSet):
     has_reply = filters.BooleanFilter(field_name='task_conversation_logs__task', method='filter_has_reply')
 
     team = filters.BooleanFilter(method='filter_team', label="Team Filter")
+    user_id = filters.NumberFilter(method='filter_user_id', label="User ID Filter")
+
+    def filter_user_id(self, queryset, name, value):
+        if value:
+            return queryset.filter(
+                Q(created_by_id=value) | Q(task_task_assignments__assigned_to_id=value)
+            ).distinct()
+        return queryset
 
     def filter_has_reply(self, queryset, name, value):
         if value:
