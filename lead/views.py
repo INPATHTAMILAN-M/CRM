@@ -1511,8 +1511,11 @@ def dashboard(request):
         # Company-wide total
         total_actual_revenue = opportunities_q.aggregate(total=Sum('opportunity_value'))['total'] or 0
 
-    # Total opportunities (all statuses) — no is_active filter, matches opportunity list API
-    all_opps_q = Opportunity.objects.filter(is_active=True, created_on__gte=start, created_on__lt=end)
+    # Total opportunities (all statuses) - filtered by date range if provided
+    all_opps_q = Opportunity.objects.all()
+    # Apply date filter if start/end are defined
+    if 'start' in locals() and 'end' in locals():
+        all_opps_q = all_opps_q.filter(created_on__gte=start, created_on__lt=end)
     if user_obj:
         if is_admin:
             if is_team:

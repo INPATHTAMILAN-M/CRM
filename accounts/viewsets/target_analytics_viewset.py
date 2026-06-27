@@ -261,7 +261,306 @@
 
 #         return Response(out_data)
 
+# ------------------old code ----------
+# from rest_framework import viewsets
+# from rest_framework.decorators import action
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.response import Response
+# from django.db.models import Q, Sum
+# from django.utils import timezone
+# from datetime import date
+# from dateutil.relativedelta import relativedelta
+# from decimal import Decimal, ROUND_HALF_UP
+# from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+# from django.contrib.auth import get_user_model
+# from accounts.models import MonthlyTarget, Teams, UserActiveHistory
+# from lead.models import Opportunity
 
+
+# class TargetAnalyticsViewSet(viewsets.ViewSet):
+#     permission_classes = [IsAuthenticated]
+
+#     @extend_schema(
+#         parameters=[
+#             OpenApiParameter(name='user_id', description='Filter by user id', required=False, type=OpenApiTypes.INT),
+#             OpenApiParameter(name='team_id', description='Filter by team id', required=False, type=OpenApiTypes.INT),
+#             OpenApiParameter(name='company_name', description='Filter by company name', required=False, type=OpenApiTypes.STR),
+#             OpenApiParameter(name='team', description='If true: include team users', required=False, type=OpenApiTypes.BOOL),
+#         ]
+#     )
+#     @action(detail=False, methods=["get"], url_path="analytics")
+#     def get_analytics(self, request):
+
+#         today = date.today()
+#         prev_date, next_date = today - relativedelta(months=1), today + relativedelta(months=1)
+
+#         # Percentage calculation
+#         def pct(achieved, target):
+#             if not target:
+#                 return 0
+#             achieved, target = Decimal(str(achieved)), Decimal(str(target))
+#             return int(((achieved / target) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+#         # Weighted achievement calculation
+#         def month_year_gte(month, year, start_month, start_year):
+#             return year > start_year or (year == start_year and month >= start_month)
+
+#         def month_year_lte(month, year, end_month, end_year):
+#             return year < end_year or (year == end_year and month <= end_month)
+
+#         def month_year_in_range(month, year, start, end=None, inclusive_end=True):
+#             if not month_year_gte(month, year, start.month, start.year):
+#                 return False
+#             if end is None:
+#                 return True
+#             if inclusive_end:
+#                 return month_year_lte(month, year, end.month, end.year)
+#             return year < end.year or (year == end.year and month < end.month)
+
+#         def month_year_allowed(target_user, month, year):
+#             histories = list(UserActiveHistory.objects.filter(user=target_user).order_by('changed_at'))
+#             # If there are history changes within the requested month, use the
+#             # *latest* change in that month to determine active state for that
+#             # month (handles deactivate->reactivate within same month).
+#             month_histories = [h for h in histories if h.changed_at.year == year and h.changed_at.month == month]
+#             if month_histories:
+#                 return bool(month_histories[-1].is_active)
+#             if not histories:
+#                 # If there's no recorded history, rely on the current `is_active` flag.
+#                 # - active users: allow months
+#                 # - inactive users: do not allow any months (safe default)
+#                 return bool(target_user.is_active)
+
+#             active_start = None
+            
+#             # If first history is inactive, assume user was active from date_joined until then
+#             if histories and not histories[0].is_active and target_user.date_joined:
+#                 active_start = target_user.date_joined
+#                 # Check if this period covers the requested month
+#                 if month_year_in_range(month, year, active_start, histories[0].changed_at, inclusive_end=False):
+#                     return True
+#                 active_start = None
+            
+#             for h in histories:
+#                 if h.is_active:
+#                     if active_start is None:
+#                         active_start = h.changed_at
+#                         if h == histories[0] and target_user.date_joined and target_user.date_joined < active_start:
+#                             active_start = target_user.date_joined
+#                 else:
+#                     if active_start is not None:
+#                         if month_year_in_range(month, year, active_start, h.changed_at, inclusive_end=False):
+#                             return True
+#                         active_start = None
+
+#             if active_start is not None:
+#                 if target_user.is_active:
+#                     return month_year_in_range(month, year, active_start)
+#                 return month_year_in_range(month, year, active_start, timezone.now(), inclusive_end=False)
+
+#             if target_user.is_active:
+#                 return month_year_in_range(month, year, timezone.now())
+
+#             return False
+
+#         def get_value(model, users, month=None, year=None):
+#             total_value = Decimal("0.00")
+
+#             for target_user in users:
+#                 if month and year and not month_year_allowed(target_user, month, year):
+#                     continue
+
+#                 qs = model.objects.filter(opportunity_status=34, is_active=True)
+#                 if month:
+#                     qs = qs.filter(closing_date__month=month)
+#                 if year:
+#                     qs = qs.filter(closing_date__year=year)
+
+#                 filters_with_weights = [
+#                     (Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 1),
+#                     (Q(lead__created_by=target_user) & Q(lead__assigned_to__isnull=True), 1),
+#                     (Q(lead__created_by=target_user) & ~Q(lead__assigned_to=target_user) & Q(lead__assigned_to__isnull=False), 0.5),
+#                     (~Q(lead__created_by=target_user) & Q(lead__assigned_to=target_user), 0.5),
+#                 ]
+
+#                 for condition, weight in filters_with_weights:
+#                     value = qs.filter(condition).aggregate(total=Sum("opportunity_value"))["total"] or 0
+#                     total_value += Decimal(value) * Decimal(weight)
+
+#             return total_value
+
+#         def get_target(month, year):
+#             total = Decimal("0.00")
+#             for target_user in target_users:
+#                 if month_year_allowed(target_user, month, year):
+#                     total += (
+#                         MonthlyTarget.objects.filter(user=target_user, month=month, year=year)
+#                         .aggregate(total=Sum("target_amount"))
+#                         .get("total")
+#                         or Decimal("0.00")
+#                     )
+#             return total
+
+#         # Date helpers
+#         def month_year_pairs(start_date, end_date):
+#             pairs = []
+#             cur = start_date.replace(day=1)
+#             while cur <= end_date:
+#                 pairs.append((cur.month, cur.year))
+#                 cur = (cur + relativedelta(months=1)).replace(day=1)
+#             return pairs
+
+#         def sum_targets_for_range(start_date, end_date):
+#             total = Decimal("0.00")
+#             for m, y in month_year_pairs(start_date, end_date):
+#                 total += get_target(m, y)
+#             return total
+
+#         def sum_achieved_for_range(start_date, end_date):
+#             total = Decimal("0.00")
+#             for m, y in month_year_pairs(start_date, end_date):
+#                 total += get_value(Opportunity, target_users, month=m, year=y)
+#             return total
+
+#         User = get_user_model()
+
+#         requester = request.user
+#         groups = {g.lower() for g in requester.groups.values_list("name", flat=True)}
+
+#         is_admin = "admin" in groups
+#         is_bdm = "bdm" in groups
+
+#         team_flag = str(request.query_params.get("team", "")).lower() in ("true", "1", "yes")
+#         user_id = request.query_params.get("user_id")
+
+#         target_users = []
+
+#         # Normal flow
+#         if not team_flag:
+#             target_users = [requester]
+#         else:
+#             if is_admin:
+#                 target_users = list(User.objects.exclude(id=requester.id))
+#             elif is_bdm:
+#                 team = Teams.objects.filter(bdm_user=requester).first()
+#                 target_users = list(team.bde_user.all()) if team else []
+#             else:
+#                 target_users = [requester]
+
+#         # 🔥 FIX: user_id supports TM / DM / ANY user including those not in Teams table
+#         if user_id:
+#             try:
+#                 target_users = [User.objects.get(id=int(user_id))]
+#             except User.DoesNotExist:
+#                 target_users = []
+
+#         # ---- Calculate Values ----
+#         prev_target = get_target(prev_date.month, prev_date.year)
+#         curr_target = get_target(today.month, today.year)
+#         next_target = get_target(next_date.month, next_date.year)
+
+#         # FY (Apr–Mar)
+#         fy_start_year = today.year if today.month >= 4 else today.year - 1
+#         fy_start = date(fy_start_year, 4, 1)
+#         fy_end = date(fy_start_year + 1, 3, 31)
+
+#         financial_target = sum_targets_for_range(fy_start, fy_end)
+#         financial_achieved = sum_achieved_for_range(fy_start, fy_end)
+
+#         prev_fy_start = date(fy_start_year - 1, 4, 1)
+#         prev_fy_end = date(fy_start_year, 3, 31)
+
+#         prev_financial_achieved = sum_achieved_for_range(prev_fy_start, prev_fy_end)
+
+#         prev_ach = get_value(Opportunity, target_users, prev_date.month, prev_date.year)
+#         curr_ach = get_value(Opportunity, target_users, today.month, today.year)
+
+#         physical_year_start = date(today.year, 1, 1)
+#         physical_year_end = date(today.year, 12, 31)
+
+#         prev_physical_year_start = date(today.year - 1, 1, 1)
+#         prev_physical_year_end = date(today.year - 1, 12, 31)
+
+#         annual_ach = sum_achieved_for_range(physical_year_start, physical_year_end)
+#         last_year_ach = sum_achieved_for_range(prev_physical_year_start, prev_physical_year_end)
+
+#         annual_target = sum_targets_for_range(physical_year_start, physical_year_end)
+
+#         prev_month_start = prev_date.replace(day=1)
+#         prev_month_end = today.replace(day=1) - relativedelta(days=1)
+
+#         curr_month_start = today.replace(day=1)
+#         curr_month_end = (today.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
+
+#         def quantize_decimal(value):
+#             if value is None:
+#                 return "0.00"
+#             return str(Decimal(value).quantize(Decimal("0.00"), rounding=ROUND_HALF_UP))
+
+#         # Build optional debug information listing which users were included
+#         debug_flag = str(request.query_params.get("debug", "")).lower() in ("true", "1", "yes")
+
+#         def users_allowed_for_month(m, y):
+#             return [u.id for u in target_users if month_year_allowed(u, m, y)]
+
+#         def users_allowed_in_range(start_date, end_date):
+#             s = set()
+#             for m, y in month_year_pairs(start_date, end_date):
+#                 for u in target_users:
+#                     if month_year_allowed(u, m, y):
+#                         s.add(u.id)
+#             return sorted(s)
+
+#         prev_users = users_allowed_for_month(prev_date.month, prev_date.year)
+#         curr_users = users_allowed_for_month(today.month, today.year)
+#         fy_users = users_allowed_in_range(fy_start, fy_end)
+#         physical_users = users_allowed_in_range(physical_year_start, physical_year_end)
+
+#         output = [
+#             {
+#                 "type": "prevMonth",
+#                 "title": "Previous Month",
+#                 "start_date": str(prev_month_start),
+#                 "end_date": str(prev_month_end),
+#                 "target": quantize_decimal(prev_target),
+#                 "achieved": quantize_decimal(prev_ach),
+#                 "percentage": pct(prev_ach, prev_target),
+#                 "increase": curr_ach > prev_ach,
+#             },
+#             {
+#                 "type": "currentMonth",
+#                 "title": "Current Month",
+#                 "start_date": str(curr_month_start),
+#                 "end_date": str(curr_month_end),
+#                 "target": quantize_decimal(curr_target),
+#                 "achieved": quantize_decimal(curr_ach),
+#                 "percentage": pct(curr_ach, curr_target),
+#                 "increase": curr_ach > prev_ach,
+#             },
+#             {
+#                 "type": "financialYear",
+#                 "title": "Financial Year",
+#                 "start_date": str(fy_start),
+#                 "end_date": str(fy_end),
+#                 "target": quantize_decimal(financial_target),
+#                 "achieved": quantize_decimal(financial_achieved),
+#                 "percentage": pct(financial_achieved, financial_target),
+#                 "increase": financial_achieved > prev_financial_achieved,
+#             },
+#             {
+#                 "type": "PhysicalYear",
+#                 "title": "Physical Year",
+#                 "start_date": str(physical_year_start),
+#                 "end_date": str(physical_year_end),
+#                 "target": quantize_decimal(annual_target),
+#                 "achieved": quantize_decimal(annual_ach),
+#                 "percentage": pct(annual_ach, annual_target),
+#                 "increase": annual_ach > last_year_ach,
+#             },
+#         ]
+
+#         return Response(output)
+# ------------------old code ----------
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -320,13 +619,13 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
         def month_year_allowed(target_user, month, year):
             histories = list(UserActiveHistory.objects.filter(user=target_user).order_by('changed_at'))
             # If there are history changes within the requested month, use the
-            # *latest* change in that month to determine active state for that
+            # latest change in that month to determine active state for that
             # month (handles deactivate->reactivate within same month).
             month_histories = [h for h in histories if h.changed_at.year == year and h.changed_at.month == month]
             if month_histories:
                 return bool(month_histories[-1].is_active)
             if not histories:
-                # If there's no recorded history, rely on the current `is_active` flag.
+                # If there's no recorded history, rely on the current is_active flag.
                 # - active users: allow months
                 # - inactive users: do not allow any months (safe default)
                 return bool(target_user.is_active)
@@ -389,16 +688,29 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
 
             return total_value
 
+        def get_cumulative_target_for_user(target_user, month, year):
+            """
+            target_amount is stored as a running cumulative total.
+            Return the cumulative value at (month, year), or the latest before it.
+            """
+            mt = (
+                MonthlyTarget.objects.filter(user=target_user)
+                .filter(Q(year__lt=year) | Q(year=year, month__lte=month))
+                .order_by('-year', '-month')
+                .first()
+            )
+            return Decimal(mt.target_amount) if mt else Decimal("0.00")
+
         def get_target(month, year):
+            """
+            Single-month target = raw cumulative value stored at that month.
+            Sums across all allowed target_users.
+            """
             total = Decimal("0.00")
             for target_user in target_users:
-                if month_year_allowed(target_user, month, year):
-                    total += (
-                        MonthlyTarget.objects.filter(user=target_user, month=month, year=year)
-                        .aggregate(total=Sum("target_amount"))
-                        .get("total")
-                        or Decimal("0.00")
-                    )
+                if not month_year_allowed(target_user, month, year):
+                    continue
+                total += get_cumulative_target_for_user(target_user, month, year)
             return total
 
         # Date helpers
@@ -411,9 +723,23 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
             return pairs
 
         def sum_targets_for_range(start_date, end_date):
+            """
+            Range target = the raw cumulative value at the LAST ALLOWED month
+            within the range for each user. If a user went inactive mid-range,
+            their target is capped at the last month they were active.
+            Matches the dashboard's get_cumulative_target logic.
+            """
             total = Decimal("0.00")
-            for m, y in month_year_pairs(start_date, end_date):
-                total += get_target(m, y)
+            all_pairs = month_year_pairs(start_date, end_date)
+            for target_user in target_users:
+                # Find the last month in the range where the user was allowed
+                last_allowed = None
+                for m, y in all_pairs:
+                    if month_year_allowed(target_user, m, y):
+                        last_allowed = (m, y)
+                if last_allowed is None:
+                    continue
+                total += get_cumulative_target_for_user(target_user, last_allowed[0], last_allowed[1])
             return total
 
         def sum_achieved_for_range(start_date, end_date):
@@ -455,9 +781,13 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
                 target_users = []
 
         # ---- Calculate Values ----
-        prev_target = get_target(prev_date.month, prev_date.year)
-        curr_target = get_target(today.month, today.year)
-        next_target = get_target(next_date.month, next_date.year)
+        prev_month_start = prev_date.replace(day=1)
+        prev_month_end = today.replace(day=1) - relativedelta(days=1)
+        curr_month_start = today.replace(day=1)
+        curr_month_end = (today.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
+
+        prev_target = sum_targets_for_range(prev_month_start, prev_month_end)
+        curr_target = sum_targets_for_range(curr_month_start, curr_month_end)
 
         # FY (Apr–Mar)
         fy_start_year = today.year if today.month >= 4 else today.year - 1
@@ -485,12 +815,6 @@ class TargetAnalyticsViewSet(viewsets.ViewSet):
         last_year_ach = sum_achieved_for_range(prev_physical_year_start, prev_physical_year_end)
 
         annual_target = sum_targets_for_range(physical_year_start, physical_year_end)
-
-        prev_month_start = prev_date.replace(day=1)
-        prev_month_end = today.replace(day=1) - relativedelta(days=1)
-
-        curr_month_start = today.replace(day=1)
-        curr_month_end = (today.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
 
         def quantize_decimal(value):
             if value is None:

@@ -20,6 +20,11 @@ class LeadFilter(filters.FilterSet):
     bdm = filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
     bde = filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
     user_id = django_filters.NumberFilter(method='filter_by_user_id', label="Filter by User ID (created_by or assigned_to)")
+    team = filters.BooleanFilter(method='filter_team', label="Team Filter")
+    
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
     def filter_to_date(self, queryset, name, value):
         """If no 'to_date' is provided, defaults to today."""
         if not value:
@@ -81,4 +86,12 @@ class LeadFilter(filters.FilterSet):
             return queryset.filter(
                 Q(created_by__id=value) | Q(assigned_to__id=value)
             )
+        return queryset
+    
+    def filter_team(self, queryset, name, value):
+        # Team filtering is handled in get_queryset for Admin/BDM.
+        # This filter is only for non-Admin/BDM users if called directly.
+        request = self.request
+        if not request or not request.user.is_authenticated:
+            return queryset
         return queryset

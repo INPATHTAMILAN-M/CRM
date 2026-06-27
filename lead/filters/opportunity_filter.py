@@ -38,8 +38,8 @@ class OpportunityFilter(django_filters.FilterSet):
     created_by = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_created_by')    
     bdm = django_filters.BaseInFilter(method='filter_bdm', label="BDM Filter")
     bde = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_bde', label="BDE Filter")
-    assigned_leads =  django_filters.BooleanFilter(method='filter_assigned_leads', label="Assigned Leads")
-    role_asssigned = django_filters.ModelChoiceFilter(queryset=User.objects.all(),method='filter_role_assigned', label="BDM Assigned")
+    assigned_leads = django_filters.BooleanFilter(method='filter_assigned_leads', label="Assigned Leads")
+    role_asssigned = django_filters.ModelChoiceFilter(queryset=User.objects.all(), method='filter_role_assigned', label="BDM Assigned")
     month = django_filters.BooleanFilter(method='filter_this_month', label="This Month")
     today = django_filters.BooleanFilter(method='filter_today', label="Today")
     team = django_filters.BooleanFilter(method='filter_team', label="Team Filter")
@@ -61,7 +61,6 @@ class OpportunityFilter(django_filters.FilterSet):
             'probability_in_percentage',
             'created_on',
             'is_active',
-            'assigned_to',
             'assigned_to',
             'opp_status'
         ]
@@ -92,17 +91,14 @@ class OpportunityFilter(django_filters.FilterSet):
                 Q(lead__assigned_to=self.request.user) & Q(lead__created_by=value)
             )
         return queryset
-    
 
     def filter_this_month(self, queryset, name, value):
         """Filter records created in the current month and year."""
-
         if value:
             return queryset.filter(
                 Q(lead__created_on__month=timezone.now().month, lead__created_on__year=timezone.now().year) |
                 Q(status_date__month=timezone.now().month, status_date__year=timezone.now().year)
             )
-        
         return queryset
 
     def filter_today(self, queryset, name, value):
@@ -124,7 +120,12 @@ class OpportunityFilter(django_filters.FilterSet):
     def filter_team(self, queryset, name, value):
         """
         Filters queryset based on team relationships.
-        Handles ?team=true/false flag.
+        Matches dashboard logic exactly:
+        - Admin + team=true  → exclude lead__created_by=user OR lead__assigned_to=user
+        - Admin + team=false → only lead__created_by=user OR lead__assigned_to=user
+        - BDM + team=true    → team members' leads
+        - BDM + team=false   → BDM's own leads
+        - Others             → own leads only
         """
         request = self.request
         user = request.user
@@ -133,36 +134,40 @@ class OpportunityFilter(django_filters.FilterSet):
         is_bdm = user.groups.filter(name__iexact="BDM").exists()
 
         # --- Case 1: Admin ---
-        # Admins can see all except their own created records
         if is_admin:
-            return queryset.exclude(created_by=user)
+            if value:
+                # team=true → exclude Admin's own created/assigned leads
+                return queryset.exclude(
+                    Q(lead__created_by=user) | Q(lead__assigned_to=user)
+                )
+            else:
+                # team=false → only Admin's own
+                return queryset.filter(
+                    Q(lead__created_by=user) | Q(lead__assigned_to=user)
+                )
 
         # --- Case 2: BDM ---
-        # BDM can see their team's leads when team=true, else their own
         if is_bdm:
             user_team = Teams.objects.filter(bdm_user=user).first()
             if not user_team:
                 return queryset.none()
 
-            # When ?team=true → include all team members' leads (not BDM’s own)
-            if str(value).lower() == "true":
+            if value:
+                # team=true → show team members' opportunities
                 team_member_ids = list(user_team.bde_user.values_list("id", flat=True))
-
                 return queryset.filter(
                     Q(lead__assigned_to__in=team_member_ids) |
                     Q(lead__created_by__in=team_member_ids)
                 )
+            else:
+                # team=false → show BDM's own
+                return queryset.filter(
+                    Q(lead__assigned_to=user) | Q(lead__created_by=user)
+                )
 
-            # When ?team=false → only show own records
-            return queryset.filter(
-                Q(lead__assigned_to=user.id) |
-                Q(lead__created_by=user.id)
-            )
-
-        # --- Case 3: Regular user (BDE etc.) ---
+        # --- Case 3: Regular user (BDE/TM etc.) ---
         return queryset.filter(
-            Q(lead__assigned_to=user.id) |
-            Q(lead__created_by=user.id)
+            Q(lead__assigned_to=user) | Q(lead__created_by=user)
         )
     
     def filter_by_user_id(self, queryset, name, value):
@@ -184,7 +189,6 @@ class OpportunityFilter(django_filters.FilterSet):
         """
         from django.db.models import Case, When, F
         if value:
-            # Get most recent date using Case/When: if updated_on > created_on use updated_on, else created_on
             queryset = queryset.annotate(
                 display_date=Case(
                     When(updated_on__isnull=False, updated_on__gt=F('created_on'), then=F('updated_on')),
@@ -200,7 +204,6 @@ class OpportunityFilter(django_filters.FilterSet):
         """
         from django.db.models import Case, When, F
         if value:
-            # Get most recent date using Case/When: if updated_on > created_on use updated_on, else created_on
             queryset = queryset.annotate(
                 display_date=Case(
                     When(updated_on__isnull=False, updated_on__gt=F('created_on'), then=F('updated_on')),

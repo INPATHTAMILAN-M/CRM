@@ -37,7 +37,7 @@ class LeadSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'focus_segment', 'market_segment', 'state', 'country', 'created_on',
             'annual_revenue', 'company_number', 'company_email', 'company_website', 'fax', 
-            'tags', 'lead_owner', 'created_by', 'is_active'
+            'tags', 'lead_owner', 'created_by', 'is_active', 'whatsapp'
         ]
 
     def to_representation(self, instance):
@@ -84,4 +84,5 @@ class LeadSerializer(serializers.ModelSerializer):
                 "username": representation['created_by']['username'],
             },
             "is_active": representation['is_active'],
+            "whatsapp": representation.get('whatsapp', False),
         }

@@ -32,7 +32,8 @@ class OpportunityViewset(viewsets.ModelViewSet):
     pagination_class = Paginator
 
     # def get_queryset(self):
-    #     queryset = self.queryset.filter(is_active=True)
+    #     # Return all opportunities (including inactive) to match dashboard count
+    #     queryset = self.queryset
         
     #     if self.request.query_params.get('display_date_source'):
     #         queryset = queryset.annotate(

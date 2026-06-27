@@ -365,7 +365,7 @@ class PostLeadSerializer(serializers.ModelSerializer):
             'id', 'name', 'focus_segment', 'lead_owner', 'country', 'state', 'city', 'address',
             'company_website', 'fax', 'annual_revenue', 'tags', 'market_segment', 'lead_status',
             'is_active', 'lead_type', 'assigned_to', 'lead_source', 'lead_source_from', 'department',
-            'contact_id', 'remark', 'status_date', 'opportunity_name','opportunity_keyword'
+            'contact_id', 'remark', 'status_date', 'opportunity_name','opportunity_keyword', 'whatsapp'
         ]
         read_only_fields = ['created_by']
         

@@ -40,6 +40,12 @@ class LeadViewSet(viewsets.ModelViewSet):
         context["request"] = self.request  # Add request context
         return context
     
+    def get_filterset_kwargs(self, *args, **kwargs):
+        """Pass request to filterset"""
+        kwargs = super().get_filterset_kwargs(*args, **kwargs)
+        kwargs['request'] = self.request
+        return kwargs
+    
     def perform_create(self, serializer):
         # Save the lead and assign the current logged-in user as 'created_by'
         lead = serializer.save(created_by=self.request.user)
@@ -83,19 +89,42 @@ class LeadViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
+        team = self.request.query_params.get('team', '').lower() == 'true'
+
         # Filter leads based on user group
         if user.groups.filter(name='Admin').exists():
-            return Lead.objects.all().order_by('-id')
+            base_qs = Lead.objects.filter(is_active=True).order_by('-id')
+            if team:
+                # team=true → exclude Admin's own created/assigned leads
+                return base_qs.exclude(
+                    Q(created_by=user) | Q(assigned_to=user)
+                )
+            else:
+                return base_qs
+
         elif user.groups.filter(name='DM').exists():
             return Lead.objects.filter(created_by=user, is_active=True).order_by('-id')
+
         elif user.groups.filter(name='TM').exists() or user.groups.filter(name='BDE').exists():
-            return Lead.objects.filter(Q(assigned_to=user) | Q(created_by=user) & Q(is_active=True)).distinct().order_by('-id')
-        elif user.groups.filter(name='BDM').exists():
-        # Get all BDE users associated with this BDM
-            bde_users = Teams.objects.filter(bdm_user=user).values_list('bde_user', flat=True)
             return Lead.objects.filter(
-                Q(lead_owner=user) | Q(created_by=user) | Q(created_by__in=bde_users) | Q(assigned_to__in=bde_users) & Q(is_active=True)
-            ).order_by('-id')
+                Q(assigned_to=user) | Q(created_by=user), is_active=True
+            ).distinct().order_by('-id')
+
+        elif user.groups.filter(name='BDM').exists():
+            bde_users = Teams.objects.filter(bdm_user=user).values_list('bde_user', flat=True)
+            if team:
+                # team=true → show team members' leads
+                return Lead.objects.filter(
+                    Q(created_by__in=bde_users) | Q(assigned_to__in=bde_users),
+                    is_active=True
+                ).order_by('-id')
+            else:
+                return Lead.objects.filter(
+                    Q(lead_owner=user) | Q(created_by=user) |
+                    Q(created_by__in=bde_users) | Q(assigned_to__in=bde_users),
+                    is_active=True
+                ).order_by('-id')
+
         else:
             return Lead.objects.none()
 

@@ -12,7 +12,7 @@ from rest_framework import status
 from ..google_calendar import create_or_update_google_event, delete_google_event
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.filter(is_active=True)
+    queryset = Task.objects.filter(is_active=True).order_by('-id')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskFilter

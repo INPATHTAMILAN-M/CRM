@@ -85,6 +85,7 @@ class Lead(models.Model):
     ]
     lead_type = models.CharField(max_length=20, choices=LEAD_TYPE_CHOICES)
     assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    whatsapp = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     updated_on = models.DateTimeField(auto_now=True)
 
@@ -372,3 +373,12 @@ class ApolloLead(models.Model):
     def __str__(self):
         return self.full_name or self.external_id
 
+class Whatsapp(models.Model):
+    name = models.CharField(max_length=255)
+    category = models.CharField(max_length=255)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
